@@ -1,0 +1,6 @@
+@FlashDeskAPI_HostAddress = http://localhost:5195
+
+GET {{FlashDeskAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

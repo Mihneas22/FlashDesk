@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Application/Application.csproj" />
+  <Project Path="Domain/Domain.csproj" />
+  <Project Path="FlashDeskAPI/FlashDeskAPI.csproj" />
+  <Project Path="Infastructure/Infastructure.csproj" />
+</Solution>

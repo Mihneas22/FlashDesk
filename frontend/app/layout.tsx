@@ -1,0 +1,29 @@
+import type { Metadata } from 'next'
+import { Inter, Geist_Mono } from 'next/font/google'
+import { Analytics } from '@vercel/analytics/next'
+import './globals.css'
+import 'katex/dist/katex.min.css'
+
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
+const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono' })
+
+export const metadata: Metadata = {
+  title: 'FormulaCards — Engineering Flashcards',
+  description: 'Spaced-repetition flashcard app for engineering students with LaTeX formula support.',
+  generator: 'v0.app',
+}
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode
+}>) {
+  return (
+    <html lang="en" className="bg-background">
+      <body className={`${inter.variable} ${geistMono.variable} font-sans antialiased`}>
+        {children}
+        {process.env.NODE_ENV === 'production' && <Analytics />}
+      </body>
+    </html>
+  )
+}
