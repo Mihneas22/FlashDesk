@@ -55,7 +55,7 @@ namespace Infastructure.Repository
             if (loginUserDTO == null)
                 return new LoginUserResponse(false, "Invalid data");
 
-            var userF = await dbContext.UserEntity!.FirstOrDefaultAsync(user => user.Username == loginUserDTO.Email);
+            var userF = await dbContext.UserEntity!.FirstOrDefaultAsync(user => user.Email == loginUserDTO.Email);
 
             if (userF == null)
                 return new LoginUserResponse(false, "User not found");
@@ -89,7 +89,7 @@ namespace Infastructure.Repository
                 Email = registerUserDTO.Email,
                 Password = BCrypt.Net.BCrypt.HashPassword(registerUserDTO.Password),
                 UserDecks = new List<Deck>(),
-                CreatedAt = DateTime.Now
+                CreatedAt = DateTime.UtcNow
             });
 
             await dbContext.SaveChangesAsync();

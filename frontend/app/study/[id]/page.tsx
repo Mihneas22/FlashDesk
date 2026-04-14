@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState, useMemo } from "react";
+import { use, useState, useMemo, useEffect } from "react"; // Adăugat useEffect
 import Link from "next/link";
 import { ArrowLeft, RotateCcw, Check } from "lucide-react";
 import { Navbar } from "@/components/navbar";
@@ -22,11 +22,18 @@ export default function StudyPage({ params }: PageProps) {
   const { getDeckById } = useStore();
   const deck = getDeckById(id);
 
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // Stare pentru login
   const [queue, setQueue] = useState<StudyCard[]>(() =>
     (deck?.cards ?? []).map((c) => ({ ...c, status: "unseen" as const }))
   );
   const [currentIndex, setCurrentIndex] = useState(0);
   const [sessionDone, setSessionDone] = useState(false);
+
+  // Verificăm autentificarea
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    setIsLoggedIn(!!token);
+  }, []);
 
   const totalCards = queue.length;
   const ratedCards = useMemo(
@@ -40,7 +47,7 @@ export default function StudyPage({ params }: PageProps) {
   if (!deck) {
     return (
       <div className="min-h-screen bg-background text-foreground">
-        <Navbar />
+        <Navbar isLoggedIn={isLoggedIn} />
         <div className="flex flex-col items-center justify-center pt-40 text-center">
           <p className="text-lg font-semibold text-foreground">Deck not found</p>
           <Link href="/" className="mt-4 text-sm text-primary hover:underline">
@@ -54,7 +61,7 @@ export default function StudyPage({ params }: PageProps) {
   if (deck.cards.length === 0) {
     return (
       <div className="min-h-screen bg-background text-foreground">
-        <Navbar />
+        <Navbar isLoggedIn={isLoggedIn} />
         <div className="flex flex-col items-center justify-center pt-40 gap-3 text-center px-4">
           <p className="text-lg font-semibold text-foreground">No cards to study</p>
           <p className="text-sm text-muted-foreground">Add some cards to this deck first.</p>
@@ -71,7 +78,6 @@ export default function StudyPage({ params }: PageProps) {
       prev.map((c, i) => (i === currentIndex ? { ...c, status: rating } : c))
     );
 
-    // Move to next card or finish
     if (currentIndex + 1 >= queue.length) {
       setSessionDone(true);
     } else {
@@ -95,7 +101,7 @@ export default function StudyPage({ params }: PageProps) {
 
     return (
       <div className="min-h-screen bg-background text-foreground">
-        <Navbar />
+        <Navbar isLoggedIn={isLoggedIn} />
         <div className="mx-auto flex max-w-lg flex-col items-center px-6 py-20 text-center">
           <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-good/15">
             <Check className="h-8 w-8 text-good" />
@@ -105,7 +111,6 @@ export default function StudyPage({ params }: PageProps) {
             You reviewed all {totalCards} cards in <span className="text-foreground font-medium">{deck.title}</span>
           </p>
 
-          {/* Result breakdown */}
           <div className="mt-8 grid w-full grid-cols-4 gap-3">
             <ResultStat label="Again" value={counts.again} color="text-again" />
             <ResultStat label="Hard" value={counts.hard} color="text-hard" />
@@ -135,10 +140,9 @@ export default function StudyPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <Navbar />
+      <Navbar isLoggedIn={isLoggedIn} />
 
       <main className="mx-auto max-w-2xl px-6 py-10">
-        {/* Top bar */}
         <div className="mb-6 flex items-center justify-between">
           <Link
             href={`/deck/${deck.id}`}
@@ -152,7 +156,6 @@ export default function StudyPage({ params }: PageProps) {
           </span>
         </div>
 
-        {/* Progress bar */}
         <div className="mb-8 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
           <div
             className="h-full rounded-full bg-primary transition-all duration-500"
@@ -160,10 +163,8 @@ export default function StudyPage({ params }: PageProps) {
           />
         </div>
 
-        {/* Card */}
         <FlashcardView card={currentCard} resetKey={currentCard.id} />
 
-        {/* Controls */}
         <div className="mt-8">
           <p className="mb-3 text-center text-xs text-muted-foreground">
             How well did you recall this?

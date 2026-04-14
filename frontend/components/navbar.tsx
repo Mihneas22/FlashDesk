@@ -2,11 +2,20 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, Layers } from "lucide-react";
+import { BookOpen, Layers, LogIn, LogOut } from "lucide-react"; // Am adăugat LogOut
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
-export function Navbar() {
+export function Navbar({ isLoggedIn }: { isLoggedIn?: boolean }) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    router.push("/login");
+    router.refresh();
+  };
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
@@ -25,11 +34,33 @@ export function Navbar() {
         </Link>
 
         {/* Nav links */}
-        <nav className="flex items-center gap-1">
-          <NavLink href="/" active={pathname === "/"}>
-            <BookOpen className="h-3.5 w-3.5" />
-            Decks
-          </NavLink>
+        <nav className="flex items-center gap-4">
+          <div className="flex items-center gap-1">
+            <NavLink href="/" active={pathname === "/"}>
+              <BookOpen className="h-3.5 w-3.5" />
+              Decks
+            </NavLink>
+          </div>
+
+          {/* Logica de Login / Logout */}
+          {isLoggedIn ? (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-8 gap-1.5 text-destructive hover:text-destructive"
+              onClick={handleLogout}
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              Log out
+            </Button>
+          ) : (
+            <Button asChild variant="outline" size="sm" className="h-8 gap-1.5">
+              <Link href="/login">
+                <LogIn className="h-3.5 w-3.5" />
+                Sign in
+              </Link>
+            </Button>
+          )}
         </nav>
       </div>
     </header>

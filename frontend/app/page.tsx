@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react"; // Adăugat useEffect
 import { Plus, Search } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { DeckCard } from "@/components/deck-card";
@@ -21,6 +21,15 @@ export default function DashboardPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newDesc, setNewDesc] = useState("");
+  
+  // Stare pentru autentificare
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // Verificăm dacă utilizatorul este logat la montarea componentei
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    setIsLoggedIn(!!token);
+  }, []);
 
   const filtered = decks.filter(
     (d) =>
@@ -42,7 +51,8 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <Navbar />
+      {/* Pasăm starea de logare către Navbar */}
+      <Navbar isLoggedIn={isLoggedIn} />
 
       <main className="mx-auto max-w-6xl px-6 py-10">
         {/* Page header */}
@@ -70,14 +80,16 @@ export default function DashboardPage() {
               />
             </div>
 
-            {/* Create deck */}
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 transition-opacity"
-            >
-              <Plus className="h-4 w-4" />
-              Create Deck
-            </button>
+            {/* Butonul de Create Deck apare doar dacă ești logat */}
+            {isLoggedIn && (
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 transition-opacity"
+              >
+                <Plus className="h-4 w-4" />
+                Create Deck
+              </button>
+            )}
           </div>
         </div>
 
@@ -95,7 +107,11 @@ export default function DashboardPage() {
             </div>
             <p className="text-sm font-medium text-foreground">No decks found</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              {search ? "Try a different search term" : 'Create your first deck with the "Create Deck" button'}
+              {search 
+                ? "Try a different search term" 
+                : isLoggedIn 
+                  ? 'Create your first deck with the "Create Deck" button'
+                  : 'Please sign in to create and manage your decks'}
             </p>
           </div>
         )}
