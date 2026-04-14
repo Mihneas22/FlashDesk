@@ -1,4 +1,6 @@
-﻿using Infastructure.AppDbContext;
+﻿using Application.Repository;
+using Infastructure.AppDbContext;
+using Infastructure.Repository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -37,6 +39,8 @@ namespace Infastructure.DepInject
                         (Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!))
                 };
             });
+
+            services.AddScoped<IUser, UserRepository>();
 
             return services;
         }
