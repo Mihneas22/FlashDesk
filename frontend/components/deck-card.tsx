@@ -29,9 +29,9 @@ export function DeckCard({ deck }: DeckCardProps) {
       <p className="mt-1 text-sm leading-relaxed text-muted-foreground line-clamp-2">
         {deck.description}
       </p>
-      <p className="mt-1 text-sm leading-relaxed text-muted-foreground line-clamp-2">
+      <h4 className="mt-1 text-sm leading-relaxed font-semibold text-foreground line-clamp-2">
         {deck.topic}
-      </p>
+      </h4>
 
       <div className="mt-4 flex items-center justify-between">
         <span className="text-xs font-medium text-muted-foreground">

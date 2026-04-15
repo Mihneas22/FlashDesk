@@ -1,4 +1,5 @@
-﻿using Application.DTOs.User.LoginUser;
+﻿using Application.DTOs.User.GetUserData;
+using Application.DTOs.User.LoginUser;
 using Application.DTOs.User.RegisterUser;
 using Application.Repository;
 using Domain.Models;
@@ -50,7 +51,7 @@ namespace Infastructure.Repository
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        public async Task<LoginUserResponse> LonginUserRepository(LoginUserDTO loginUserDTO)
+        public async Task<LoginUserResponse> LoginUserRepository(LoginUserDTO loginUserDTO)
         {
             if (loginUserDTO == null)
                 return new LoginUserResponse(false, "Invalid data");
@@ -95,6 +96,19 @@ namespace Infastructure.Repository
             await dbContext.SaveChangesAsync();
 
             return new RegisterUserResponse(true, "Success!"); ;
+        }
+
+        public async Task<GetUserDataResponse> GetUserDataRepository(GetUserDataDTO getUserDataDTO)
+        {
+            if (getUserDataDTO == null)
+                return new GetUserDataResponse(false, "Invalid DTO");
+
+            var user = await dbContext.UserEntity.FirstOrDefaultAsync(us => us.Email == getUserDataDTO.Email);
+
+            if (user == null)
+                return new GetUserDataResponse(false, "No user found");
+            else
+                return new GetUserDataResponse(true, "User found!", user);
         }
     }
 }

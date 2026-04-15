@@ -1,38 +1,29 @@
 "use client";
 
-import { useState, useEffect,useCallback } from "react"; // Adăugat useEffect
-import { Plus, Search, Loader2, List } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Plus, Search, Loader2 } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { DeckCard } from "@/components/deck-card";
-import { useStore, addDeck, Deck } from "@/lib/store";
+import { useStore } from "@/lib/store";
 import { jwtDecode } from "jwt-decode";
 
-const DECK_COLORS = [
-  "bg-primary",
-  "bg-accent",
-  "bg-good",
-  "bg-again",
-  "bg-hard",
-  "bg-easy",
-];
-
 export default function DashboardPage() {
-  const { decks } = useStore();
+  const { decks, setDecks } = useStore();
+  
   const [search, setSearch] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newDesc, setNewDesc] = useState("");
   const [newTopic, setNewTopic] = useState("");
-  const [decksList, setDecks] = useState<Deck[]>([]);
   
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userId, setNewUserId] = useState("");
 
-  const fetchDecks = useCallback(async (userId: string) => {
+  const fetchDecks = useCallback(async (uId: string) => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5000/api/deck/getDecksByUser/${userId}`, {
+      const response = await fetch(`http://localhost:5000/api/deck/getDecksByUser/${uId}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem("token")}`,
           'Content-Type': 'application/json'
@@ -41,10 +32,15 @@ export default function DashboardPage() {
 
       if (response.ok) {
         const data = await response.json();
-        // data.decks ar trebui să fie lista venită din GetDecksResponse
-        // Folosim o funcție din store pentru a salva deck-urile global
-        if (data.success) {
-           setDecks(data.decks); 
+        if (data.flag) {
+          const rawDecks = data.decks || [];
+          const mappedDecks = rawDecks.map((d: any) => ({
+            ...d,
+            id: d.id || d.deckId, // Acoperim ambele variante de nume
+            cards: d.cards || []
+          }));
+          
+          setDecks(mappedDecks); 
         }
       }
     } catch (error) {
@@ -52,7 +48,7 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [setDecks]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -66,6 +62,8 @@ export default function DashboardPage() {
           setNewUserId(extractedId);
           fetchDecks(extractedId);
         }
+
+        console.log(decks);
       } catch (error) {
         console.error("Token invalid:", error);
         setIsLoggedIn(false);
@@ -77,17 +75,18 @@ export default function DashboardPage() {
     }
   }, [fetchDecks]);
 
+  // Filtrarea se face pe 'decks' din Store
   const filtered = decks.filter(
     (d) =>
-      d.title.toLowerCase().includes(search.toLowerCase()) ||
-      d.description.toLowerCase().includes(search.toLowerCase())
+      d.title?.toLowerCase().includes(search.toLowerCase()) ||
+      d.description?.toLowerCase().includes(search.toLowerCase())
   );
 
   async function handleCreate() {
     if (!newTitle.trim() || !userId) return;
 
     const deckDto = {
-      userId: userId, // Luat din token via state-ul userId
+      userId: userId,
       title: newTitle.trim(),
       description: newDesc.trim() || "No description",
       topic: newTopic.trim() || "General",
@@ -105,18 +104,13 @@ export default function DashboardPage() {
 
       if (response.ok) {
         const result = await response.json();
-        
         if (result.success) {
-          fetchDecks(userId); 
+          fetchDecks(userId); // Reîmprospătează lista din store
           setNewTitle("");
           setNewDesc("");
           setNewTopic("");
           setShowCreateModal(false);
-        } else {
-          alert("Server error: " + result.message);
         }
-      } else {
-        console.error("Failed to create deck on server.");
       }
     } catch (error) {
       console.error("Network error:", error);
@@ -172,8 +166,8 @@ export default function DashboardPage() {
           </div>
         ) : filtered.length > 0 ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((deck) => (
-              <DeckCard key={deck.id} deck={deck} />
+            {filtered.map((deckList) => (
+              <DeckCard key={deckList.id} deck={deckList} />
             ))}
           </div>
         ) : (
@@ -218,6 +212,19 @@ export default function DashboardPage() {
                   type="text"
                   value={newDesc}
                   onChange={(e) => setNewDesc(e.target.value)}
+                  placeholder="Short description of the topic"
+                  className="w-full rounded-lg border border-border bg-input px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="deck-topic" className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+                  Topic
+                </label>
+                <input
+                  id="deck-topic"
+                  type="text"
+                  value={newTopic}
+                  onChange={(e) => setNewTopic(e.target.value)}
                   placeholder="Short description of the topic"
                   className="w-full rounded-lg border border-border bg-input px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 />

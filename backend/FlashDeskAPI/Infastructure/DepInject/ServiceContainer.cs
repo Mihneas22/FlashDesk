@@ -40,7 +40,9 @@ namespace Infastructure.DepInject
                 };
             });
 
+
             services.AddScoped<IUser, UserRepository>();
+            services.AddScoped<IDeck, DeckRepository>();
 
             return services;
         }

@@ -17,100 +17,10 @@ export interface Deck {
   color: string; // tailwind bg class for accent
 }
 
-const initialDecks: Deck[] = [
-  {
-    id: "signals-systems",
-    title: "Signals & Systems",
-    description: "Fourier, Laplace, Z-transforms and convolution",
-    color: "bg-primary",
-    topic: "Signals & Systems",
-    cards: [
-      {
-        id: "ss-1",
-        front: "Continuous-Time Fourier Transform",
-        back: "$$X(j\\omega) = \\int_{-\\infty}^{\\infty} x(t)\\, e^{-j\\omega t}\\, dt$$",
-      },
-      {
-        id: "ss-2",
-        front: "Inverse CTFT",
-        back: "$$x(t) = \\frac{1}{2\\pi} \\int_{-\\infty}^{\\infty} X(j\\omega)\\, e^{j\\omega t}\\, d\\omega$$",
-      },
-      {
-        id: "ss-3",
-        front: "Convolution Theorem",
-        back: "$$y(t) = x(t) * h(t) \\;\\Longleftrightarrow\\; Y(j\\omega) = X(j\\omega)\\cdot H(j\\omega)$$",
-      },
-      {
-        id: "ss-4",
-        front: "Laplace Transform",
-        back: "$$X(s) = \\int_{0}^{\\infty} x(t)\\, e^{-st}\\, dt, \\quad s \\in \\mathbb{C}$$",
-      },
-      {
-        id: "ss-5",
-        front: "Z-Transform",
-        back: "$$X(z) = \\sum_{n=-\\infty}^{\\infty} x[n]\\, z^{-n}$$",
-      },
-    ],
-  },
-  {
-    id: "thermodynamics",
-    title: "Thermodynamics",
-    description: "Laws of thermodynamics, entropy, and cycles",
-    color: "bg-accent",
-    topic: "Physics",
-    cards: [
-      {
-        id: "thermo-1",
-        front: "First Law of Thermodynamics",
-        back: "$$\\Delta U = Q - W$$\n\nwhere $$Q$$ is heat added to the system and $$W$$ is work done by the system.",
-      },
-      {
-        id: "thermo-2",
-        front: "Entropy Change (Reversible Process)",
-        back: "$$dS = \\frac{\\delta Q_{\\text{rev}}}{T}$$",
-      },
-      {
-        id: "thermo-3",
-        front: "Ideal Gas Law",
-        back: "$$PV = nRT$$\n\nwhere $$R = 8.314\\,\\text{J mol}^{-1}\\text{K}^{-1}$$",
-      },
-      {
-        id: "thermo-4",
-        front: "Carnot Efficiency",
-        back: "$$\\eta_{\\text{Carnot}} = 1 - \\frac{T_C}{T_H}$$",
-      },
-    ],
-  },
-  {
-    id: "linear-algebra",
-    title: "Linear Algebra",
-    description: "Eigenvalues, matrix decompositions, and vector spaces",
-    color: "bg-good",
-    topic: "Algebra",
-    cards: [
-      {
-        id: "la-1",
-        front: "Eigenvalue Equation",
-        back: "$$A\\mathbf{v} = \\lambda \\mathbf{v}$$\n\nwhere $$\\lambda$$ is an eigenvalue and $$\\mathbf{v}$$ is the corresponding eigenvector.",
-      },
-      {
-        id: "la-2",
-        front: "Singular Value Decomposition",
-        back: "$$A = U\\Sigma V^T$$\n\nwhere $$U, V$$ are orthogonal and $$\\Sigma$$ is diagonal with non-negative entries.",
-      },
-      {
-        id: "la-3",
-        front: "Determinant via Cofactor Expansion",
-        back: "$$\\det(A) = \\sum_{j=1}^{n} a_{ij}\\, C_{ij} = \\sum_{j=1}^{n} a_{ij}(-1)^{i+j} M_{ij}$$",
-      },
-    ],
-  },
-];
-
 // A simple global-state approach using React state lifted to a context-like hook.
 // We store decks in module-level variable so it persists across component mounts
 // within the same browser session (no backend needed per spec).
-let _decks: Deck[] = initialDecks;
+let _decks: Deck[] = [];
 const listeners: Array<() => void> = [];
 
 function notify() {
@@ -184,7 +94,12 @@ export function subscribe(listener: () => void): () => void {
   };
 }
 
-/** React hook that re-renders on store changes */
+export function setDecks(decks: Deck[]): void {
+  _decks = decks;
+  notify();
+}
+
+/** React hook căruia îi adăugăm setDecks în obiectul returnat */
 export function useStore() {
   const [, forceUpdate] = useState(0);
   const rerender = useCallback(() => forceUpdate((n) => n + 1), []);
@@ -198,6 +113,7 @@ export function useStore() {
     decks: getDecks(),
     getDeckById,
     addDeck,
+    setDecks, // <--- ADAUGĂ ACEASTA
     addCard,
     updateCard,
     deleteCard,
