@@ -12,6 +12,7 @@ export interface Deck {
   id: string;
   title: string;
   description: string;
+  topic: string;
   cards: Flashcard[];
   color: string; // tailwind bg class for accent
 }
@@ -22,6 +23,7 @@ const initialDecks: Deck[] = [
     title: "Signals & Systems",
     description: "Fourier, Laplace, Z-transforms and convolution",
     color: "bg-primary",
+    topic: "Signals & Systems",
     cards: [
       {
         id: "ss-1",
@@ -55,6 +57,7 @@ const initialDecks: Deck[] = [
     title: "Thermodynamics",
     description: "Laws of thermodynamics, entropy, and cycles",
     color: "bg-accent",
+    topic: "Physics",
     cards: [
       {
         id: "thermo-1",
@@ -83,6 +86,7 @@ const initialDecks: Deck[] = [
     title: "Linear Algebra",
     description: "Eigenvalues, matrix decompositions, and vector spaces",
     color: "bg-good",
+    topic: "Algebra",
     cards: [
       {
         id: "la-1",

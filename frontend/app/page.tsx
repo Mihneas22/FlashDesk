@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react"; // Adăugat useEffect
-import { Plus, Search } from "lucide-react";
+import { useState, useEffect,useCallback } from "react"; // Adăugat useEffect
+import { Plus, Search, Loader2, List } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { DeckCard } from "@/components/deck-card";
-import { useStore, addDeck } from "@/lib/store";
+import { useStore, addDeck, Deck } from "@/lib/store";
+import { jwtDecode } from "jwt-decode";
 
 const DECK_COLORS = [
   "bg-primary",
@@ -21,15 +22,60 @@ export default function DashboardPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newDesc, setNewDesc] = useState("");
+  const [newTopic, setNewTopic] = useState("");
+  const [decksList, setDecks] = useState<Deck[]>([]);
   
-  // Stare pentru autentificare
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [userId, setNewUserId] = useState("");
 
-  // Verificăm dacă utilizatorul este logat la montarea componentei
+  const fetchDecks = useCallback(async (userId: string) => {
+    try {
+      setLoading(true);
+      const response = await fetch(`http://localhost:5000/api/deck/getDecksByUser/${userId}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem("token")}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // data.decks ar trebui să fie lista venită din GetDecksResponse
+        // Folosim o funcție din store pentru a salva deck-urile global
+        if (data.success) {
+           setDecks(data.decks); 
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch decks:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     const token = localStorage.getItem("token");
-    setIsLoggedIn(!!token);
-  }, []);
+    if (token) {
+      try {
+        const decoded: any = jwtDecode(token);
+        const extractedId = decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] || decoded.sub || decoded.nameid;
+
+        if (extractedId) {
+          setIsLoggedIn(true);
+          setNewUserId(extractedId);
+          fetchDecks(extractedId);
+        }
+      } catch (error) {
+        console.error("Token invalid:", error);
+        setIsLoggedIn(false);
+        setLoading(false);
+      }
+    } else {
+      setIsLoggedIn(false);
+      setLoading(false);
+    }
+  }, [fetchDecks]);
 
   const filtered = decks.filter(
     (d) =>
@@ -37,25 +83,51 @@ export default function DashboardPage() {
       d.description.toLowerCase().includes(search.toLowerCase())
   );
 
-  function handleCreate() {
-    if (!newTitle.trim()) return;
-    addDeck({
+  async function handleCreate() {
+    if (!newTitle.trim() || !userId) return;
+
+    const deckDto = {
+      userId: userId, // Luat din token via state-ul userId
       title: newTitle.trim(),
       description: newDesc.trim() || "No description",
-      color: DECK_COLORS[Math.floor(Math.random() * DECK_COLORS.length)],
-    });
-    setNewTitle("");
-    setNewDesc("");
-    setShowCreateModal(false);
+      topic: newTopic.trim() || "General",
+    };
+
+    try {
+      const response = await fetch("http://localhost:5000/api/deck/addDeck", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(deckDto),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        
+        if (result.success) {
+          fetchDecks(userId); 
+          setNewTitle("");
+          setNewDesc("");
+          setNewTopic("");
+          setShowCreateModal(false);
+        } else {
+          alert("Server error: " + result.message);
+        }
+      } else {
+        console.error("Failed to create deck on server.");
+      }
+    } catch (error) {
+      console.error("Network error:", error);
+    }
   }
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Pasăm starea de logare către Navbar */}
       <Navbar isLoggedIn={isLoggedIn} />
 
       <main className="mx-auto max-w-6xl px-6 py-10">
-        {/* Page header */}
         <div className="mb-8 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold text-foreground text-balance">
@@ -94,7 +166,11 @@ export default function DashboardPage() {
         </div>
 
         {/* Deck grid */}
-        {filtered.length > 0 ? (
+        {loading ? (
+          <div className="flex h-64 items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : filtered.length > 0 ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map((deck) => (
               <DeckCard key={deck.id} deck={deck} />
@@ -102,16 +178,10 @@ export default function DashboardPage() {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-20 text-center">
-            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-secondary">
-              <Search className="h-5 w-5 text-muted-foreground" />
-            </div>
-            <p className="text-sm font-medium text-foreground">No decks found</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {search 
-                ? "Try a different search term" 
-                : isLoggedIn 
-                  ? 'Create your first deck with the "Create Deck" button'
-                  : 'Please sign in to create and manage your decks'}
+            <Search className="mb-3 h-10 w-10 text-muted-foreground" />
+            <p className="text-sm font-medium">No decks found</p>
+            <p className="text-xs text-muted-foreground">
+              {search ? "Try another search" : "Your collection is empty"}
             </p>
           </div>
         )}

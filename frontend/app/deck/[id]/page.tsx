@@ -76,6 +76,7 @@ export default function DeckPage({ params }: PageProps) {
             <div>
               <h1 className="text-xl font-bold text-foreground text-balance">{deck.title}</h1>
               <p className="text-sm text-muted-foreground">{deck.description}</p>
+              <p className="text-sm text-muted-foreground">{deck.topic}</p>
             </div>
           </div>
 
