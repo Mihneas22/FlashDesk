@@ -118,8 +118,7 @@
               "RelativeToolTip": "Application\\DTOs\\Deck\\CreateDeck\\CreateDeckDTO.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABUAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-15T19:53:52.538Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-15T19:53:52.538Z"
             },
             {
               "$type": "Document",
@@ -131,8 +130,7 @@
               "RelativeToolTip": "Application\\DTOs\\User\\GetUserData\\GetUserDataDTO.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAA5AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-15T19:35:32.285Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-15T19:35:32.285Z"
             },
             {
               "$type": "Document",
@@ -144,8 +142,7 @@
               "RelativeToolTip": "FlashDeskAPI\\Controllers\\DeckController.cs",
               "ViewState": "AgIAAAoAAAAAAAAAAAAAABMAAAAIAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-15T19:27:50.721Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-15T19:27:50.721Z"
             },
             {
               "$type": "Document",
@@ -157,8 +154,7 @@
               "RelativeToolTip": "Infastructure\\Repository\\UserRepository.cs",
               "ViewState": "AgIAAE4AAAAAAAAAAAAkwGQAAABEAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-15T19:27:05.585Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-15T19:27:05.585Z"
             },
             {
               "$type": "Document",
@@ -170,8 +166,7 @@
               "RelativeToolTip": "Infastructure\\Repository\\DeckRepository.cs",
               "ViewState": "AgIAADEAAAAAAAAAAAAkwEgAAAAQAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-15T19:14:50.631Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-15T19:14:50.631Z"
             },
             {
               "$type": "Document",
@@ -183,8 +178,7 @@
               "RelativeToolTip": "Infastructure\\DepInject\\ServiceContainer.cs",
               "ViewState": "AgIAAA8AAAAAAAAAAAAkwCkAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-14T13:49:17.524Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-14T13:49:17.524Z"
             },
             {
               "$type": "Document",
@@ -196,8 +190,7 @@
               "RelativeToolTip": "Application\\Repository\\IUser.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAA3AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-14T15:01:45.242Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-14T15:01:45.242Z"
             },
             {
               "$type": "Document",
@@ -209,8 +202,7 @@
               "RelativeToolTip": "FlashDeskAPI\\Controllers\\UserController.cs",
               "ViewState": "AgIAAAwAAAAAAAAAAAAYwBcAAAAtAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-14T16:36:00.74Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-14T16:36:00.74Z"
             },
             {
               "$type": "Document",
@@ -235,8 +227,7 @@
               "RelativeToolTip": "Application\\DTOs\\User\\GetUserData\\GetUserDataResponse.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAABuAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-15T19:35:59.056Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-15T19:35:59.056Z"
             },
             {
               "$type": "Document",
@@ -248,8 +239,7 @@
               "RelativeToolTip": "Infastructure\\AppDbContext\\ApplicationDbContext.cs",
               "ViewState": "AgIAAAgAAAAAAAAAAAA0wCIAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-14T12:58:58.559Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-14T12:58:58.559Z"
             },
             {
               "$type": "Document",
@@ -261,8 +251,7 @@
               "RelativeToolTip": "Application\\DTOs\\Deck\\GetDecks\\GetDecksResponse.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAABsAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-15T19:26:47.186Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-15T19:26:47.186Z"
             },
             {
               "$type": "Document",
@@ -274,8 +263,7 @@
               "RelativeToolTip": "Domain\\Models\\Deck.cs",
               "ViewState": "AgIAAAMAAAAAAAAAAAAAABIAAAAhAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-14T12:47:46.213Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-14T12:47:46.213Z"
             },
             {
               "$type": "Document",
@@ -311,8 +299,7 @@
               "RelativeToolTip": "Domain\\Models\\Card.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-14T12:51:12.853Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-14T12:51:12.853Z"
             },
             {
               "$type": "Document",

@@ -1,13 +1,15 @@
 "use client";
 
-import { use, useState, useEffect } from "react"; // Adăugat useEffect
+import { use, useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { ArrowLeft, Plus, PlayCircle, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, PlayCircle, Pencil, Trash2, Loader2 } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { CardEditorModal } from "@/components/card-editor-modal";
-import { useStore, addCard, updateCard, deleteCard } from "@/lib/store";
-import type { Flashcard } from "@/lib/store";
+import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { Flashcard } from "@/lib/store";
+import 'katex/dist/katex.min.css';
+import { InlineMath } from 'react-katex';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -15,19 +17,93 @@ interface PageProps {
 
 export default function DeckPage({ params }: PageProps) {
   const { id } = use(params);
-  const { getDeckById } = useStore();
-  const deck = getDeckById(id);
-
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Stare pentru autentificare
+  const { setDecks, decks } = useStore();
+  
+  const deck = decks.find(d => d.id === id);
+  const [cards,setCards] = useState<Flashcard[] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
-  const [editCard, setEditCard] = useState<Flashcard | null>(null);
+  const [editCard, setEditCard] = useState<any | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
-  // Verificăm dacă utilizatorul este logat
+  const fetchDeckData = useCallback(async () => {
+    const token = localStorage.getItem("token");
+    try {
+      setLoading(true);
+      // Ajustează acest URL conform API-ului tău (ex: getDeckCards/{id})
+      const response = await fetch(`http://localhost:5000/api/card/getDeckCards/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const mappedCards = data.cards.map((c: any) => ({
+          id: c.cardId,
+          front: c.question,
+          back: c.answer,
+        }));
+
+        setCards(mappedCards);
+      }
+    } catch (error) {
+      console.error("Failed to fetch deck:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [id, decks, setDecks]);
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     setIsLoggedIn(!!token);
-  }, []);
+    fetchDeckData();
+  }, [id]);
+
+  async function handleAddCard(front: string, back: string) {
+    const token = localStorage.getItem("token");
+    try {
+      const response = await fetch(`http://localhost:5000/api/card/addCard`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ DeckId: id, Question: front, Answer: back })
+      });
+
+      if (response.ok) {
+        setAddOpen(false);
+        fetchDeckData();
+      }
+    } catch (err) { console.error(err); }
+  }
+
+  async function confirmDelete() {
+    if (!deleteTarget) return;
+    const token = localStorage.getItem("token");
+    try {
+      const response = await fetch(`http://localhost:5000/api/card/deleteCard/${deleteTarget}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        setDeleteTarget(null);
+        fetchDeckData();
+      }
+    } catch (err) { console.error(err); }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   if (!deck) {
     return (
@@ -41,16 +117,6 @@ export default function DeckPage({ params }: PageProps) {
         </div>
       </div>
     );
-  }
-
-  function handleAddCard(front: string, back: string) {
-    addCard(deck!.id, { front, back });
-  }
-
-  function handleEditCard(front: string, back: string) {
-    if (!editCard) return;
-    updateCard(deck!.id, editCard.id, { front, back });
-    setEditCard(null);
   }
 
   return (
@@ -104,15 +170,13 @@ export default function DeckPage({ params }: PageProps) {
 
         {/* Stats bar */}
         <div className="mb-6 flex items-center gap-6 rounded-xl border border-border bg-card px-5 py-3">
-          <Stat label="Total cards" value={deck.cards.length} />
+          <Stat label="Total cards" value={cards?.length || 0} />
           <div className="h-8 w-px bg-border" />
-          <Stat label="Due today" value={Math.min(deck.cards.length, 5)} />
-          <div className="h-8 w-px bg-border" />
-          <Stat label="Mastered" value={0} />
+          <Stat label="Due today" value={Math.min(cards?.length || 0, 5)} />
         </div>
 
         {/* Cards list */}
-        {deck.cards.length === 0 ? (
+        {cards == null || cards.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-20 text-center">
             <p className="text-sm font-medium text-foreground">No cards yet</p>
             <p className="mt-1 text-xs text-muted-foreground">
@@ -130,20 +194,21 @@ export default function DeckPage({ params }: PageProps) {
           </div>
         ) : (
           <div className="flex flex-col gap-2">
-            {deck.cards.map((card, i) => (
+            {cards.map((card, i) => (
               <div
                 key={card.id}
                 className="group flex items-start justify-between rounded-xl border border-border bg-card px-5 py-4 hover:border-primary/30 hover:bg-card-hover transition-colors"
               >
                 <div className="flex items-start gap-4 min-w-0 flex-1">
                   <span className="mt-0.5 text-xs font-mono text-muted-foreground w-5 shrink-0">{i + 1}</span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-foreground truncate">{card.front}</p>
-                    <p className="mt-0.5 text-xs text-muted-foreground line-clamp-1 font-mono">{card.back}</p>
+                  <div className="min-w-0 flex-1 overflow-hidden">
+                    {/* Front / Question */}
+                    <div className="text-base font-medium text-foreground truncate">
+                      <InlineMath math={card.front || ""} />
+                    </div>
                   </div>
                 </div>
 
-                {/* Butoanele de Edit/Delete apar doar dacă ești logat */}
                 {isLoggedIn && (
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-4">
                     <button
@@ -162,7 +227,7 @@ export default function DeckPage({ params }: PageProps) {
                     </button>
                   </div>
                 )}
-              </div>
+            </div>
             ))}
           </div>
         )}
@@ -176,14 +241,6 @@ export default function DeckPage({ params }: PageProps) {
         title="Add Card"
       />
 
-      <CardEditorModal
-        open={!!editCard}
-        onClose={() => setEditCard(null)}
-        onSave={handleEditCard}
-        initialCard={editCard ?? undefined}
-        title="Edit Card"
-      />
-
       {deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setDeleteTarget(null)} aria-hidden="true" />
@@ -195,7 +252,7 @@ export default function DeckPage({ params }: PageProps) {
                 Cancel
               </button>
               <button
-                onClick={() => { deleteCard(deck.id, deleteTarget); setDeleteTarget(null); }}
+                //onClick={() => { deleteCard(deck.id, deleteTarget); setDeleteTarget(null); }}
                 className="rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground hover:opacity-90 transition-opacity"
               >
                 Delete

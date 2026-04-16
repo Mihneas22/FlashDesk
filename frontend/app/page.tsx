@@ -36,10 +36,11 @@ export default function DashboardPage() {
           const rawDecks = data.decks || [];
           const mappedDecks = rawDecks.map((d: any) => ({
             ...d,
-            id: d.id || d.deckId, // Acoperim ambele variante de nume
+            id: d.id || d.flashCardId,
             cards: d.cards || []
           }));
           
+          console.log(mappedDecks);
           setDecks(mappedDecks); 
         }
       }
@@ -61,6 +62,8 @@ export default function DashboardPage() {
           setIsLoggedIn(true);
           setNewUserId(extractedId);
           fetchDecks(extractedId);
+        }else {
+          setLoading(false);
         }
 
         console.log(decks);

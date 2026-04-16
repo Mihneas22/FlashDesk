@@ -40,7 +40,7 @@ namespace Infastructure.DepInject
                 };
             });
 
-
+            services.AddScoped<ICard, CardRepository>();
             services.AddScoped<IUser, UserRepository>();
             services.AddScoped<IDeck, DeckRepository>();
 
