@@ -14,6 +14,8 @@ namespace Domain.Models
 
         public string? Answer { get; set; }
 
+        public ICollection<string>? Tips { get; set; }
+
         public Guid DeckId { get; set; }
 
         public Deck? CardDeck { get; set; }

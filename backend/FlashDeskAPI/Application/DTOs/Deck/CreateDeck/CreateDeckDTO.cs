@@ -18,5 +18,8 @@ namespace Application.DTOs.Deck.CreateDeck
 
         [Required]
         public string Topic { get; set; } = string.Empty;
+
+        [Required]
+        public string Status { get; set; } = string.Empty;
     }
 }

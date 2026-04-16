@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { X, Delete } from "lucide-react";
+import { X, Delete, Plus } from "lucide-react"; // Am adăugat Plus pentru butonul de tips
 import 'katex/dist/katex.min.css';
 import { BlockMath } from 'react-katex'
-import type { Flashcard } from "@/lib/store";
 
 const MATH_KEYS = [
   { id: "frac", display: "a/b", code: "\\frac{}{}", cursorOffset: -3, title: "Fracție" },
@@ -23,6 +22,7 @@ const MATH_KEYS = [
 export function CardEditorModal({ open, onClose, onSave, initialCard, title }: any) {
   const [front, setFront] = useState("");
   const [back, setBack] = useState("");
+  const [tips, setTips] = useState<string[]>([]); // Starea pentru tips
   
   const frontTextareaRef = useRef<HTMLTextAreaElement>(null);
   const backTextareaRef = useRef<HTMLTextAreaElement>(null);
@@ -31,6 +31,8 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: a
     if (open) {
       setFront(initialCard?.front || "");
       setBack(initialCard?.back || "");
+      // Inițializăm tips-urile dacă edităm un card existent
+      setTips(initialCard?.tips || []); 
     }
   }, [open, initialCard]);
 
@@ -59,10 +61,35 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: a
     }, 0);
   };
 
+  // Handlers pentru secțiunea de Tips
+  const handleAddTip = () => {
+    setTips([...tips, ""]);
+  };
+
+  const handleTipChange = (index: number, value: string) => {
+    const newTips = [...tips];
+    newTips[index] = value;
+    setTips(newTips);
+  };
+
+  const handleRemoveTip = (index: number) => {
+    const newTips = tips.filter((_, i) => i !== index);
+    setTips(newTips);
+  };
+
   const handleSave = () => {
     if (!front.trim() || !back.trim()) return;
-    onSave(front, back);
-    onClose();
+    
+    // Curățăm tips-urile goale înainte de salvare
+    const filteredTips = tips.filter(tip => tip.trim() !== "");
+    
+    // Apelăm onSave incluzând și array-ul de tips
+    onSave(front, back, filteredTips);
+    
+    // Resetăm starea internă pentru următoarea deschidere
+    setFront("");
+    setBack("");
+    setTips([]);
   };
 
   // Componentă locală pentru a evita repetiția codului de tastatură
@@ -102,7 +129,8 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: a
           </button>
         </div>
 
-        <div className="flex-1 p-6 flex flex-col gap-8">
+        {/* Am adăugat overflow-y-auto aici pentru scroll dacă sunt multe elemente */}
+        <div className="flex-1 p-6 flex flex-col gap-8 overflow-y-auto">
           
           {/* --- FRONT EDITOR --- */}
           <div className="flex flex-col gap-2">
@@ -113,7 +141,7 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: a
               value={front}
               onChange={(e) => setFront(e.target.value)}
               className="min-h-[100px] w-full rounded-b-lg border border-border bg-background px-4 py-3 text-foreground font-mono text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-shadow resize-y"
-              placeholder="Întrebarea sau formula..."
+              placeholder="Question or formula..."
             />
             {front.trim() && (
               <div className="mt-2 rounded-lg border border-primary/20 bg-primary/5 p-3">
@@ -148,9 +176,50 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: a
             )}
           </div>
 
+          <hr className="border-border/50" />
+
+          {/* --- TIPS SECTION --- */}
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-foreground">Tips (Optional)</label>
+              <button 
+                onClick={handleAddTip} 
+                className="flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+              >
+                <Plus className="h-3.5 w-3.5" /> Add Tip
+              </button>
+            </div>
+            
+            <div className="flex flex-col gap-2">
+              {tips.map((tip, index) => (
+                <div key={index} className="flex gap-2 items-center">
+                  <input
+                    type="text"
+                    value={tip}
+                    onChange={(e) => handleTipChange(index, e.target.value)}
+                    placeholder={`Indiciul #${index + 1}`}
+                    className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-shadow"
+                  />
+                  <button 
+                    onClick={() => handleRemoveTip(index)}
+                    className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+                    aria-label="Șterge tip"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+              {tips.length === 0 && (
+                <div className="rounded-lg border border-dashed border-border py-4 text-center">
+                  <p className="text-xs text-muted-foreground">Nu există niciun indiciu adăugat.</p>
+                </div>
+              )}
+            </div>
+          </div>
+
         </div>
 
-        <div className="flex items-center justify-end gap-3 border-t border-border px-6 py-4 bg-card">
+        <div className="flex items-center justify-end gap-3 border-t border-border px-6 py-4 bg-card rounded-b-2xl">
           <button onClick={onClose} className="rounded-lg px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-secondary transition-colors">
             Cancel
           </button>

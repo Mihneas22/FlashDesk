@@ -8,7 +8,7 @@ namespace Domain.Models
     public class Deck
     {
         [Key]
-        public Guid FlashCardId { get; set; }
+        public Guid DeckId { get; set; }
 
         public string? Title { get; set; }
 
@@ -21,6 +21,8 @@ namespace Domain.Models
         public Guid DeckUserId { get; set; }
 
         public User? DeckUser { get; set; }
+
+        public bool Status { get; set; } //1 - public,0 - private
 
         public DateTime? CreatedAt { get; set; }
     }

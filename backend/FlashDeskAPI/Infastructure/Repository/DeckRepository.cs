@@ -28,8 +28,10 @@ namespace Infastructure.Repository
                 .Include(dc => dc.UserDecks)
                 .FirstOrDefaultAsync(us => us.UserId == createDeckDTO.UserId);
 
-            if(user == null)
-                return new CreateDeckResponse(false, "User not found.");
+            Guid userId = Guid.Empty;
+
+            if (user != null)
+                userId = user.UserId;
 
             var deck = new Deck
             {
@@ -37,19 +39,21 @@ namespace Infastructure.Repository
                 Description = createDeckDTO.Description,
                 Topic = createDeckDTO.Topic,
                 DeckUser = user,
-                DeckUserId = createDeckDTO.UserId,
+                DeckUserId = userId,
                 DeckCards = new List<Card>(),
+                Status = createDeckDTO.Status=="Public" ? true : false,
                 CreatedAt = DateTime.UtcNow,
             };
 
             dbContext.DeckEntity.Add(deck);
 
-            if (user.UserDecks == null)
+            if (user != null)
             {
-                user.UserDecks = new List<Deck>();
-            }
+                if(user.UserDecks == null)
+                    user.UserDecks = new List<Deck>();
 
-            user.UserDecks.Add(deck);
+                user.UserDecks.Add(deck);
+            }
 
             await dbContext.SaveChangesAsync();
 

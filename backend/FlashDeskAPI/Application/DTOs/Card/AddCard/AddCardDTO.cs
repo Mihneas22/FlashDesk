@@ -15,5 +15,8 @@ namespace Application.DTOs.Card.AddCard
 
         [Required]
         public Guid DeckId { get; set; } = Guid.Empty;
+
+        [Required]
+        public List<string> Tips { get; set; } = new List<string>();
     }
 }

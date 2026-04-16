@@ -7,6 +7,26 @@ import { DeckCard } from "@/components/deck-card";
 import { useStore } from "@/lib/store";
 import { jwtDecode } from "jwt-decode";
 
+const TOPICS = [
+  "Mathematical Analysis",
+  "Physics",
+  "C++ / Computer Programming",
+  "Special Mathematics",
+  "Numerical Methods",
+  "Data Structures",
+  "Discrete Mathematics",
+  "Electrical Engineering",
+  "Linear Algebra",
+  "Basics of Computer Operation",
+  "Object-oriented programming",
+  "Assembly language programming"
+];
+
+const STATUS = [
+  "Private",
+  "Public"
+]
+
 export default function DashboardPage() {
   const { decks, setDecks } = useStore();
   
@@ -15,6 +35,7 @@ export default function DashboardPage() {
   const [newTitle, setNewTitle] = useState("");
   const [newDesc, setNewDesc] = useState("");
   const [newTopic, setNewTopic] = useState("");
+  const [newStatus, setNewStatus] = useState("");
   
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -36,7 +57,7 @@ export default function DashboardPage() {
           const rawDecks = data.decks || [];
           const mappedDecks = rawDecks.map((d: any) => ({
             ...d,
-            id: d.id || d.flashCardId,
+            id: d.id || d.deckId,
             cards: d.cards || []
           }));
           
@@ -77,8 +98,6 @@ export default function DashboardPage() {
       setLoading(false);
     }
   }, [fetchDecks]);
-
-  // Filtrarea se face pe 'decks' din Store
   const filtered = decks.filter(
     (d) =>
       d.title?.toLowerCase().includes(search.toLowerCase()) ||
@@ -86,13 +105,14 @@ export default function DashboardPage() {
   );
 
   async function handleCreate() {
-    if (!newTitle.trim() || !userId) return;
+    if (!newTitle.trim() || !userId || !newTopic) return;
 
     const deckDto = {
       userId: userId,
       title: newTitle.trim(),
       description: newDesc.trim() || "No description",
-      topic: newTopic.trim() || "General",
+      topic: newTopic.trim(),
+      status: newStatus.trim()
     };
 
     try {
@@ -108,7 +128,7 @@ export default function DashboardPage() {
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
-          fetchDecks(userId); // Reîmprospătează lista din store
+          fetchDecks(userId);
           setNewTitle("");
           setNewDesc("");
           setNewTopic("");
@@ -137,7 +157,6 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Search */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
               <input
@@ -149,7 +168,7 @@ export default function DashboardPage() {
               />
             </div>
 
-            {/* Butonul de Create Deck apare doar dacă ești logat */}
+            
             {isLoggedIn && (
               <button
                 onClick={() => setShowCreateModal(true)}
@@ -162,7 +181,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Deck grid */}
         {loading ? (
           <div className="flex h-64 items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -184,7 +202,6 @@ export default function DashboardPage() {
         )}
       </main>
 
-      {/* Create Deck Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowCreateModal(false)} aria-hidden="true" />
@@ -223,14 +240,37 @@ export default function DashboardPage() {
                 <label htmlFor="deck-topic" className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
                   Topic
                 </label>
-                <input
+                <select
                   id="deck-topic"
-                  type="text"
                   value={newTopic}
                   onChange={(e) => setNewTopic(e.target.value)}
-                  placeholder="Short description of the topic"
-                  className="w-full rounded-lg border border-border bg-input px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                />
+                  className="w-full rounded-lg border border-border bg-input px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                  <option value="" disabled>Choose topic...</option>
+                  {TOPICS.map((topic) => (
+                    <option key={topic} value={topic}>
+                      {topic}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="deck-status" className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+                  Staus
+                </label>
+                <select
+                  id="deck-status"
+                  value={newStatus}
+                  onChange={(e) => setNewStatus(e.target.value)}
+                  className="w-full rounded-lg border border-border bg-input px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                  <option value="" disabled>Choose status...</option>
+                  {STATUS.map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
             <div className="flex justify-end gap-2 border-t border-border px-6 py-4">
@@ -239,7 +279,7 @@ export default function DashboardPage() {
               </button>
               <button
                 onClick={handleCreate}
-                disabled={!newTitle.trim()}
+                disabled={!newTitle.trim() || !newTopic}
                 className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Create

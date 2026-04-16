@@ -26,7 +26,7 @@ namespace Infastructure.Repository
 
             var deck = await dbContext.DeckEntity
                 .Include(dc => dc.DeckCards)
-                .FirstOrDefaultAsync(dc => dc.FlashCardId == addCardDTO.DeckId);
+                .FirstOrDefaultAsync(dc => dc.DeckId == addCardDTO.DeckId);
 
             if (deck == null)
                 return new AddCardResponse(false, "Deck not found");
@@ -36,6 +36,7 @@ namespace Infastructure.Repository
                 Question = addCardDTO.Question,
                 Answer = addCardDTO.Answer,
                 DeckId = addCardDTO.DeckId,
+                Tips = addCardDTO.Tips,
                 CardDeck = deck,
                 CreatedAt = DateTime.UtcNow
             };
@@ -58,7 +59,7 @@ namespace Infastructure.Repository
 
             var deck = await dbContext.DeckEntity
                 .Include(dc => dc.DeckCards)
-                .FirstOrDefaultAsync(dc => dc.FlashCardId == getCardsByDeckDTO.DeckId);
+                .FirstOrDefaultAsync(dc => dc.DeckId == getCardsByDeckDTO.DeckId);
 
             if (deck == null || deck.DeckCards == null)
                 return new GetCardsByDeckResponse(false, "Deck not found or empty.");

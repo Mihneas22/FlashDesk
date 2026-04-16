@@ -5,7 +5,8 @@ import { useState, useCallback, useEffect } from "react";
 export interface Flashcard {
   id: string;
   front: string;
-  back: string; // supports LaTeX
+  back: string;
+  tips: string[];
 }
 
 export interface Deck {
@@ -14,6 +15,7 @@ export interface Deck {
   description: string;
   topic: string;
   cards: Flashcard[];
+  status: boolean;
   color: string; // tailwind bg class for accent
 }
 

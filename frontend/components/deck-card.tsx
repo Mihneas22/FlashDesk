@@ -32,12 +32,11 @@ export function DeckCard({ deck }: DeckCardProps) {
       <h4 className="mt-1 text-sm leading-relaxed font-semibold text-foreground line-clamp-2">
         {deck.topic}
       </h4>
+      <p className="mt-1 text-sm leading-relaxed text-muted-foreground line-clamp-2">
+        {(deck.status == true)? "Public" : "Private"}
+      </p>
 
       <div className="mt-4 flex items-center justify-between">
-        <span className="text-xs font-medium text-muted-foreground">
-          {deck.cards.length} {deck.cards.length === 1 ? "card" : "cards"}
-        </span>
-
         <div className="flex items-center gap-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
           <Link
             href={`/deck/${deck.id}`}

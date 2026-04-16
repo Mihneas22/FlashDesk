@@ -20,7 +20,7 @@ export default function DeckPage({ params }: PageProps) {
   const { setDecks, decks } = useStore();
   
   const deck = decks.find(d => d.id === id);
-  const [cards,setCards] = useState<Flashcard[] | null>(null);
+  const [cards, setCards] = useState<Flashcard[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
@@ -31,7 +31,6 @@ export default function DeckPage({ params }: PageProps) {
     const token = localStorage.getItem("token");
     try {
       setLoading(true);
-      // Ajustează acest URL conform API-ului tău (ex: getDeckCards/{id})
       const response = await fetch(`http://localhost:5000/api/card/getDeckCards/${id}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -45,6 +44,7 @@ export default function DeckPage({ params }: PageProps) {
           id: c.cardId,
           front: c.question,
           back: c.answer,
+          tips: c.tips,
         }));
 
         setCards(mappedCards);
@@ -54,15 +54,16 @@ export default function DeckPage({ params }: PageProps) {
     } finally {
       setLoading(false);
     }
-  }, [id, decks, setDecks]);
+  }, [id]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     setIsLoggedIn(!!token);
     fetchDeckData();
-  }, [id]);
+  }, [id, fetchDeckData]);
 
-  async function handleAddCard(front: string, back: string) {
+  // UPDATE: Funcția primește acum un array de stringuri pentru tips
+  async function handleAddCard(front: string, back: string, tips: string[]) {
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(`http://localhost:5000/api/card/addCard`, {
@@ -71,7 +72,7 @@ export default function DeckPage({ params }: PageProps) {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ DeckId: id, Question: front, Answer: back })
+        body: JSON.stringify({ DeckId: id, Question: front, Answer: back, Tips: tips })
       });
 
       if (response.ok) {
@@ -124,16 +125,11 @@ export default function DeckPage({ params }: PageProps) {
       <Navbar isLoggedIn={isLoggedIn} />
 
       <main className="mx-auto max-w-4xl px-6 py-10">
-        {/* Back */}
-        <Link
-          href="/"
-          className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
+        <Link href="/" className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="h-3.5 w-3.5" />
           All Decks
         </Link>
 
-        {/* Deck header */}
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
             <div className={cn("flex h-12 w-12 items-center justify-center rounded-xl", deck.color)}>
@@ -147,20 +143,13 @@ export default function DeckPage({ params }: PageProps) {
           </div>
 
           <div className="flex items-center gap-2">
-            <Link
-              href={`/study/${deck.id}`}
-              className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 transition-opacity"
-            >
+            <Link href={`/study/${deck.id}`} className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 transition-opacity">
               <PlayCircle className="h-4 w-4" />
               Study
             </Link>
             
-            {/* Butonul Add Card apare doar dacă ești logat */}
             {isLoggedIn && (
-              <button
-                onClick={() => setAddOpen(true)}
-                className="flex items-center gap-1.5 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-secondary transition-colors"
-              >
+              <button onClick={() => setAddOpen(true)} className="flex items-center gap-1.5 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-secondary transition-colors">
                 <Plus className="h-4 w-4" />
                 Add Card
               </button>
@@ -168,14 +157,12 @@ export default function DeckPage({ params }: PageProps) {
           </div>
         </div>
 
-        {/* Stats bar */}
         <div className="mb-6 flex items-center gap-6 rounded-xl border border-border bg-card px-5 py-3">
           <Stat label="Total cards" value={cards?.length || 0} />
           <div className="h-8 w-px bg-border" />
           <Stat label="Due today" value={Math.min(cards?.length || 0, 5)} />
         </div>
 
-        {/* Cards list */}
         {cards == null || cards.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-20 text-center">
             <p className="text-sm font-medium text-foreground">No cards yet</p>
@@ -183,10 +170,7 @@ export default function DeckPage({ params }: PageProps) {
               {isLoggedIn ? "Add your first card to get started" : "Sign in to add cards to this deck"}
             </p>
             {isLoggedIn && (
-              <button
-                onClick={() => setAddOpen(true)}
-                className="mt-4 flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 transition-opacity"
-              >
+              <button onClick={() => setAddOpen(true)} className="mt-4 flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 transition-opacity">
                 <Plus className="h-4 w-4" />
                 Add Card
               </button>
@@ -195,14 +179,10 @@ export default function DeckPage({ params }: PageProps) {
         ) : (
           <div className="flex flex-col gap-2">
             {cards.map((card, i) => (
-              <div
-                key={card.id}
-                className="group flex items-start justify-between rounded-xl border border-border bg-card px-5 py-4 hover:border-primary/30 hover:bg-card-hover transition-colors"
-              >
+              <div key={card.id} className="group flex items-start justify-between rounded-xl border border-border bg-card px-5 py-4 hover:border-primary/30 hover:bg-card-hover transition-colors">
                 <div className="flex items-start gap-4 min-w-0 flex-1">
                   <span className="mt-0.5 text-xs font-mono text-muted-foreground w-5 shrink-0">{i + 1}</span>
                   <div className="min-w-0 flex-1 overflow-hidden">
-                    {/* Front / Question */}
                     <div className="text-base font-medium text-foreground truncate">
                       <InlineMath math={card.front || ""} />
                     </div>
@@ -211,29 +191,21 @@ export default function DeckPage({ params }: PageProps) {
 
                 {isLoggedIn && (
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-4">
-                    <button
-                      onClick={() => setEditCard(card)}
-                      className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
-                      aria-label="Edit card"
-                    >
+                    <button onClick={() => setEditCard(card)} className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors" aria-label="Edit card">
                       <Pencil className="h-3.5 w-3.5" />
                     </button>
-                    <button
-                      onClick={() => setDeleteTarget(card.id)}
-                      className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive-foreground transition-colors"
-                      aria-label="Delete card"
-                    >
+                    <button onClick={() => setDeleteTarget(card.id)} className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive-foreground transition-colors" aria-label="Delete card">
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
                   </div>
                 )}
-            </div>
+              </div>
             ))}
           </div>
         )}
       </main>
 
-      {/* Modals... */}
+      {/* Modal adaugare card */}
       <CardEditorModal
         open={addOpen}
         onClose={() => setAddOpen(false)}
@@ -241,6 +213,7 @@ export default function DeckPage({ params }: PageProps) {
         title="Add Card"
       />
 
+      {/* Modal stergere card */}
       {deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setDeleteTarget(null)} aria-hidden="true" />
@@ -252,7 +225,7 @@ export default function DeckPage({ params }: PageProps) {
                 Cancel
               </button>
               <button
-                //onClick={() => { deleteCard(deck.id, deleteTarget); setDeleteTarget(null); }}
+                onClick={confirmDelete}
                 className="rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground hover:opacity-90 transition-opacity"
               >
                 Delete
