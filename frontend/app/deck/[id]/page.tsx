@@ -2,7 +2,7 @@
 
 import { use, useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { ArrowLeft, Plus, PlayCircle, Pencil, Trash2, Loader2, Sparkles, BookOpen, Layers } from "lucide-react";
+import { ArrowLeft, Plus, PlayCircle, Pencil, Trash2, Sparkles, BookOpen, Layers } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { CardEditorModal } from "@/components/card-editor-modal";
 import { cn } from "@/lib/utils";
@@ -120,28 +120,26 @@ export default function DeckPage({ params }: PageProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen relative overflow-hidden flex flex-col items-center justify-center">
-        <div className="fixed inset-0 -z-10 bg-gradient-to-br from-violet-50 via-pink-50 to-cyan-50" />
+      <div className="min-h-screen relative overflow-hidden flex flex-col items-center justify-center bg-[#0a0a0a]">
         <div className="relative">
-          <div className="w-20 h-20 rounded-full border-4 border-purple-200 border-t-purple-600 animate-spin" />
-          <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 text-purple-600 animate-pulse" />
+          <div className="w-20 h-20 rounded-full border-4 border-white/10 border-t-violet-500 animate-spin" />
+          <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 text-violet-500 animate-pulse" />
         </div>
-        <p className="mt-6 text-lg font-semibold text-gray-600">Loading deck details...</p>
+        <p className="mt-6 text-lg font-semibold text-gray-400">Loading deck details...</p>
       </div>
     );
   }
 
   if (!currentDeck) {
     return (
-      <div className="min-h-screen relative overflow-hidden">
-        <div className="fixed inset-0 -z-10 bg-gradient-to-br from-violet-50 via-pink-50 to-cyan-50" />
+      <div className="min-h-screen relative overflow-hidden bg-[#0a0a0a]">
         <Navbar isLoggedIn={isLoggedIn} />
         <div className="flex flex-col items-center justify-center pt-40 text-center px-6 animate-fade-in-up">
-          <div className="w-24 h-24 rounded-3xl bg-white/80 backdrop-blur-sm border-2 border-purple-100 flex items-center justify-center mb-6 shadow-xl">
-            <BookOpen className="w-10 h-10 text-purple-400" />
+          <div className="w-24 h-24 rounded-3xl bg-[#121317] border border-white/10 flex items-center justify-center mb-6 shadow-xl">
+            <BookOpen className="w-10 h-10 text-violet-500" />
           </div>
-          <h2 className="text-3xl font-black text-gray-800 mb-2">Deck Not Found</h2>
-          <p className="text-gray-500 mb-8 max-w-md">The deck you're looking for doesn't exist or you don't have permission to view it.</p>
+          <h2 className="text-3xl font-black text-white mb-2">Deck Not Found</h2>
+          <p className="text-gray-400 mb-8 max-w-md">The deck you're looking for doesn't exist or you don't have permission to view it.</p>
           <Link 
             href="/" 
             className="px-8 py-3 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 text-white font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all flex items-center gap-2"
@@ -155,13 +153,12 @@ export default function DeckPage({ params }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Animated gradient background */}
-      <div className="fixed inset-0 -z-10 bg-gradient-to-br from-violet-50 via-pink-50 to-cyan-50" />
-      <div className="fixed inset-0 -z-10 opacity-30">
-        <div className="absolute top-0 -left-4 w-96 h-96 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl animate-blob" />
-        <div className="absolute top-0 -right-4 w-96 h-96 bg-pink-400 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000" />
-        <div className="absolute -bottom-8 left-20 w-96 h-96 bg-cyan-400 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000" />
+    <div className="min-h-screen relative overflow-hidden bg-[#0a0a0a]">
+      {/* Animated gradient background - Dark Mode */}
+      <div className="fixed inset-0 -z-10 opacity-20">
+        <div className="absolute top-0 -left-4 w-96 h-96 bg-violet-600 rounded-full mix-blend-screen filter blur-[100px] animate-blob" />
+        <div className="absolute top-0 -right-4 w-96 h-96 bg-fuchsia-600 rounded-full mix-blend-screen filter blur-[100px] animate-blob animation-delay-2000" />
+        <div className="absolute -bottom-8 left-20 w-96 h-96 bg-cyan-600 rounded-full mix-blend-screen filter blur-[100px] animate-blob animation-delay-4000" />
       </div>
 
       <Navbar isLoggedIn={isLoggedIn} />
@@ -170,14 +167,14 @@ export default function DeckPage({ params }: PageProps) {
         <div className="animate-fade-in">
           <Link 
             href="/" 
-            className="group inline-flex items-center gap-2 px-4 py-2 mb-8 rounded-xl bg-white/50 hover:bg-white/80 backdrop-blur-sm border border-purple-100 text-gray-600 hover:text-violet-600 transition-all font-medium shadow-sm"
+            className="group inline-flex items-center gap-2 px-4 py-2 mb-8 rounded-xl bg-[#121317] border border-white/10 text-gray-400 hover:text-white transition-all font-medium shadow-sm"
           >
             <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
             Back to Decks
           </Link>
 
           {/* Header Section */}
-          <div className="mb-10 bg-white/60 backdrop-blur-md rounded-3xl p-6 sm:p-8 border border-purple-100 shadow-xl flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="mb-10 bg-[#121317] rounded-3xl p-6 sm:p-8 border border-white/10 shadow-2xl flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div className="flex items-center gap-5">
               <div className={cn("flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl shadow-lg", 
                 currentDeck.color?.includes('bg-') ? currentDeck.color : "bg-gradient-to-br from-violet-500 to-purple-600"
@@ -185,9 +182,9 @@ export default function DeckPage({ params }: PageProps) {
                 <span className="text-2xl font-black text-white">{currentDeck.title[0]}</span>
               </div>
               <div>
-                <h1 className="text-2xl sm:text-3xl font-black text-gray-900 mb-1">{currentDeck.title}</h1>
-                <p className="text-gray-600 text-sm sm:text-base mb-1">{currentDeck.description}</p>
-                <span className="inline-flex items-center px-3 py-1 rounded-full bg-purple-100 text-purple-700 text-xs font-bold uppercase tracking-wider">
+                <h1 className="text-2xl sm:text-3xl font-black text-white mb-1">{currentDeck.title}</h1>
+                <p className="text-gray-400 text-sm sm:text-base mb-2">{currentDeck.description}</p>
+                <span className="inline-flex items-center px-3 py-1 rounded-full bg-violet-500/20 text-violet-300 text-xs font-bold uppercase tracking-wider border border-violet-500/20">
                   {currentDeck.topic}
                 </span>
               </div>
@@ -205,7 +202,7 @@ export default function DeckPage({ params }: PageProps) {
               {isLoggedIn && (
                 <button 
                   onClick={() => setAddOpen(true)} 
-                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-2xl border-2 border-purple-200 bg-white/80 px-6 py-3.5 text-sm font-bold text-gray-700 hover:bg-purple-50 hover:border-violet-300 hover:text-violet-600 transition-all active:scale-95 group"
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-6 py-3.5 text-sm font-bold text-gray-300 hover:bg-white/10 hover:text-white transition-all active:scale-95 group"
                 >
                   <Plus className="h-5 w-5 group-hover:rotate-90 transition-transform" />
                   Add Card
@@ -216,14 +213,14 @@ export default function DeckPage({ params }: PageProps) {
 
           {/* Stats */}
           <div className="mb-8 flex flex-wrap gap-4">
-            <div className="flex-1 min-w-[150px] bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-purple-100 shadow-md flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center text-purple-600">
+            <div className="flex-1 min-w-[150px] bg-[#121317] rounded-2xl p-5 border border-white/10 shadow-lg flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-violet-500/20 flex items-center justify-center text-violet-400">
                 <Layers className="w-6 h-6" />
               </div>
               <Stat label="Total Cards" value={cards?.length || 0} />
             </div>
-            <div className="flex-1 min-w-[150px] bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-pink-100 shadow-md flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-pink-100 flex items-center justify-center text-pink-600">
+            <div className="flex-1 min-w-[150px] bg-[#121317] rounded-2xl p-5 border border-white/10 shadow-lg flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-pink-500/20 flex items-center justify-center text-pink-400">
                 <Sparkles className="w-6 h-6" />
               </div>
               <Stat label="Due Today" value={Math.min(cards?.length || 0, 5)} />
@@ -232,12 +229,12 @@ export default function DeckPage({ params }: PageProps) {
 
           {/* Cards List */}
           {cards == null || cards.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-purple-200 bg-white/40 backdrop-blur-sm py-24 text-center px-6 animate-fade-in-up">
-              <div className="w-20 h-20 rounded-2xl bg-purple-100 flex items-center justify-center mb-4">
-                <BookOpen className="w-10 h-10 text-purple-400" />
+            <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-white/10 bg-[#121317] py-24 text-center px-6 animate-fade-in-up">
+              <div className="w-20 h-20 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center mb-4">
+                <BookOpen className="w-10 h-10 text-violet-500" />
               </div>
-              <p className="text-xl font-bold text-gray-800">No cards yet</p>
-              <p className="mt-2 text-gray-500 max-w-sm">
+              <p className="text-xl font-bold text-white">No cards yet</p>
+              <p className="mt-2 text-gray-400 max-w-sm">
                 {isLoggedIn 
                   ? "Build your knowledge base by adding your first flashcard." 
                   : "Sign in to contribute and add cards to this deck."}
@@ -245,7 +242,7 @@ export default function DeckPage({ params }: PageProps) {
               {isLoggedIn && (
                 <button 
                   onClick={() => setAddOpen(true)} 
-                  className="mt-6 flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-bold text-violet-600 border border-purple-200 shadow-sm hover:shadow-md hover:border-violet-300 transition-all"
+                  className="mt-6 flex items-center gap-2 rounded-xl bg-white/5 px-6 py-3 text-sm font-bold text-white border border-white/10 shadow-sm hover:bg-white/10 transition-all"
                 >
                   <Plus className="h-5 w-5" />
                   Add First Card
@@ -257,15 +254,16 @@ export default function DeckPage({ params }: PageProps) {
               {cards.map((card, i) => (
                 <div 
                   key={card.id} 
-                  className="group flex flex-col sm:flex-row sm:items-center justify-between rounded-2xl border-2 border-transparent bg-white/80 backdrop-blur-sm px-6 py-5 shadow-sm hover:shadow-md hover:border-violet-200 transition-all gap-4"
+                  className="group flex flex-col sm:flex-row sm:items-center justify-between rounded-2xl border border-white/5 bg-[#121317] px-6 py-5 shadow-lg hover:border-violet-500/50 transition-all gap-4"
                   style={{ animationDelay: `${i * 50}ms` }}
                 >
                   <div className="flex items-start gap-4 min-w-0 flex-1">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-purple-100 text-xs font-bold text-purple-600">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/5 text-xs font-bold text-gray-400">
                       {i + 1}
                     </div>
                     <div className="min-w-0 flex-1 overflow-hidden pt-1">
-                      <div className="prose prose-sm max-w-none text-gray-800 font-medium markdown-content">
+                      {/* Adăugat 'prose-invert' pentru a colora corect markdown-ul in Dark Mode */}
+                      <div className="prose prose-sm prose-invert max-w-none text-gray-300 font-medium markdown-content">
                         <ReactMarkdown 
                           remarkPlugins={[remarkMath]} 
                           rehypePlugins={[rehypeKatex]}
@@ -280,14 +278,14 @@ export default function DeckPage({ params }: PageProps) {
                     <div className="flex items-center gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity shrink-0 sm:ml-4 self-end sm:self-auto">
                       <button 
                         onClick={() => setEditCard(card)} 
-                        className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 text-gray-500 hover:bg-violet-100 hover:text-violet-600 transition-colors" 
+                        className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 text-gray-400 hover:bg-violet-500/20 hover:text-violet-400 transition-colors" 
                         aria-label="Edit card"
                       >
                         <Pencil className="h-4 w-4" />
                       </button>
                       <button 
                         onClick={() => setDeleteTarget(card.id)} 
-                        className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 text-gray-500 hover:bg-red-100 hover:text-red-600 transition-colors" 
+                        className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 text-gray-400 hover:bg-red-500/20 hover:text-red-400 transition-colors" 
                         aria-label="Delete card"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -312,22 +310,22 @@ export default function DeckPage({ params }: PageProps) {
       {deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in" role="dialog" aria-modal="true">
           <div 
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm" 
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm" 
             onClick={() => setDeleteTarget(null)} 
             aria-hidden="true" 
           />
-          <div className="relative w-full max-w-md rounded-3xl border border-gray-100 bg-white p-8 shadow-2xl animate-scale-in">
-            <div className="w-16 h-16 rounded-2xl bg-red-100 flex items-center justify-center mb-6">
-              <Trash2 className="w-8 h-8 text-red-500" />
+          <div className="relative w-full max-w-md rounded-3xl border border-white/10 bg-[#121317] p-8 shadow-2xl animate-scale-in">
+            <div className="w-16 h-16 rounded-2xl bg-red-500/20 flex items-center justify-center mb-6">
+              <Trash2 className="w-8 h-8 text-red-400" />
             </div>
-            <h2 className="text-2xl font-black text-gray-900 mb-2">Delete Card?</h2>
-            <p className="text-gray-500 mb-8">
+            <h2 className="text-2xl font-black text-white mb-2">Delete Card?</h2>
+            <p className="text-gray-400 mb-8">
               Are you sure you want to delete this flashcard? This action cannot be undone and the data will be lost forever.
             </p>
             <div className="flex justify-end gap-3">
               <button 
                 onClick={() => setDeleteTarget(null)} 
-                className="px-6 py-3 rounded-xl font-bold text-gray-600 hover:bg-gray-100 transition-colors"
+                className="px-6 py-3 rounded-xl font-bold text-gray-400 hover:bg-white/10 hover:text-white transition-colors"
               >
                 Cancel
               </button>
@@ -349,72 +347,29 @@ export default function DeckPage({ params }: PageProps) {
           50% { transform: translate(-20px, 20px) scale(0.9); }
           75% { transform: translate(20px, 50px) scale(1.05); }
         }
-
         @keyframes fade-in {
           from { opacity: 0; }
           to { opacity: 1; }
         }
-
         @keyframes fade-in-up {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
         }
-
         @keyframes slide-up {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
         }
-
         @keyframes scale-in {
-          from {
-            opacity: 0;
-            transform: scale(0.9);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1);
-          }
+          from { opacity: 0; transform: scale(0.9); }
+          to { opacity: 1; transform: scale(1); }
         }
-
-        .animate-blob {
-          animation: blob 7s infinite;
-        }
-
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-
-        .animation-delay-4000 {
-          animation-delay: 4s;
-        }
-
-        .animate-fade-in {
-          animation: fade-in 0.5s ease-out;
-        }
-
-        .animate-fade-in-up {
-          animation: fade-in-up 0.6s ease-out;
-        }
-
-        .animate-slide-up {
-          animation: slide-up 0.5s ease-out backwards;
-        }
-
-        .animate-scale-in {
-          animation: scale-in 0.3s ease-out;
-        }
+        .animate-blob { animation: blob 7s infinite; }
+        .animation-delay-2000 { animation-delay: 2s; }
+        .animation-delay-4000 { animation-delay: 4s; }
+        .animate-fade-in { animation: fade-in 0.5s ease-out; }
+        .animate-fade-in-up { animation: fade-in-up 0.6s ease-out; }
+        .animate-slide-up { animation: slide-up 0.5s ease-out backwards; }
+        .animate-scale-in { animation: scale-in 0.3s ease-out; }
       `}</style>
     </div>
   );
@@ -423,7 +378,7 @@ export default function DeckPage({ params }: PageProps) {
 function Stat({ label, value }: { label: string; value: number }) {
   return (
     <div className="flex flex-col">
-      <span className="text-2xl font-black text-gray-900 tabular-nums leading-none mb-1">{value}</span>
+      <span className="text-2xl font-black text-white tabular-nums leading-none mb-1">{value}</span>
       <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">{label}</span>
     </div>
   );

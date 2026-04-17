@@ -1,4 +1,6 @@
 ﻿using Application.DTOs.Deck.CreateDeck;
+using Application.DTOs.Deck.DeleteDeck;
+using Application.DTOs.Deck.EditDeck;
 using Application.DTOs.Deck.GetDeckById;
 using Application.DTOs.Deck.GetDecks;
 using Application.DTOs.Deck.GetPublicDecks;
@@ -52,6 +54,52 @@ namespace Infastructure.Repository
             }
         }
 
+        public async Task<DeleteDeckResponse> DeleteDeckRepository(DeleteDeckDTO deleteDeckDTO)
+        {
+            if (deleteDeckDTO == null)
+                return new DeleteDeckResponse(false, "Invalid DTO");
+
+            var deck = await dbContext.DeckEntity.FirstOrDefaultAsync(dc => dc.DeckId == deleteDeckDTO.DeckId && dc.DeckUserId == deleteDeckDTO.UserId);
+            if (deck == null)
+                return new DeleteDeckResponse(false, "Cannot delelte deck.");
+
+            dbContext.DeckEntity.Remove(deck);
+            await dbContext.SaveChangesAsync();
+
+            return new DeleteDeckResponse(true, "Deck deleted!");
+        }
+
+        public async Task<EditDeckResponse> EditDeckRepository(EditDeckDTO editDeckDTO)
+        {
+            if (editDeckDTO == null)
+                return new EditDeckResponse(false, "Invalid DTO");
+
+            try
+            {
+                var existingDeck = await dbContext.DeckEntity.FindAsync(editDeckDTO.DeckId);
+                if (existingDeck == null)
+                    return new EditDeckResponse(false, "Deck was not found!");
+
+                bool isPublic = editDeckDTO.Status.Equals("public", StringComparison.OrdinalIgnoreCase) ||
+                                editDeckDTO.Status == "1";
+
+                existingDeck.Title = editDeckDTO.Title;
+                existingDeck.Description = editDeckDTO.Description;
+                existingDeck.Topic = editDeckDTO.Topic;
+                existingDeck.Status = isPublic;
+
+                dbContext.DeckEntity.Update(existingDeck);
+                await dbContext.SaveChangesAsync();
+
+                return new EditDeckResponse(true, "Deck has been updated");
+            }
+            catch (Exception ex)
+            {
+                // Aici este recomandat să folosești un ILogger pentru a înregistra excepția reală
+                return new EditDeckResponse(false, $"Error: {ex.Message}");
+            }
+        }
+
         public async Task<GetDeckByIdResponse> GetDeckByIdRepository(GetDeckByIdDTO getDeckByIdDTO)
         {
             if (getDeckByIdDTO == null)
@@ -90,6 +138,7 @@ namespace Infastructure.Repository
 
             var query = dbContext.DeckEntity
                 .AsNoTracking()
+                .Include(dc => dc.DeckCards)
                 .Where(dc => dc.Status == true);
 
             if (getPublicDecksDTO.Filter != "all")

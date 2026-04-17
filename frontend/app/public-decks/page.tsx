@@ -47,7 +47,7 @@ export default function PublicDecksPage() {
           const mappedDecks = rawDecks.map((d: any) => ({
             ...d,
             id: d.id || d.deckId,
-            cards: d.cards || []
+            cards: d.deckCards || []
           }));
           
           setPublicDecks(mappedDecks); 
@@ -93,13 +93,13 @@ export default function PublicDecksPage() {
   const totalCards = publicDecks.reduce((acc, d) => acc + d.cards.length, 0);
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Animated gradient background */}
-      <div className="fixed inset-0 -z-10 bg-gradient-to-br from-violet-50 via-pink-50 to-cyan-50" />
-      <div className="fixed inset-0 -z-10 opacity-30">
-        <div className="absolute top-0 -left-4 w-96 h-96 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl animate-blob" />
-        <div className="absolute top-0 -right-4 w-96 h-96 bg-pink-400 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000" />
-        <div className="absolute -bottom-8 left-20 w-96 h-96 bg-cyan-400 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000" />
+    <div className="min-h-screen relative overflow-hidden bg-gray-950 text-gray-100">
+      {/* Animated gradient background - Dark mode optimized */}
+      <div className="fixed inset-0 -z-10 bg-gradient-to-br from-gray-950 via-purple-950/20 to-gray-900" />
+      <div className="fixed inset-0 -z-10 opacity-20">
+        <div className="absolute top-0 -left-4 w-96 h-96 bg-purple-600 rounded-full mix-blend-screen filter blur-3xl animate-blob" />
+        <div className="absolute top-0 -right-4 w-96 h-96 bg-fuchsia-600 rounded-full mix-blend-screen filter blur-3xl animate-blob animation-delay-2000" />
+        <div className="absolute -bottom-8 left-20 w-96 h-96 bg-violet-600 rounded-full mix-blend-screen filter blur-3xl animate-blob animation-delay-4000" />
       </div>
 
       <Navbar isLoggedIn={isLoggedIn} />
@@ -110,36 +110,36 @@ export default function PublicDecksPage() {
           <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
             <div>
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/30 animate-float">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-900/50 animate-float">
                   <BookOpen className="w-6 h-6 text-white" />
                 </div>
-                <h1 className="text-4xl sm:text-5xl font-black bg-gradient-to-r from-violet-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                <h1 className="text-4xl sm:text-5xl font-black bg-gradient-to-r from-violet-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
                   Explore Public Decks
                 </h1>
               </div>
-              <p className="text-lg text-gray-600 ml-16">
+              <p className="text-lg text-gray-400 ml-16">
                 Discover flashcards created by the community
               </p>
             </div>
 
             {/* Quick Stats */}
             <div className="flex gap-3">
-              <div className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white/80 backdrop-blur-sm shadow-lg border border-purple-100 hover:scale-105 transition-transform">
+              <div className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-gray-900/60 backdrop-blur-md shadow-lg border border-purple-500/20 hover:scale-105 transition-transform hover:border-purple-500/40">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
                   <Trophy className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-gray-900">{publicDecks.length}</div>
-                  <div className="text-xs text-gray-500 font-medium">Decks</div>
+                  <div className="text-2xl font-bold text-white">{publicDecks.length}</div>
+                  <div className="text-xs text-gray-400 font-medium">Decks</div>
                 </div>
               </div>
-              <div className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white/80 backdrop-blur-sm shadow-lg border border-cyan-100 hover:scale-105 transition-transform">
+              <div className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-gray-900/60 backdrop-blur-md shadow-lg border border-cyan-500/20 hover:scale-105 transition-transform hover:border-cyan-500/40">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
                   <Zap className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-gray-900">{totalCards}</div>
-                  <div className="text-xs text-gray-500 font-medium">Cards</div>
+                  <div className="text-2xl font-bold text-white">{totalCards}</div>
+                  <div className="text-xs text-gray-400 font-medium">Cards</div>
                 </div>
               </div>
             </div>
@@ -151,11 +151,11 @@ export default function PublicDecksPage() {
               <select
                 value={selectedTopic}
                 onChange={(e) => setSelectedTopic(e.target.value)}
-                className="w-full h-14 px-4 rounded-2xl bg-white/80 backdrop-blur-sm border-2 border-purple-100 text-gray-900 focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/20 shadow-lg transition-all font-medium appearance-none cursor-pointer"
+                className="w-full h-14 px-4 rounded-2xl bg-gray-900/60 backdrop-blur-md border border-purple-500/30 text-white focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/20 shadow-lg transition-all font-medium appearance-none cursor-pointer"
               >
-                <option value="All Topics">All Topics</option>
+                <option value="All Topics" className="bg-gray-900 text-white">All Topics</option>
                 {TOPICS.map((topic) => (
-                  <option key={topic} value={topic}>
+                  <option key={topic} value={topic} className="bg-gray-900 text-white">
                     {topic}
                   </option>
                 ))}
@@ -163,13 +163,13 @@ export default function PublicDecksPage() {
             </div>
 
             <div className="flex-1 relative group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-violet-500 transition-colors" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-violet-400 transition-colors" />
               <input
                 type="search"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search public decks..."
-                className="w-full h-14 pl-12 pr-4 rounded-2xl bg-white/80 backdrop-blur-sm border-2 border-purple-100 text-gray-900 placeholder:text-gray-400 focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/20 shadow-lg transition-all font-medium"
+                className="w-full h-14 pl-12 pr-4 rounded-2xl bg-gray-900/60 backdrop-blur-md border border-purple-500/30 text-white placeholder:text-gray-500 focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/20 shadow-lg transition-all font-medium"
               />
             </div>
           </div>
@@ -179,10 +179,10 @@ export default function PublicDecksPage() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-32">
             <div className="relative">
-              <div className="w-20 h-20 rounded-full border-4 border-purple-200 border-t-purple-600 animate-spin" />
-              <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 text-purple-600 animate-pulse" />
+              <div className="w-20 h-20 rounded-full border-4 border-gray-800 border-t-purple-500 animate-spin" />
+              <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 text-purple-500 animate-pulse" />
             </div>
-            <p className="mt-6 text-lg font-semibold text-gray-600">Loading public decks...</p>
+            <p className="mt-6 text-lg font-semibold text-gray-400">Loading public decks...</p>
           </div>
         ) : filtered.length > 0 ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 animate-fade-in-up">
@@ -192,24 +192,24 @@ export default function PublicDecksPage() {
                 style={{ animationDelay: `${index * 75}ms` }}
                 className="animate-slide-up"
               >
-                <DeckCard deck={deckList} />
+                <DeckCard deck={deckList} usId={"empty"}/>
               </div>
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-24 px-6">
+          <div className="flex flex-col items-center justify-center py-24 px-6 bg-gray-900/30 rounded-3xl border border-gray-800/50 backdrop-blur-sm mt-8">
             <div className="relative mb-6">
-              <div className="w-32 h-32 rounded-3xl bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
-                <Search className="w-16 h-16 text-purple-300" />
+              <div className="w-32 h-32 rounded-3xl bg-gray-800/50 border border-gray-700 flex items-center justify-center shadow-inner">
+                <Search className="w-16 h-16 text-gray-500" />
               </div>
-              <div className="absolute -top-2 -right-2 w-12 h-12 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg animate-bounce">
+              <div className="absolute -top-2 -right-2 w-12 h-12 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-900/50 animate-bounce">
                 <Sparkles className="w-6 h-6 text-white" />
               </div>
             </div>
-            <p className="text-2xl font-bold text-gray-800 mb-2">
+            <p className="text-2xl font-bold text-white mb-2">
               No matching decks found
             </p>
-            <p className="text-gray-500 text-center max-w-sm">
+            <p className="text-gray-400 text-center max-w-sm">
               {search || selectedTopic !== "All Topics" 
                 ? "Try adjusting your search or topic filter to find what you're looking for." 
                 : "No public decks are available right now."}
@@ -258,6 +258,17 @@ export default function PublicDecksPage() {
           }
         }
 
+        @keyframes scale-in {
+          from {
+            opacity: 0;
+            transform: scale(0.9);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+
         .animate-blob {
           animation: blob 7s infinite;
         }
@@ -284,6 +295,10 @@ export default function PublicDecksPage() {
 
         .animate-slide-up {
           animation: slide-up 0.5s ease-out backwards;
+        }
+
+        .animate-scale-in {
+          animation: scale-in 0.3s ease-out;
         }
       `}</style>
     </div>

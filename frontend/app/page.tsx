@@ -58,7 +58,7 @@ export default function DashboardPage() {
           const mappedDecks = rawDecks.map((d: any) => ({
             ...d,
             id: d.id || d.deckId,
-            cards: d.cards || []
+            cards: d.deckCards || []
           }));
           
           console.log(mappedDecks);
@@ -144,13 +144,13 @@ export default function DashboardPage() {
   const totalCards = decks.reduce((acc, d) => acc + d.cards.length, 0);
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Animated gradient background */}
-      <div className="fixed inset-0 -z-10 bg-gradient-to-br from-violet-50 via-pink-50 to-cyan-50" />
-      <div className="fixed inset-0 -z-10 opacity-30">
-        <div className="absolute top-0 -left-4 w-96 h-96 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl animate-blob" />
-        <div className="absolute top-0 -right-4 w-96 h-96 bg-pink-400 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000" />
-        <div className="absolute -bottom-8 left-20 w-96 h-96 bg-cyan-400 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000" />
+    <div className="min-h-screen relative overflow-hidden bg-gray-950 text-gray-100">
+      {/* Animated gradient background - Dark mode optimized */}
+      <div className="fixed inset-0 -z-10 bg-gradient-to-br from-gray-950 via-purple-950/20 to-gray-900" />
+      <div className="fixed inset-0 -z-10 opacity-20">
+        <div className="absolute top-0 -left-4 w-96 h-96 bg-purple-600 rounded-full mix-blend-screen filter blur-3xl animate-blob" />
+        <div className="absolute top-0 -right-4 w-96 h-96 bg-fuchsia-600 rounded-full mix-blend-screen filter blur-3xl animate-blob animation-delay-2000" />
+        <div className="absolute -bottom-8 left-20 w-96 h-96 bg-violet-600 rounded-full mix-blend-screen filter blur-3xl animate-blob animation-delay-4000" />
       </div>
 
       <Navbar isLoggedIn={isLoggedIn} />
@@ -161,36 +161,36 @@ export default function DashboardPage() {
           <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
             <div>
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/30 animate-float">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-900/50 animate-float">
                   <BookOpen className="w-6 h-6 text-white" />
                 </div>
-                <h1 className="text-4xl sm:text-5xl font-black bg-gradient-to-r from-violet-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                <h1 className="text-4xl sm:text-5xl font-black bg-gradient-to-r from-violet-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
                   My Study Decks
                 </h1>
               </div>
-              <p className="text-lg text-gray-600 ml-16">
+              <p className="text-lg text-gray-400 ml-16">
                 Your personal flashcard collection
               </p>
             </div>
 
             {/* Quick Stats */}
             <div className="flex gap-3">
-              <div className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white/80 backdrop-blur-sm shadow-lg border border-purple-100 hover:scale-105 transition-transform">
+              <div className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-gray-900/60 backdrop-blur-md shadow-lg border border-purple-500/20 hover:scale-105 transition-transform hover:border-purple-500/40">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
                   <Trophy className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-gray-900">{decks.length}</div>
-                  <div className="text-xs text-gray-500 font-medium">Decks</div>
+                  <div className="text-2xl font-bold text-white">{decks.length}</div>
+                  <div className="text-xs text-gray-400 font-medium">Decks</div>
                 </div>
               </div>
-              <div className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white/80 backdrop-blur-sm shadow-lg border border-cyan-100 hover:scale-105 transition-transform">
+              <div className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-gray-900/60 backdrop-blur-md shadow-lg border border-cyan-500/20 hover:scale-105 transition-transform hover:border-cyan-500/40">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
                   <Zap className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-gray-900">{totalCards}</div>
-                  <div className="text-xs text-gray-500 font-medium">Cards</div>
+                  <div className="text-2xl font-bold text-white">{totalCards}</div>
+                  <div className="text-xs text-gray-400 font-medium">Cards</div>
                 </div>
               </div>
             </div>
@@ -199,20 +199,20 @@ export default function DashboardPage() {
           {/* Search and Create Section */}
           <div className="mt-8 flex flex-col sm:flex-row gap-4">
             <div className="flex-1 relative group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-violet-500 transition-colors" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-violet-400 transition-colors" />
               <input
                 type="search"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search your decks..."
-                className="w-full h-14 pl-12 pr-4 rounded-2xl bg-white/80 backdrop-blur-sm border-2 border-purple-100 text-gray-900 placeholder:text-gray-400 focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/20 shadow-lg transition-all font-medium"
+                className="w-full h-14 pl-12 pr-4 rounded-2xl bg-gray-900/60 backdrop-blur-md border border-purple-500/30 text-white placeholder:text-gray-500 focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/20 shadow-lg transition-all font-medium"
               />
             </div>
 
             {isLoggedIn && (
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="h-14 px-8 rounded-2xl bg-gradient-to-r from-violet-600 via-purple-600 to-pink-600 text-white font-bold text-lg shadow-xl shadow-purple-500/40 hover:shadow-2xl hover:shadow-purple-500/50 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 group"
+                className="h-14 px-8 rounded-2xl bg-gradient-to-r from-violet-600 via-purple-600 to-pink-600 text-white font-bold text-lg shadow-xl shadow-purple-900/40 hover:shadow-2xl hover:shadow-purple-700/50 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 group"
               >
                 <Plus className="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" />
                 Create Deck
@@ -226,10 +226,10 @@ export default function DashboardPage() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-32">
             <div className="relative">
-              <div className="w-20 h-20 rounded-full border-4 border-purple-200 border-t-purple-600 animate-spin" />
-              <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 text-purple-600 animate-pulse" />
+              <div className="w-20 h-20 rounded-full border-4 border-gray-800 border-t-purple-500 animate-spin" />
+              <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 text-purple-500 animate-pulse" />
             </div>
-            <p className="mt-6 text-lg font-semibold text-gray-600">Loading your decks...</p>
+            <p className="mt-6 text-lg font-semibold text-gray-400">Loading your decks...</p>
           </div>
         ) : filtered.length > 0 ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 animate-fade-in-up">
@@ -239,24 +239,24 @@ export default function DashboardPage() {
                 style={{ animationDelay: `${index * 75}ms` }}
                 className="animate-slide-up"
               >
-                <DeckCard deck={deckList} />
+                <DeckCard deck={deckList} usId={userId}/>
               </div>
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-24 px-6">
+          <div className="flex flex-col items-center justify-center py-24 px-6 bg-gray-900/30 rounded-3xl border border-gray-800/50 backdrop-blur-sm mt-8">
             <div className="relative mb-6">
-              <div className="w-32 h-32 rounded-3xl bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
-                <Search className="w-16 h-16 text-purple-300" />
+              <div className="w-32 h-32 rounded-3xl bg-gray-800/50 border border-gray-700 flex items-center justify-center shadow-inner">
+                <Search className="w-16 h-16 text-gray-500" />
               </div>
-              <div className="absolute -top-2 -right-2 w-12 h-12 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg animate-bounce">
+              <div className="absolute -top-2 -right-2 w-12 h-12 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-900/50 animate-bounce">
                 <Sparkles className="w-6 h-6 text-white" />
               </div>
             </div>
-            <p className="text-2xl font-bold text-gray-800 mb-2">
+            <p className="text-2xl font-bold text-white mb-2">
               {search ? "No matching decks" : "Start your study journey!"}
             </p>
-            <p className="text-gray-500 text-center max-w-sm">
+            <p className="text-gray-400 text-center max-w-sm">
               {search 
                 ? "Try adjusting your search to find what you're looking for" 
                 : "Create your first deck and begin building your knowledge base"}
@@ -264,7 +264,7 @@ export default function DashboardPage() {
             {!search && isLoggedIn && (
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="mt-8 px-8 py-4 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 text-white font-bold shadow-xl hover:shadow-2xl hover:scale-105 transition-all"
+                className="mt-8 px-8 py-4 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 text-white font-bold shadow-xl hover:shadow-2xl hover:scale-105 transition-all shadow-purple-900/50"
               >
                 Create Your First Deck
               </button>
@@ -277,18 +277,18 @@ export default function DashboardPage() {
       {showCreateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in">
           <div 
-            className="absolute inset-0 bg-black/40 backdrop-blur-md" 
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm" 
             onClick={() => setShowCreateModal(false)} 
           />
-          <div className="relative w-full max-w-xl rounded-3xl bg-white shadow-2xl animate-scale-in overflow-hidden">
+          <div className="relative w-full max-w-xl rounded-3xl bg-gray-900 border border-gray-800 shadow-2xl animate-scale-in overflow-hidden">
             {/* Modal Header with Gradient */}
-            <div className="relative px-8 py-6 bg-gradient-to-r from-violet-600 via-purple-600 to-pink-600">
+            <div className="relative px-8 py-6 bg-gradient-to-r from-violet-900 via-purple-900 to-gray-900 border-b border-purple-500/20">
               <div className="absolute inset-0 opacity-20">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl" />
+                <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500 rounded-full blur-3xl mix-blend-screen" />
               </div>
               <div className="relative flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                  <Sparkles className="w-6 h-6 text-white" />
+                <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 flex items-center justify-center">
+                  <Sparkles className="w-6 h-6 text-purple-300" />
                 </div>
                 <h2 className="text-2xl font-black text-white">Create New Deck</h2>
               </div>
@@ -297,7 +297,7 @@ export default function DashboardPage() {
             {/* Modal Content */}
             <div className="px-8 py-8 space-y-6">
               <div className="space-y-2">
-                <label className="block text-sm font-bold text-gray-700 uppercase tracking-wide">
+                <label className="block text-sm font-bold text-gray-300 uppercase tracking-wide">
                   Deck Title
                 </label>
                 <input
@@ -305,12 +305,12 @@ export default function DashboardPage() {
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
                   placeholder="e.g. Quantum Physics Fundamentals"
-                  className="w-full px-4 py-3.5 rounded-xl border-2 border-purple-100 bg-purple-50/50 text-gray-900 placeholder:text-gray-400 focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/20 transition-all font-medium"
+                  className="w-full px-4 py-3.5 rounded-xl border border-gray-700 bg-gray-950/50 text-white placeholder:text-gray-600 focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/20 transition-all font-medium"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="block text-sm font-bold text-gray-700 uppercase tracking-wide">
+                <label className="block text-sm font-bold text-gray-300 uppercase tracking-wide">
                   Description
                 </label>
                 <input
@@ -318,23 +318,23 @@ export default function DashboardPage() {
                   value={newDesc}
                   onChange={(e) => setNewDesc(e.target.value)}
                   placeholder="Brief description to help you remember..."
-                  className="w-full px-4 py-3.5 rounded-xl border-2 border-purple-100 bg-purple-50/50 text-gray-900 placeholder:text-gray-400 focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/20 transition-all font-medium"
+                  className="w-full px-4 py-3.5 rounded-xl border border-gray-700 bg-gray-950/50 text-white placeholder:text-gray-600 focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/20 transition-all font-medium"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="block text-sm font-bold text-gray-700 uppercase tracking-wide">
+                  <label className="block text-sm font-bold text-gray-300 uppercase tracking-wide">
                     Topic
                   </label>
                   <select
                     value={newTopic}
                     onChange={(e) => setNewTopic(e.target.value)}
-                    className="w-full px-4 py-3.5 rounded-xl border-2 border-purple-100 bg-purple-50/50 text-gray-900 focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/20 transition-all font-medium appearance-none cursor-pointer"
+                    className="w-full px-4 py-3.5 rounded-xl border border-gray-700 bg-gray-950/50 text-white focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/20 transition-all font-medium appearance-none cursor-pointer"
                   >
-                    <option value="" disabled>Choose topic...</option>
+                    <option value="" disabled className="bg-gray-900 text-gray-500">Choose topic...</option>
                     {TOPICS.map((topic) => (
-                      <option key={topic} value={topic}>
+                      <option key={topic} value={topic} className="bg-gray-900 text-white">
                         {topic}
                       </option>
                     ))}
@@ -342,17 +342,17 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-bold text-gray-700 uppercase tracking-wide">
+                  <label className="block text-sm font-bold text-gray-300 uppercase tracking-wide">
                     Status
                   </label>
                   <select
                     value={newStatus}
                     onChange={(e) => setNewStatus(e.target.value)}
-                    className="w-full px-4 py-3.5 rounded-xl border-2 border-purple-100 bg-purple-50/50 text-gray-900 focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/20 transition-all font-medium appearance-none cursor-pointer"
+                    className="w-full px-4 py-3.5 rounded-xl border border-gray-700 bg-gray-950/50 text-white focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/20 transition-all font-medium appearance-none cursor-pointer"
                   >
-                    <option value="" disabled>Choose status...</option>
+                    <option value="" disabled className="bg-gray-900 text-gray-500">Choose status...</option>
                     {STATUS.map((status) => (
-                      <option key={status} value={status}>
+                      <option key={status} value={status} className="bg-gray-900 text-white">
                         {status}
                       </option>
                     ))}
@@ -362,17 +362,17 @@ export default function DashboardPage() {
             </div>
 
             {/* Modal Footer */}
-            <div className="px-8 py-6 bg-gray-50 flex justify-end gap-3">
+            <div className="px-8 py-6 bg-gray-900 border-t border-gray-800 flex justify-end gap-3">
               <button 
                 onClick={() => setShowCreateModal(false)} 
-                className="px-6 py-3 rounded-xl font-bold text-gray-600 hover:bg-gray-200 transition-all"
+                className="px-6 py-3 rounded-xl font-bold text-gray-400 hover:text-white hover:bg-gray-800 transition-all"
               >
                 Cancel
               </button>
               <button
                 onClick={handleCreate}
                 disabled={!newTitle.trim() || !newTopic}
-                className="px-8 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white font-bold shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+                className="px-8 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white font-bold shadow-lg shadow-purple-900/40 hover:shadow-xl hover:shadow-purple-700/50 hover:scale-105 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none"
               >
                 Create Deck
               </button>

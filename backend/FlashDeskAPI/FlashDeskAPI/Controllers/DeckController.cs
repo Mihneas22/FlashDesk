@@ -1,4 +1,6 @@
 ﻿using Application.DTOs.Deck.CreateDeck;
+using Application.DTOs.Deck.DeleteDeck;
+using Application.DTOs.Deck.EditDeck;
 using Application.DTOs.Deck.GetDeckById;
 using Application.DTOs.Deck.GetDecks;
 using Application.DTOs.Deck.GetPublicDecks;
@@ -44,6 +46,20 @@ namespace FlashDeskAPI.Controllers
         public async Task<ActionResult<GetDeckByIdResponse>> GetDeckByIdAsync(string id)
         {
             var result = await deckRepo.GetDeckByIdRepository(new GetDeckByIdDTO { DeckId = Guid.Parse(id) });
+            return Ok(result);
+        }
+
+        [HttpDelete("deleteDeck")]
+        public async Task<ActionResult<DeleteDeckResponse>> DeleteDeckAsync(DeleteDeckDTO deleteDeckDTO)
+        {
+            var result = await deckRepo.DeleteDeckRepository(deleteDeckDTO);
+            return Ok(result);
+        }
+
+        [HttpPut("editDeck")]
+        public async Task<ActionResult<EditDeckResponse>> EditDeckAsync(EditDeckDTO editDeckDTO)
+        {
+            var result = await deckRepo.EditDeckRepository(editDeckDTO);
             return Ok(result);
         }
     }

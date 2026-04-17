@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { X, Delete, Plus } from "lucide-react"; // Am adăugat Plus pentru butonul de tips
+import { X, Delete, Plus, Sparkles, AlertCircle } from "lucide-react";
 import 'katex/dist/katex.min.css';
-import { BlockMath } from 'react-katex'
+import { BlockMath } from 'react-katex';
+import { Button } from "@/components/ui/button"; // Asum că ai acest component pe baza fișierelor anterioare
 
 const MATH_KEYS = [
   { id: "frac", display: "a/b", code: "\\frac{}{}", cursorOffset: -3, title: "Fracție" },
@@ -22,7 +23,7 @@ const MATH_KEYS = [
 export function CardEditorModal({ open, onClose, onSave, initialCard, title }: any) {
   const [front, setFront] = useState("");
   const [back, setBack] = useState("");
-  const [tips, setTips] = useState<string[]>([]); // Starea pentru tips
+  const [tips, setTips] = useState<string[]>([]);
   
   const frontTextareaRef = useRef<HTMLTextAreaElement>(null);
   const backTextareaRef = useRef<HTMLTextAreaElement>(null);
@@ -31,14 +32,12 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: a
     if (open) {
       setFront(initialCard?.front || "");
       setBack(initialCard?.back || "");
-      // Inițializăm tips-urile dacă edităm un card existent
       setTips(initialCard?.tips || []); 
     }
   }, [open, initialCard]);
 
   if (!open) return null;
 
-  // Funcție universală de inserare (primește tipul câmpului: 'front' sau 'back')
   const insertMath = (target: 'front' | 'back', code: string, cursorOffset: number) => {
     const textarea = target === 'front' ? frontTextareaRef.current : backTextareaRef.current;
     const value = target === 'front' ? front : back;
@@ -61,7 +60,6 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: a
     }, 0);
   };
 
-  // Handlers pentru secțiunea de Tips
   const handleAddTip = () => {
     setTips([...tips, ""]);
   };
@@ -79,30 +77,24 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: a
 
   const handleSave = () => {
     if (!front.trim() || !back.trim()) return;
-    
-    // Curățăm tips-urile goale înainte de salvare
     const filteredTips = tips.filter(tip => tip.trim() !== "");
-    
-    // Apelăm onSave incluzând și array-ul de tips
     onSave(front, back, filteredTips);
     
-    // Resetăm starea internă pentru următoarea deschidere
     setFront("");
     setBack("");
     setTips([]);
   };
 
-  // Componentă locală pentru a evita repetiția codului de tastatură
   const MathToolbar = ({ target }: { target: 'front' | 'back' }) => (
-    <div className="rounded-t-lg border border-border border-b-0 bg-secondary/40 p-2">
-      <div className="flex flex-wrap gap-1.5">
+    <div className="rounded-t-xl border border-purple-100 border-b-0 bg-[#fcfcff] p-2 transition-colors">
+      <div className="flex flex-wrap gap-2">
         {MATH_KEYS.map((key) => (
           <button
             key={key.id}
             type="button"
             title={key.title}
             onClick={() => insertMath(target, key.code, key.cursorOffset)}
-            className="flex h-8 min-w-[36px] items-center justify-center rounded bg-card px-2 text-sm font-serif border border-border/60 text-foreground hover:border-primary/50 hover:bg-primary/10 hover:text-primary transition-all active:scale-95"
+            className="flex h-8 min-w-[36px] items-center justify-center rounded-lg bg-white px-2 text-sm font-serif border border-purple-100 text-gray-700 hover:border-violet-300 hover:bg-violet-50 hover:text-violet-600 transition-all active:scale-95 shadow-sm"
           >
             {key.display}
           </button>
@@ -110,124 +102,167 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: a
         <div className="flex-1" />
         <button 
           onClick={() => target === 'front' ? setFront("") : setBack("")}
-          className="flex h-8 px-2 items-center justify-center rounded text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors text-xs gap-1"
+          className="flex h-8 px-3 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors text-xs font-bold gap-1.5"
         >
-          <Delete className="h-4 w-4" /> Clear
+          <Delete className="h-3.5 w-3.5" /> Clear
         </button>
       </div>
     </div>
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="relative w-full max-w-2xl rounded-2xl border border-border bg-card shadow-2xl shadow-black/50 flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-gray-900/40 backdrop-blur-sm">
+      <div className="relative w-full max-w-2xl rounded-3xl border border-white/50 bg-white shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-scale-in">
         
-        <div className="flex items-center justify-between border-b border-border px-6 py-4">
-          <h2 className="text-lg font-semibold text-foreground">{title}</h2>
-          <button onClick={onClose} className="rounded-full p-1 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors">
+        {/* Header */}
+        <div className="relative flex items-center justify-between border-b border-purple-100 px-6 py-5 bg-white/50 backdrop-blur-md">
+          <Sparkles className="absolute top-5 right-14 h-5 w-5 text-purple-300 animate-pulse" />
+          <div>
+            <h2 className="text-xl font-black text-gray-900 tracking-tight">{title}</h2>
+            <p className="text-xs font-medium text-gray-500 mt-1">Design your flashcard content</p>
+          </div>
+          <button 
+            onClick={onClose} 
+            className="rounded-full p-2 text-gray-400 hover:bg-violet-50 hover:text-violet-600 transition-colors"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        {/* Am adăugat overflow-y-auto aici pentru scroll dacă sunt multe elemente */}
-        <div className="flex-1 p-6 flex flex-col gap-8 overflow-y-auto">
+        {/* Scrollable Body */}
+        <div className="flex-1 p-6 sm:p-8 flex flex-col gap-8 overflow-y-auto bg-gray-50/30">
           
           {/* --- FRONT EDITOR --- */}
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-foreground">Front (Question - LaTeX)</label>
-            <MathToolbar target="front" />
-            <textarea
-              ref={frontTextareaRef}
-              value={front}
-              onChange={(e) => setFront(e.target.value)}
-              className="min-h-[100px] w-full rounded-b-lg border border-border bg-background px-4 py-3 text-foreground font-mono text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-shadow resize-y"
-              placeholder="Question or formula..."
-            />
+            <label className="text-sm font-bold text-gray-700 ml-1">Front (Question - LaTeX)</label>
+            <div className="shadow-sm rounded-xl">
+              <MathToolbar target="front" />
+              <textarea
+                ref={frontTextareaRef}
+                value={front}
+                onChange={(e) => setFront(e.target.value)}
+                className="min-h-[100px] w-full rounded-b-xl border border-purple-100 bg-white px-4 py-3 text-gray-800 font-mono text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-violet-400 transition-all resize-y"
+                placeholder="Ex: \int_{0}^{\infty} e^{-x^2} dx"
+              />
+            </div>
             {front.trim() && (
-              <div className="mt-2 rounded-lg border border-primary/20 bg-primary/5 p-3">
-                <span className="text-[10px] font-bold uppercase text-primary">Front Preview</span>
-                <div className="flex min-h-[60px] items-center justify-center p-2 text-xl">
+              <div className="mt-3 rounded-2xl border border-violet-100 bg-violet-50/50 p-4 shadow-inner animate-fade-in-up">
+                <span className="text-[10px] font-black uppercase text-violet-500 tracking-wider flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse"></div>
+                  Front Preview
+                </span>
+                <div className="flex min-h-[60px] items-center justify-center p-2 text-xl text-gray-800 overflow-x-auto">
                   <BlockMath math={front.replace(/\$/g, '')} />
                 </div>
               </div>
             )}
           </div>
 
-          <hr className="border-border/50" />
+          <div className="w-full border-t border-purple-100/60" />
 
           {/* --- BACK EDITOR --- */}
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-foreground">Back (Answer - LaTeX)</label>
-            <MathToolbar target="back" />
-            <textarea
-              ref={backTextareaRef}
-              value={back}
-              onChange={(e) => setBack(e.target.value)}
-              className="min-h-[100px] w-full rounded-b-lg border border-border bg-background px-4 py-3 text-foreground font-mono text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-shadow resize-y"
-              placeholder="Răspunsul sau rezolvarea..."
-            />
+            <label className="text-sm font-bold text-gray-700 ml-1">Back (Answer - LaTeX)</label>
+            <div className="shadow-sm rounded-xl">
+              <MathToolbar target="back" />
+              <textarea
+                ref={backTextareaRef}
+                value={back}
+                onChange={(e) => setBack(e.target.value)}
+                className="min-h-[100px] w-full rounded-b-xl border border-purple-100 bg-white px-4 py-3 text-gray-800 font-mono text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all resize-y"
+                placeholder="Răspunsul sau rezolvarea pas cu pas..."
+              />
+            </div>
             {back.trim() && (
-              <div className="mt-2 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3">
-                <span className="text-[10px] font-bold uppercase text-emerald-500">Back Preview</span>
-                <div className="flex min-h-[60px] items-center justify-center p-2 text-xl">
+              <div className="mt-3 rounded-2xl border border-emerald-100 bg-emerald-50/50 p-4 shadow-inner animate-fade-in-up">
+                <span className="text-[10px] font-black uppercase text-emerald-500 tracking-wider flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                  Back Preview
+                </span>
+                <div className="flex min-h-[60px] items-center justify-center p-2 text-xl text-gray-800 overflow-x-auto">
                   <BlockMath math={back.replace(/\$/g, '')} />
                 </div>
               </div>
             )}
           </div>
 
-          <hr className="border-border/50" />
+          <div className="w-full border-t border-purple-100/60" />
 
           {/* --- TIPS SECTION --- */}
           <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-foreground">Tips (Optional)</label>
+            <div className="flex items-center justify-between ml-1">
+              <label className="text-sm font-bold text-gray-700">Tips (Optional)</label>
               <button 
                 onClick={handleAddTip} 
-                className="flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+                className="flex items-center gap-1.5 text-xs font-bold text-violet-600 bg-violet-50 hover:bg-violet-100 px-3 py-1.5 rounded-full transition-colors"
               >
                 <Plus className="h-3.5 w-3.5" /> Add Tip
               </button>
             </div>
             
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-3">
               {tips.map((tip, index) => (
-                <div key={index} className="flex gap-2 items-center">
+                <div key={index} className="flex gap-2 items-center animate-fade-in-up">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-violet-100 text-violet-600 font-bold text-xs shrink-0">
+                    {index + 1}
+                  </div>
                   <input
                     type="text"
                     value={tip}
                     onChange={(e) => handleTipChange(index, e.target.value)}
-                    placeholder={`Indiciul #${index + 1}`}
-                    className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-shadow"
+                    placeholder="Add a helpful hint..."
+                    className="flex-1 h-12 rounded-xl border border-purple-100 bg-white px-4 text-sm font-medium text-gray-800 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-violet-400 transition-all shadow-sm"
                   />
                   <button 
                     onClick={() => handleRemoveTip(index)}
-                    className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
-                    aria-label="Șterge tip"
+                    className="flex h-12 w-12 items-center justify-center rounded-xl text-gray-400 hover:bg-red-50 hover:text-red-500 border border-transparent hover:border-red-100 transition-all shrink-0"
+                    title="Delete hint"
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-5 w-5" />
                   </button>
                 </div>
               ))}
+              
               {tips.length === 0 && (
-                <div className="rounded-lg border border-dashed border-border py-4 text-center">
-                  <p className="text-xs text-muted-foreground">Nu există niciun indiciu adăugat.</p>
+                <div className="rounded-2xl border border-dashed border-purple-200 bg-white py-8 text-center flex flex-col items-center gap-2">
+                  <AlertCircle className="h-6 w-6 text-purple-200" />
+                  <p className="text-sm font-medium text-gray-400">You haven't added any clues yet.</p>
                 </div>
               )}
             </div>
           </div>
-
         </div>
 
-        <div className="flex items-center justify-end gap-3 border-t border-border px-6 py-4 bg-card rounded-b-2xl">
-          <button onClick={onClose} className="rounded-lg px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-secondary transition-colors">
+        {/* Footer */}
+        <div className="flex items-center justify-end gap-3 border-t border-purple-100 px-6 py-5 bg-white">
+          <Button 
+            variant="ghost" 
+            onClick={onClose} 
+            className="h-11 px-6 rounded-xl font-bold text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+          >
             Cancel
-          </button>
-          <button onClick={handleSave} className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 transition-opacity">
+          </Button>
+          <Button 
+            onClick={handleSave} 
+            className="h-11 px-8 rounded-xl bg-gradient-to-r from-violet-600 via-purple-600 to-pink-600 text-white font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all duration-300"
+          >
             Save Card
-          </button>
+          </Button>
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes scale-in {
+          from { opacity: 0; transform: scale(0.95) translateY(10px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        @keyframes fade-in-up {
+          from { opacity: 0; transform: translateY(5px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-scale-in { animation: scale-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animate-fade-in-up { animation: fade-in-up 0.3s ease-out forwards; }
+      `}</style>
     </div>
   );
 }
