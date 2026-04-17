@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Search, Loader2, BookOpen } from "lucide-react";
+import { Search, Sparkles, BookOpen, Trophy, Zap } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { DeckCard } from "@/components/deck-card";
 import { jwtDecode } from "jwt-decode";
@@ -90,70 +90,202 @@ export default function PublicDecksPage() {
       d.description?.toLowerCase().includes(search.toLowerCase())
   );
 
+  const totalCards = publicDecks.reduce((acc, d) => acc + d.cards.length, 0);
+
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Animated gradient background */}
+      <div className="fixed inset-0 -z-10 bg-gradient-to-br from-violet-50 via-pink-50 to-cyan-50" />
+      <div className="fixed inset-0 -z-10 opacity-30">
+        <div className="absolute top-0 -left-4 w-96 h-96 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl animate-blob" />
+        <div className="absolute top-0 -right-4 w-96 h-96 bg-pink-400 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000" />
+        <div className="absolute -bottom-8 left-20 w-96 h-96 bg-cyan-400 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000" />
+      </div>
+
       <Navbar isLoggedIn={isLoggedIn} />
 
-      <main className="mx-auto max-w-6xl px-6 py-10">
-        <div className="mb-8 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground text-balance">
-              Explore Public Decks
-            </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Discover flashcards created by the community
-            </p>
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 py-8 sm:py-12">
+        {/* Hero Stats Section */}
+        <div className="mb-10 animate-fade-in">
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+            <div>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/30 animate-float">
+                  <BookOpen className="w-6 h-6 text-white" />
+                </div>
+                <h1 className="text-4xl sm:text-5xl font-black bg-gradient-to-r from-violet-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  Explore Public Decks
+                </h1>
+              </div>
+              <p className="text-lg text-gray-600 ml-16">
+                Discover flashcards created by the community
+              </p>
+            </div>
+
+            {/* Quick Stats */}
+            <div className="flex gap-3">
+              <div className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white/80 backdrop-blur-sm shadow-lg border border-purple-100 hover:scale-105 transition-transform">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
+                  <Trophy className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-gray-900">{publicDecks.length}</div>
+                  <div className="text-xs text-gray-500 font-medium">Decks</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white/80 backdrop-blur-sm shadow-lg border border-cyan-100 hover:scale-105 transition-transform">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
+                  <Zap className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-gray-900">{totalCards}</div>
+                  <div className="text-xs text-gray-500 font-medium">Cards</div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center gap-3">
-            <select
-              value={selectedTopic}
-              onChange={(e) => setSelectedTopic(e.target.value)}
-              className="h-9 w-full sm:w-48 rounded-lg border border-border bg-secondary px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-            >
-              <option value="All Topics">All Topics</option>
-              {TOPICS.map((topic) => (
-                <option key={topic} value={topic}>
-                  {topic}
-                </option>
-              ))}
-            </select>
+          {/* Search and Filter Section */}
+          <div className="mt-8 flex flex-col sm:flex-row gap-4">
+            <div className="sm:w-64 relative group">
+              <select
+                value={selectedTopic}
+                onChange={(e) => setSelectedTopic(e.target.value)}
+                className="w-full h-14 px-4 rounded-2xl bg-white/80 backdrop-blur-sm border-2 border-purple-100 text-gray-900 focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/20 shadow-lg transition-all font-medium appearance-none cursor-pointer"
+              >
+                <option value="All Topics">All Topics</option>
+                {TOPICS.map((topic) => (
+                  <option key={topic} value={topic}>
+                    {topic}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-            <div className="relative w-full sm:w-auto">
-              <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <div className="flex-1 relative group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-violet-500 transition-colors" />
               <input
                 type="search"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search public decks..."
-                className="h-9 w-full sm:w-48 rounded-lg border border-border bg-secondary pl-8 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full h-14 pl-12 pr-4 rounded-2xl bg-white/80 backdrop-blur-sm border-2 border-purple-100 text-gray-900 placeholder:text-gray-400 focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/20 shadow-lg transition-all font-medium"
               />
             </div>
           </div>
         </div>
 
+        {/* Decks Grid */}
         {loading ? (
-          <div className="flex h-64 items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <div className="flex flex-col items-center justify-center py-32">
+            <div className="relative">
+              <div className="w-20 h-20 rounded-full border-4 border-purple-200 border-t-purple-600 animate-spin" />
+              <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 text-purple-600 animate-pulse" />
+            </div>
+            <p className="mt-6 text-lg font-semibold text-gray-600">Loading public decks...</p>
           </div>
         ) : filtered.length > 0 ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((deckList) => (
-              <DeckCard key={deckList.id} deck={deckList} />
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 animate-fade-in-up">
+            {filtered.map((deckList, index) => (
+              <div
+                key={deckList.id}
+                style={{ animationDelay: `${index * 75}ms` }}
+                className="animate-slide-up"
+              >
+                <DeckCard deck={deckList} />
+              </div>
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-20 text-center bg-card/50">
-            <BookOpen className="mb-3 h-10 w-10 text-muted-foreground" />
-            <p className="text-sm font-medium">No decks found</p>
-            <p className="text-xs text-muted-foreground">
+          <div className="flex flex-col items-center justify-center py-24 px-6">
+            <div className="relative mb-6">
+              <div className="w-32 h-32 rounded-3xl bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
+                <Search className="w-16 h-16 text-purple-300" />
+              </div>
+              <div className="absolute -top-2 -right-2 w-12 h-12 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg animate-bounce">
+                <Sparkles className="w-6 h-6 text-white" />
+              </div>
+            </div>
+            <p className="text-2xl font-bold text-gray-800 mb-2">
+              No matching decks found
+            </p>
+            <p className="text-gray-500 text-center max-w-sm">
               {search || selectedTopic !== "All Topics" 
-                ? "Try adjusting your search or topic filter" 
-                : "No public decks available right now"}
+                ? "Try adjusting your search or topic filter to find what you're looking for." 
+                : "No public decks are available right now."}
             </p>
           </div>
         )}
       </main>
+
+      <style jsx>{`
+        @keyframes blob {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          25% { transform: translate(20px, -50px) scale(1.1); }
+          50% { transform: translate(-20px, 20px) scale(0.9); }
+          75% { transform: translate(20px, 50px) scale(1.05); }
+        }
+
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-10px); }
+        }
+
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        @keyframes fade-in-up {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes slide-up {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+
+        .animation-delay-4000 {
+          animation-delay: 4s;
+        }
+
+        .animate-float {
+          animation: float 3s ease-in-out infinite;
+        }
+
+        .animate-fade-in {
+          animation: fade-in 0.5s ease-out;
+        }
+
+        .animate-fade-in-up {
+          animation: fade-in-up 0.6s ease-out;
+        }
+
+        .animate-slide-up {
+          animation: slide-up 0.5s ease-out backwards;
+        }
+      `}</style>
     </div>
   );
 }

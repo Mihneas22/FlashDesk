@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Layers, Eye, EyeOff, Check, AlertCircle } from "lucide-react";
+import { Layers, Eye, EyeOff, Check, AlertCircle, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -79,47 +79,58 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center px-4 py-12">
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -top-40 left-1/2 h-[500px] w-[800px] -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
+    <div className="min-h-screen relative overflow-hidden flex flex-col items-center justify-center px-4 sm:px-6 py-12">
+      {/* Animated gradient background */}
+      <div className="fixed inset-0 -z-10 bg-gradient-to-br from-violet-50 via-pink-50 to-cyan-50" />
+      <div className="fixed inset-0 -z-10 opacity-40">
+        <div className="absolute top-0 -left-4 w-96 h-96 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl animate-blob" />
+        <div className="absolute top-0 -right-4 w-96 h-96 bg-pink-400 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000" />
+        <div className="absolute -bottom-8 left-20 w-96 h-96 bg-cyan-400 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000" />
       </div>
 
-      <div className="relative z-10 w-full max-w-sm">
-        <Link href="/" className="mb-8 flex items-center justify-center gap-2 text-foreground">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary">
-            <Layers className="h-5 w-5 text-primary-foreground" />
+      <div className="relative z-10 w-full max-w-md animate-scale-in">
+        <Link href="/" className="mb-8 flex items-center justify-center gap-3 group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg group-hover:scale-110 transition-transform duration-300">
+            <Layers className="h-6 w-6 text-white" />
           </div>
-          <span className="text-xl font-semibold tracking-tight">FormulaCards</span>
+          <span className="text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-violet-600 to-purple-600 tracking-tight">
+            FormulaCards
+          </span>
         </Link>
 
-        <div className="rounded-2xl border border-border bg-card p-8">
-          <div className="mb-6 text-center">
-            <h1 className="text-2xl font-semibold text-foreground">Create an account</h1>
-            <p className="mt-1 text-sm text-muted-foreground">Start mastering formulas today</p>
+        <div className="rounded-3xl border border-white/50 bg-white/60 backdrop-blur-xl p-8 sm:p-10 shadow-2xl relative overflow-hidden">
+          {/* Decorative element */}
+          <Sparkles className="absolute top-6 right-6 h-5 w-5 text-purple-300 animate-pulse" />
+
+          <div className="mb-8 text-center">
+            <h1 className="text-3xl font-black text-gray-900">Create an account</h1>
+            <p className="mt-2 text-base text-gray-500 font-medium">Start mastering formulas today</p>
           </div>
 
           {error && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
+            <div className="mb-6 animate-fade-in-up">
+              <Alert variant="destructive" className="border-red-200 bg-red-50/50 backdrop-blur-sm rounded-xl">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription className="font-medium">{error}</AlertDescription>
+              </Alert>
+            </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="username" className="text-gray-700 font-bold ml-1">Username</Label>
               <Input
                 id="username"
                 placeholder="johndoe22"
                 required
                 value={formData.username}
                 onChange={handleChange}
-                className="h-11 bg-secondary border-border"
+                className="h-12 rounded-xl bg-white/50 border-purple-100 focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:border-transparent transition-all placeholder:text-gray-400 font-medium"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-gray-700 font-bold ml-1">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -127,12 +138,12 @@ export default function RegisterPage() {
                 required
                 value={formData.email}
                 onChange={handleChange}
-                className="h-11 bg-secondary border-border"
+                className="h-12 rounded-xl bg-white/50 border-purple-100 focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:border-transparent transition-all placeholder:text-gray-400 font-medium"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-gray-700 font-bold ml-1">Password</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -141,12 +152,12 @@ export default function RegisterPage() {
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className="h-11 pr-10 bg-secondary border-border"
+                  className="h-12 rounded-xl bg-white/50 border-purple-100 focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:border-transparent transition-all pr-12 font-medium"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-gray-400 hover:text-violet-600 hover:bg-violet-50 transition-all"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -154,19 +165,23 @@ export default function RegisterPage() {
               
               {/* Requirements visualization */}
               {formData.password.length > 0 && (
-                <ul className="mt-2 space-y-1">
-                  {passwordRequirements.map((req) => (
-                    <li key={req.label} className={cn("flex items-center gap-2 text-xs", req.met ? "text-green-500" : "text-muted-foreground")}>
-                      <Check className={cn("h-3 w-3", req.met ? "opacity-100" : "opacity-30")} />
-                      {req.label}
-                    </li>
-                  ))}
-                </ul>
+                <div className="mt-3 p-3 rounded-xl bg-white/40 border border-purple-50 animate-fade-in-up">
+                  <ul className="space-y-2">
+                    {passwordRequirements.map((req) => (
+                      <li key={req.label} className={cn("flex items-center gap-2 text-xs font-bold transition-colors duration-300", req.met ? "text-emerald-600" : "text-gray-400")}>
+                        <div className={cn("flex items-center justify-center w-4 h-4 rounded-full transition-colors duration-300", req.met ? "bg-emerald-100" : "bg-gray-100")}>
+                          <Check className={cn("h-3 w-3", req.met ? "opacity-100 text-emerald-600" : "opacity-30 text-gray-400")} />
+                        </div>
+                        {req.label}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Label htmlFor="confirmPassword" className="text-gray-700 font-bold ml-1">Confirm Password</Label>
               <Input
                 id="confirmPassword"
                 type="password"
@@ -174,23 +189,85 @@ export default function RegisterPage() {
                 required
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className="h-11 bg-secondary border-border"
+                className="h-12 rounded-xl bg-white/50 border-purple-100 focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:border-transparent transition-all font-medium"
               />
             </div>
 
-            <Button type="submit" disabled={isLoading} className="h-11 w-full font-medium">
-              {isLoading ? "Creating account..." : "Create account"}
+            <Button 
+              type="submit" 
+              disabled={isLoading} 
+              className="h-12 w-full rounded-xl bg-gradient-to-r from-violet-600 via-purple-600 to-pink-600 text-white font-bold text-base shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all duration-300 mt-4"
+            >
+              {isLoading ? (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span>Creating account...</span>
+                </div>
+              ) : (
+                "Create account"
+              )}
             </Button>
           </form>
         </div>
 
-        <p className="mt-6 text-center text-sm text-muted-foreground">
+        <p className="mt-8 text-center text-sm font-medium text-gray-500 bg-white/40 py-3 px-6 rounded-2xl backdrop-blur-sm border border-white/50 shadow-sm mx-auto max-w-[fit-content]">
           Already have an account?{" "}
-          <Link href="/login" className="font-medium text-primary hover:text-primary/80">
+          <Link href="/login" className="font-black text-violet-600 hover:text-violet-500 transition-colors">
             Sign in
           </Link>
         </p>
       </div>
+
+      <style jsx>{`
+        @keyframes blob {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          25% { transform: translate(20px, -50px) scale(1.1); }
+          50% { transform: translate(-20px, 20px) scale(0.9); }
+          75% { transform: translate(20px, 50px) scale(1.05); }
+        }
+
+        @keyframes scale-in {
+          from {
+            opacity: 0;
+            transform: scale(0.95) translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+
+        @keyframes fade-in-up {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+
+        .animation-delay-4000 {
+          animation-delay: 4s;
+        }
+
+        .animate-scale-in {
+          animation: scale-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .animate-fade-in-up {
+          animation: fade-in-up 0.4s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 }

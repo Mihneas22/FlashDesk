@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Search, Loader2 } from "lucide-react";
+import { Plus, Search, Loader2, Sparkles, BookOpen, Trophy, Zap } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { DeckCard } from "@/components/deck-card";
 import { useStore } from "@/lib/store";
@@ -25,7 +25,7 @@ const TOPICS = [
 const STATUS = [
   "Private",
   "Public"
-]
+];
 
 export default function DashboardPage() {
   const { decks, setDecks } = useStore();
@@ -98,6 +98,7 @@ export default function DashboardPage() {
       setLoading(false);
     }
   }, [fetchDecks]);
+
   const filtered = decks.filter(
     (d) =>
       d.title?.toLowerCase().includes(search.toLowerCase()) ||
@@ -140,154 +141,329 @@ export default function DashboardPage() {
     }
   }
 
+  const totalCards = decks.reduce((acc, d) => acc + d.cards.length, 0);
+
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Animated gradient background */}
+      <div className="fixed inset-0 -z-10 bg-gradient-to-br from-violet-50 via-pink-50 to-cyan-50" />
+      <div className="fixed inset-0 -z-10 opacity-30">
+        <div className="absolute top-0 -left-4 w-96 h-96 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl animate-blob" />
+        <div className="absolute top-0 -right-4 w-96 h-96 bg-pink-400 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000" />
+        <div className="absolute -bottom-8 left-20 w-96 h-96 bg-cyan-400 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000" />
+      </div>
+
       <Navbar isLoggedIn={isLoggedIn} />
 
-      <main className="mx-auto max-w-6xl px-6 py-10">
-        <div className="mb-8 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground text-balance">
-              My Decks
-            </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {decks.length} deck{decks.length !== 1 ? "s" : ""} &middot;{" "}
-              {decks.reduce((acc, d) => acc + d.cards.length, 0)} total cards
-            </p>
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 py-8 sm:py-12">
+        {/* Hero Stats Section */}
+        <div className="mb-10 animate-fade-in">
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+            <div>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/30 animate-float">
+                  <BookOpen className="w-6 h-6 text-white" />
+                </div>
+                <h1 className="text-4xl sm:text-5xl font-black bg-gradient-to-r from-violet-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  My Study Decks
+                </h1>
+              </div>
+              <p className="text-lg text-gray-600 ml-16">
+                Your personal flashcard collection
+              </p>
+            </div>
+
+            {/* Quick Stats */}
+            <div className="flex gap-3">
+              <div className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white/80 backdrop-blur-sm shadow-lg border border-purple-100 hover:scale-105 transition-transform">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
+                  <Trophy className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-gray-900">{decks.length}</div>
+                  <div className="text-xs text-gray-500 font-medium">Decks</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white/80 backdrop-blur-sm shadow-lg border border-cyan-100 hover:scale-105 transition-transform">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
+                  <Zap className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-gray-900">{totalCards}</div>
+                  <div className="text-xs text-gray-500 font-medium">Cards</div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+          {/* Search and Create Section */}
+          <div className="mt-8 flex flex-col sm:flex-row gap-4">
+            <div className="flex-1 relative group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-violet-500 transition-colors" />
               <input
                 type="search"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search decks..."
-                className="h-9 w-48 rounded-lg border border-border bg-secondary pl-8 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                placeholder="Search your decks..."
+                className="w-full h-14 pl-12 pr-4 rounded-2xl bg-white/80 backdrop-blur-sm border-2 border-purple-100 text-gray-900 placeholder:text-gray-400 focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/20 shadow-lg transition-all font-medium"
               />
             </div>
 
-            
             {isLoggedIn && (
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 transition-opacity"
+                className="h-14 px-8 rounded-2xl bg-gradient-to-r from-violet-600 via-purple-600 to-pink-600 text-white font-bold text-lg shadow-xl shadow-purple-500/40 hover:shadow-2xl hover:shadow-purple-500/50 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 group"
               >
-                <Plus className="h-4 w-4" />
+                <Plus className="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" />
                 Create Deck
+                <Sparkles className="w-5 h-5 group-hover:scale-125 transition-transform" />
               </button>
             )}
           </div>
         </div>
 
+        {/* Decks Grid */}
         {loading ? (
-          <div className="flex h-64 items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <div className="flex flex-col items-center justify-center py-32">
+            <div className="relative">
+              <div className="w-20 h-20 rounded-full border-4 border-purple-200 border-t-purple-600 animate-spin" />
+              <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 text-purple-600 animate-pulse" />
+            </div>
+            <p className="mt-6 text-lg font-semibold text-gray-600">Loading your decks...</p>
           </div>
         ) : filtered.length > 0 ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((deckList) => (
-              <DeckCard key={deckList.id} deck={deckList} />
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 animate-fade-in-up">
+            {filtered.map((deckList, index) => (
+              <div
+                key={deckList.id}
+                style={{ animationDelay: `${index * 75}ms` }}
+                className="animate-slide-up"
+              >
+                <DeckCard deck={deckList} />
+              </div>
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-20 text-center">
-            <Search className="mb-3 h-10 w-10 text-muted-foreground" />
-            <p className="text-sm font-medium">No decks found</p>
-            <p className="text-xs text-muted-foreground">
-              {search ? "Try another search" : "Your collection is empty"}
+          <div className="flex flex-col items-center justify-center py-24 px-6">
+            <div className="relative mb-6">
+              <div className="w-32 h-32 rounded-3xl bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
+                <Search className="w-16 h-16 text-purple-300" />
+              </div>
+              <div className="absolute -top-2 -right-2 w-12 h-12 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg animate-bounce">
+                <Sparkles className="w-6 h-6 text-white" />
+              </div>
+            </div>
+            <p className="text-2xl font-bold text-gray-800 mb-2">
+              {search ? "No matching decks" : "Start your study journey!"}
             </p>
+            <p className="text-gray-500 text-center max-w-sm">
+              {search 
+                ? "Try adjusting your search to find what you're looking for" 
+                : "Create your first deck and begin building your knowledge base"}
+            </p>
+            {!search && isLoggedIn && (
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="mt-8 px-8 py-4 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 text-white font-bold shadow-xl hover:shadow-2xl hover:scale-105 transition-all"
+              >
+                Create Your First Deck
+              </button>
+            )}
           </div>
         )}
       </main>
 
+      {/* Create Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowCreateModal(false)} aria-hidden="true" />
-          <div className="relative w-full max-w-md rounded-2xl border border-border bg-card shadow-2xl shadow-black/50">
-            <div className="border-b border-border px-6 py-4">
-              <h2 className="text-base font-semibold text-foreground">Create New Deck</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div 
+            className="absolute inset-0 bg-black/40 backdrop-blur-md" 
+            onClick={() => setShowCreateModal(false)} 
+          />
+          <div className="relative w-full max-w-xl rounded-3xl bg-white shadow-2xl animate-scale-in overflow-hidden">
+            {/* Modal Header with Gradient */}
+            <div className="relative px-8 py-6 bg-gradient-to-r from-violet-600 via-purple-600 to-pink-600">
+              <div className="absolute inset-0 opacity-20">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl" />
+              </div>
+              <div className="relative flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                  <Sparkles className="w-6 h-6 text-white" />
+                </div>
+                <h2 className="text-2xl font-black text-white">Create New Deck</h2>
+              </div>
             </div>
-            <div className="px-6 py-5 flex flex-col gap-4">
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="deck-title" className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-                  Title
+
+            {/* Modal Content */}
+            <div className="px-8 py-8 space-y-6">
+              <div className="space-y-2">
+                <label className="block text-sm font-bold text-gray-700 uppercase tracking-wide">
+                  Deck Title
                 </label>
                 <input
-                  id="deck-title"
                   type="text"
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
-                  placeholder="e.g. Electromagnetics"
-                  className="w-full rounded-lg border border-border bg-input px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  placeholder="e.g. Quantum Physics Fundamentals"
+                  className="w-full px-4 py-3.5 rounded-xl border-2 border-purple-100 bg-purple-50/50 text-gray-900 placeholder:text-gray-400 focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/20 transition-all font-medium"
                 />
               </div>
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="deck-desc" className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+
+              <div className="space-y-2">
+                <label className="block text-sm font-bold text-gray-700 uppercase tracking-wide">
                   Description
                 </label>
                 <input
-                  id="deck-desc"
                   type="text"
                   value={newDesc}
                   onChange={(e) => setNewDesc(e.target.value)}
-                  placeholder="Short description of the topic"
-                  className="w-full rounded-lg border border-border bg-input px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  placeholder="Brief description to help you remember..."
+                  className="w-full px-4 py-3.5 rounded-xl border-2 border-purple-100 bg-purple-50/50 text-gray-900 placeholder:text-gray-400 focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/20 transition-all font-medium"
                 />
               </div>
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="deck-topic" className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-                  Topic
-                </label>
-                <select
-                  id="deck-topic"
-                  value={newTopic}
-                  onChange={(e) => setNewTopic(e.target.value)}
-                  className="w-full rounded-lg border border-border bg-input px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                >
-                  <option value="" disabled>Choose topic...</option>
-                  {TOPICS.map((topic) => (
-                    <option key={topic} value={topic}>
-                      {topic}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="deck-status" className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-                  Staus
-                </label>
-                <select
-                  id="deck-status"
-                  value={newStatus}
-                  onChange={(e) => setNewStatus(e.target.value)}
-                  className="w-full rounded-lg border border-border bg-input px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                >
-                  <option value="" disabled>Choose status...</option>
-                  {STATUS.map((status) => (
-                    <option key={status} value={status}>
-                      {status}
-                    </option>
-                  ))}
-                </select>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="block text-sm font-bold text-gray-700 uppercase tracking-wide">
+                    Topic
+                  </label>
+                  <select
+                    value={newTopic}
+                    onChange={(e) => setNewTopic(e.target.value)}
+                    className="w-full px-4 py-3.5 rounded-xl border-2 border-purple-100 bg-purple-50/50 text-gray-900 focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/20 transition-all font-medium appearance-none cursor-pointer"
+                  >
+                    <option value="" disabled>Choose topic...</option>
+                    {TOPICS.map((topic) => (
+                      <option key={topic} value={topic}>
+                        {topic}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-bold text-gray-700 uppercase tracking-wide">
+                    Status
+                  </label>
+                  <select
+                    value={newStatus}
+                    onChange={(e) => setNewStatus(e.target.value)}
+                    className="w-full px-4 py-3.5 rounded-xl border-2 border-purple-100 bg-purple-50/50 text-gray-900 focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/20 transition-all font-medium appearance-none cursor-pointer"
+                  >
+                    <option value="" disabled>Choose status...</option>
+                    {STATUS.map((status) => (
+                      <option key={status} value={status}>
+                        {status}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
-            <div className="flex justify-end gap-2 border-t border-border px-6 py-4">
-              <button onClick={() => setShowCreateModal(false)} className="rounded-lg px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors">
+
+            {/* Modal Footer */}
+            <div className="px-8 py-6 bg-gray-50 flex justify-end gap-3">
+              <button 
+                onClick={() => setShowCreateModal(false)} 
+                className="px-6 py-3 rounded-xl font-bold text-gray-600 hover:bg-gray-200 transition-all"
+              >
                 Cancel
               </button>
               <button
                 onClick={handleCreate}
                 disabled={!newTitle.trim() || !newTopic}
-                className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+                className="px-8 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white font-bold shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
-                Create
+                Create Deck
               </button>
             </div>
           </div>
         </div>
       )}
+
+      <style jsx>{`
+        @keyframes blob {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          25% { transform: translate(20px, -50px) scale(1.1); }
+          50% { transform: translate(-20px, 20px) scale(0.9); }
+          75% { transform: translate(20px, 50px) scale(1.05); }
+        }
+
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-10px); }
+        }
+
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        @keyframes fade-in-up {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes slide-up {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes scale-in {
+          from {
+            opacity: 0;
+            transform: scale(0.9);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+
+        .animation-delay-4000 {
+          animation-delay: 4s;
+        }
+
+        .animate-float {
+          animation: float 3s ease-in-out infinite;
+        }
+
+        .animate-fade-in {
+          animation: fade-in 0.5s ease-out;
+        }
+
+        .animate-fade-in-up {
+          animation: fade-in-up 0.6s ease-out;
+        }
+
+        .animate-slide-up {
+          animation: slide-up 0.5s ease-out backwards;
+        }
+
+        .animate-scale-in {
+          animation: scale-in 0.3s ease-out;
+        }
+      `}</style>
     </div>
   );
 }

@@ -36,9 +36,9 @@ export function Navbar({ isLoggedIn }: { isLoggedIn?: boolean }) {
         {/* Nav links */}
         <nav className="flex items-center gap-4">
           <div className="flex items-center gap-1">
-            <NavLink href="/" active={pathname === "/"}>
+            <NavLink href="/public-decks" active={pathname === "/public-decks"}>
               <BookOpen className="h-3.5 w-3.5" />
-              Decks
+              Public Decks
             </NavLink>
           </div>
 

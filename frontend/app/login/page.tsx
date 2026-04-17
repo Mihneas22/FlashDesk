@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Layers, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { Layers, Eye, EyeOff, AlertCircle, Sparkles, Loader2, Github } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,7 +38,7 @@ export default function LoginPage() {
 
       const data = await response.json();
 
-      if (data.flag) { // Verificăm proprietatea 'flag' din LoginUserResponse
+      if (data.flag) { 
         // Salvăm token-ul
         localStorage.setItem("token", data.token);
         
@@ -46,7 +46,7 @@ export default function LoginPage() {
         router.push("/");
         router.refresh();
       } else {
-        // Afișăm mesajul de eroare din backend (ex: "Invalid email or password.")
+        // Afișăm mesajul de eroare din backend
         setError(data.message);
       }
     } catch (err) {
@@ -57,36 +57,47 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center px-4">
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -top-40 left-1/2 h-[500px] w-[800px] -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
+    <div className="min-h-screen relative overflow-hidden flex flex-col items-center justify-center px-4 sm:px-6 py-12">
+      {/* Animated gradient background */}
+      <div className="fixed inset-0 -z-10 bg-gradient-to-br from-violet-50 via-pink-50 to-cyan-50" />
+      <div className="fixed inset-0 -z-10 opacity-40">
+        <div className="absolute top-0 -left-4 w-96 h-96 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl animate-blob" />
+        <div className="absolute top-0 -right-4 w-96 h-96 bg-pink-400 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000" />
+        <div className="absolute -bottom-8 left-20 w-96 h-96 bg-cyan-400 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000" />
       </div>
 
-      <div className="relative z-10 w-full max-w-sm">
-        <Link href="/" className="mb-8 flex items-center justify-center gap-2 text-foreground">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary">
-            <Layers className="h-5 w-5 text-primary-foreground" />
+      <div className="relative z-10 w-full max-w-md animate-scale-in">
+        <Link href="/" className="mb-8 flex items-center justify-center gap-3 group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg group-hover:scale-110 transition-transform duration-300">
+            <Layers className="h-6 w-6 text-white" />
           </div>
-          <span className="text-xl font-semibold tracking-tight">FormulaCards</span>
+          <span className="text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-violet-600 to-purple-600 tracking-tight">
+            FormulaCards
+          </span>
         </Link>
 
-        <div className="rounded-2xl border border-border bg-card p-8">
-          <div className="mb-6 text-center">
-            <h1 className="text-2xl font-semibold text-foreground">Welcome back</h1>
-            <p className="mt-1 text-sm text-muted-foreground">Sign in to continue studying</p>
+        <div className="rounded-3xl border border-white/50 bg-white/60 backdrop-blur-xl p-8 sm:p-10 shadow-2xl relative overflow-hidden">
+          {/* Decorative element */}
+          <Sparkles className="absolute top-6 right-6 h-5 w-5 text-purple-300 animate-pulse" />
+
+          <div className="mb-8 text-center">
+            <h1 className="text-3xl font-black text-gray-900">Welcome back</h1>
+            <p className="mt-2 text-base text-gray-500 font-medium">Sign in to continue studying</p>
           </div>
 
           {/* Afișare eroare dacă există */}
           {error && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
+            <div className="mb-6 animate-fade-in-up">
+              <Alert variant="destructive" className="border-red-200 bg-red-50/50 backdrop-blur-sm rounded-xl">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription className="font-medium">{error}</AlertDescription>
+              </Alert>
+            </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-gray-700 font-bold ml-1">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -94,14 +105,14 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="h-11 bg-secondary border-border"
+                className="h-12 rounded-xl bg-white/50 border-purple-100 focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:border-transparent transition-all placeholder:text-gray-400 font-medium"
               />
             </div>
 
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <Link href="#" className="text-xs text-muted-foreground hover:text-foreground">
+              <div className="flex items-center justify-between ml-1 mr-1">
+                <Label htmlFor="password" className="text-gray-700 font-bold">Password</Label>
+                <Link href="#" className="text-xs font-bold text-violet-600 hover:text-violet-500 transition-colors">
                   Forgot password?
                 </Link>
               </div>
@@ -113,47 +124,120 @@ export default function LoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="h-11 pr-10 bg-secondary border-border"
+                  className="h-12 rounded-xl bg-white/50 border-purple-100 focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:border-transparent transition-all pr-12 font-medium"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-gray-400 hover:text-violet-600 hover:bg-violet-50 transition-all"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
 
-            <Button type="submit" disabled={isLoading} className="h-11 w-full font-medium">
-              {isLoading ? "Signing in..." : "Sign in"}
+            <Button 
+              type="submit" 
+              disabled={isLoading} 
+              className="h-12 w-full rounded-xl bg-gradient-to-r from-violet-600 via-purple-600 to-pink-600 text-white font-bold text-base shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all duration-300 mt-2"
+            >
+              {isLoading ? (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span>Signing in...</span>
+                </div>
+              ) : (
+                "Sign in"
+              )}
             </Button>
           </form>
 
-          {/* Restul codului pentru Google/GitHub rămâne neschimbat */}
-          <div className="relative my-6">
+          <div className="relative my-8">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-border" />
+              <div className="w-full border-t border-purple-100" />
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="bg-card px-2 text-muted-foreground">or continue with</span>
+              <span className="bg-[#fcfcff] px-4 font-bold text-gray-400 uppercase tracking-wider rounded-full">
+                Or continue with
+              </span>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-             {/* Butoane Social Login */}
-             <Button variant="outline" className="h-11 bg-secondary">Google</Button>
-             <Button variant="outline" className="h-11 bg-secondary">GitHub</Button>
+            <Button variant="outline" className="h-12 rounded-xl bg-white/50 border-purple-100 hover:bg-white hover:border-violet-300 hover:text-violet-600 font-bold transition-all gap-2">
+              <svg className="w-5 h-5" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+              </svg>
+              Google
+            </Button>
+            <Button variant="outline" className="h-12 rounded-xl bg-white/50 border-purple-100 hover:bg-white hover:border-violet-300 hover:text-violet-600 font-bold transition-all gap-2">
+              <Github className="w-5 h-5" />
+              GitHub
+            </Button>
           </div>
         </div>
 
-        <p className="mt-6 text-center text-sm text-muted-foreground">
-          Don&apos;t have an account?{" "}
-          <Link href="/register" className="font-medium text-primary hover:text-primary/80">
+        <p className="mt-8 text-center text-sm font-medium text-gray-500 bg-white/40 py-3 px-6 rounded-2xl backdrop-blur-sm border border-white/50 shadow-sm mx-auto max-w-[fit-content]">
+          Don't have an account?{" "}
+          <Link href="/register" className="font-black text-violet-600 hover:text-violet-500 transition-colors">
             Sign up
           </Link>
         </p>
       </div>
+
+      <style jsx>{`
+        @keyframes blob {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          25% { transform: translate(20px, -50px) scale(1.1); }
+          50% { transform: translate(-20px, 20px) scale(0.9); }
+          75% { transform: translate(20px, 50px) scale(1.05); }
+        }
+
+        @keyframes scale-in {
+          from {
+            opacity: 0;
+            transform: scale(0.95) translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+
+        @keyframes fade-in-up {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+
+        .animation-delay-4000 {
+          animation-delay: 4s;
+        }
+
+        .animate-scale-in {
+          animation: scale-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .animate-fade-in-up {
+          animation: fade-in-up 0.4s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 }
