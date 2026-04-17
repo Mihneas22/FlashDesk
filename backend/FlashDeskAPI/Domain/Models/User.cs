@@ -18,6 +18,8 @@ namespace Domain.Models
 
         public ICollection<Deck>? UserDecks { get; set; }
 
+        public ICollection<TestSubmission>? UserSubmissions { get; set; }
+
         public DateTime? CreatedAt { get; set; }
     }
 }

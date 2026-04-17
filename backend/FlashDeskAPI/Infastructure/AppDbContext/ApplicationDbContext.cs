@@ -23,14 +23,38 @@ namespace Infastructure.AppDbContext
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            modelBuilder.Entity<User>()
+                .HasMany(us => us.UserSubmissions)
+                .WithOne(sub => sub.Subm_User)
+                .HasForeignKey(sub => sub.Subm_UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+
             modelBuilder.Entity<Deck>()
                 .HasMany(dc => dc.DeckCards)
                 .WithOne(card => card.CardDeck)
-                .HasForeignKey(card => card.DeckId);
+                .HasForeignKey(card => card.DeckId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Test>()
+                .HasMany(ts => ts.Questions)
+                .WithOne(qs => qs.Quest_Test)
+                .HasForeignKey(qs => qs.Quest_TestId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Test>()
+                .HasMany(ts => ts.Submissions)
+                .WithOne(qs => qs.Subm_Test)
+                .HasForeignKey(qs => qs.Subm_TestId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
 
         public DbSet<User> UserEntity { get; set; }
         public DbSet<Deck> DeckEntity { get; set; }
         public DbSet<Card> CardEntity { get; set; }
+
+        public DbSet<Test> TestEntity { get; set; }
+        public DbSet<TestQuestion> TestQuestionEntity { get; set; }
+        public DbSet<TestSubmission> TestSubmissionEntity { get; set; }
     }
 }

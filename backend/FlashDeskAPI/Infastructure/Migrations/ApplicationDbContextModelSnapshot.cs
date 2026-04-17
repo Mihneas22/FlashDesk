@@ -81,6 +81,93 @@ namespace Infastructure.Migrations
                     b.ToTable("DeckEntity");
                 });
 
+            modelBuilder.Entity("Domain.Models.Test", b =>
+                {
+                    b.Property<Guid>("TestId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("Time")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Title")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Topic")
+                        .HasColumnType("text");
+
+                    b.HasKey("TestId");
+
+                    b.ToTable("TestEntity");
+                });
+
+            modelBuilder.Entity("Domain.Models.TestQuestion", b =>
+                {
+                    b.Property<Guid>("TestQuestionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("CorrectAnswerIndex")
+                        .HasColumnType("integer");
+
+                    b.PrimitiveCollection<string[]>("Explications")
+                        .HasColumnType("text[]");
+
+                    b.PrimitiveCollection<string[]>("Hints")
+                        .HasColumnType("text[]");
+
+                    b.PrimitiveCollection<string[]>("PossibleAnswers")
+                        .HasColumnType("text[]");
+
+                    b.Property<Guid>("Quest_TestId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("QuestionText")
+                        .HasColumnType("text");
+
+                    b.HasKey("TestQuestionId");
+
+                    b.HasIndex("Quest_TestId");
+
+                    b.ToTable("TestQuestionEntity");
+                });
+
+            modelBuilder.Entity("Domain.Models.TestSubmission", b =>
+                {
+                    b.Property<Guid>("TestSubmissionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("CorrectAnswers")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("Points")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("Subm_TestId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("Subm_UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("WrongAnswers")
+                        .HasColumnType("integer");
+
+                    b.HasKey("TestSubmissionId");
+
+                    b.HasIndex("Subm_TestId");
+
+                    b.HasIndex("Subm_UserId");
+
+                    b.ToTable("TestSubmissionEntity");
+                });
+
             modelBuilder.Entity("Domain.Models.User", b =>
                 {
                     b.Property<Guid>("UserId")
@@ -125,14 +212,53 @@ namespace Infastructure.Migrations
                     b.Navigation("DeckUser");
                 });
 
+            modelBuilder.Entity("Domain.Models.TestQuestion", b =>
+                {
+                    b.HasOne("Domain.Models.Test", "Quest_Test")
+                        .WithMany("Questions")
+                        .HasForeignKey("Quest_TestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Quest_Test");
+                });
+
+            modelBuilder.Entity("Domain.Models.TestSubmission", b =>
+                {
+                    b.HasOne("Domain.Models.Test", "Subm_Test")
+                        .WithMany("Submissions")
+                        .HasForeignKey("Subm_TestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Models.User", "Subm_User")
+                        .WithMany("UserSubmissions")
+                        .HasForeignKey("Subm_UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Subm_Test");
+
+                    b.Navigation("Subm_User");
+                });
+
             modelBuilder.Entity("Domain.Models.Deck", b =>
                 {
                     b.Navigation("DeckCards");
                 });
 
+            modelBuilder.Entity("Domain.Models.Test", b =>
+                {
+                    b.Navigation("Questions");
+
+                    b.Navigation("Submissions");
+                });
+
             modelBuilder.Entity("Domain.Models.User", b =>
                 {
                     b.Navigation("UserDecks");
+
+                    b.Navigation("UserSubmissions");
                 });
 #pragma warning restore 612, 618
         }
