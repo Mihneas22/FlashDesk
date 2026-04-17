@@ -18,7 +18,7 @@ namespace Domain.Models
 
         public ICollection<Card>? DeckCards { get; set; }
 
-        public Guid DeckUserId { get; set; }
+        public Guid? DeckUserId { get; set; }
 
         public User? DeckUser { get; set; }
 

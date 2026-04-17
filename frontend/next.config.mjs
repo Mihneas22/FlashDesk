@@ -6,5 +6,6 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  transpilePackages: ['remark-math', 'rehype-katex', 'react-markdown'],
 };
 export default nextConfig;

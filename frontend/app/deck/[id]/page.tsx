@@ -5,21 +5,29 @@ import Link from "next/link";
 import { ArrowLeft, Plus, PlayCircle, Pencil, Trash2, Loader2 } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { CardEditorModal } from "@/components/card-editor-modal";
-import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { Flashcard } from "@/lib/store";
+import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
-import { InlineMath } from 'react-katex';
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
+interface DeckDetails {
+  id: string;
+  title: string;
+  description: string;
+  topic: string;
+  color?: string;
+}
+
 export default function DeckPage({ params }: PageProps) {
   const { id } = use(params);
-  const { setDecks, decks } = useStore();
   
-  const deck = decks.find(d => d.id === id);
+  const [currentDeck, setCurrentDeck] = useState<DeckDetails | null>(null);
   const [cards, setCards] = useState<Flashcard[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -31,7 +39,7 @@ export default function DeckPage({ params }: PageProps) {
     const token = localStorage.getItem("token");
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5000/api/card/getDeckCards/${id}`, {
+      const response = await fetch(`http://localhost:5000/api/deck/getDeckById/${id}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -40,14 +48,33 @@ export default function DeckPage({ params }: PageProps) {
 
       if (response.ok) {
         const data = await response.json();
-        const mappedCards = data.cards.map((c: any) => ({
-          id: c.cardId,
-          front: c.question,
-          back: c.answer,
-          tips: c.tips,
-        }));
+        
+        // Verificăm dacă răspunsul are flag = true și obiectul deck există
+        if (data.flag && data.deck) {
+          
+          // 1. Setăm datele deck-ului
+          setCurrentDeck({
+            id: data.deck.deckId || id,
+            title: data.deck.title || "Untitled Deck",
+            description: data.deck.description || "No description provided.",
+            topic: data.deck.topic || "General",
+            color: data.deck.color || "bg-primary"
+          });
 
-        setCards(mappedCards);
+          // 2. Setăm cardurile din obiectul deck (se presupune că EF Core serializează în deckCards)
+          const rawCards = data.deck.deckCards || data.deck.cards || [];
+          const mappedCards = rawCards.map((c: any) => ({
+            id: c.cardId || c.id,
+            front: c.question,
+            back: c.answer,
+            tips: c.tips || [],
+          }));
+          
+          setCards(mappedCards);
+        } else {
+          setCurrentDeck(null);
+          setCards([]);
+        }
       }
     } catch (error) {
       console.error("Failed to fetch deck:", error);
@@ -62,7 +89,6 @@ export default function DeckPage({ params }: PageProps) {
     fetchDeckData();
   }, [id, fetchDeckData]);
 
-  // UPDATE: Funcția primește acum un array de stringuri pentru tips
   async function handleAddCard(front: string, back: string, tips: string[]) {
     const token = localStorage.getItem("token");
     try {
@@ -74,10 +100,9 @@ export default function DeckPage({ params }: PageProps) {
         },
         body: JSON.stringify({ DeckId: id, Question: front, Answer: back, Tips: tips })
       });
-
       if (response.ok) {
         setAddOpen(false);
-        fetchDeckData();
+        fetchDeckData(); // Re-fetch pentru a lua datele actualizate
       }
     } catch (err) { console.error(err); }
   }
@@ -90,10 +115,9 @@ export default function DeckPage({ params }: PageProps) {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
-
       if (response.ok) {
         setDeleteTarget(null);
-        fetchDeckData();
+        fetchDeckData(); // Re-fetch pentru a lua datele actualizate
       }
     } catch (err) { console.error(err); }
   }
@@ -106,12 +130,12 @@ export default function DeckPage({ params }: PageProps) {
     );
   }
 
-  if (!deck) {
+  if (!currentDeck) {
     return (
       <div className="min-h-screen bg-background text-foreground">
         <Navbar isLoggedIn={isLoggedIn} />
         <div className="flex flex-col items-center justify-center pt-40 text-center">
-          <p className="text-lg font-semibold text-foreground">Deck not found</p>
+          <p className="text-lg font-semibold text-foreground">Deck details not found</p>
           <Link href="/" className="mt-4 text-sm text-primary hover:underline">
             &larr; Back to decks
           </Link>
@@ -132,18 +156,18 @@ export default function DeckPage({ params }: PageProps) {
 
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
-            <div className={cn("flex h-12 w-12 items-center justify-center rounded-xl", deck.color)}>
-              <span className="text-lg font-bold text-white">{deck.title[0]}</span>
+            <div className={cn("flex h-12 w-12 items-center justify-center rounded-xl", currentDeck.color)}>
+              <span className="text-lg font-bold text-white">{currentDeck.title[0]}</span>
             </div>
             <div>
-              <h1 className="text-xl font-bold text-foreground text-balance">{deck.title}</h1>
-              <p className="text-sm text-muted-foreground">{deck.description}</p>
-              <p className="text-sm text-muted-foreground">{deck.topic}</p>
+              <h1 className="text-xl font-bold text-foreground text-balance">{currentDeck.title}</h1>
+              <p className="text-sm text-muted-foreground">{currentDeck.description}</p>
+              <p className="text-sm text-muted-foreground font-medium">{currentDeck.topic}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <Link href={`/study/${deck.id}`} className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 transition-opacity">
+            <Link href={`/study/${currentDeck.id}`} className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 transition-opacity">
               <PlayCircle className="h-4 w-4" />
               Study
             </Link>
@@ -183,8 +207,13 @@ export default function DeckPage({ params }: PageProps) {
                 <div className="flex items-start gap-4 min-w-0 flex-1">
                   <span className="mt-0.5 text-xs font-mono text-muted-foreground w-5 shrink-0">{i + 1}</span>
                   <div className="min-w-0 flex-1 overflow-hidden">
-                    <div className="text-base font-medium text-foreground truncate">
-                      <InlineMath math={card.front || ""} />
+                    <div className="markdown-content text-base font-medium text-foreground">
+                      <ReactMarkdown 
+                        remarkPlugins={[remarkMath]} 
+                        rehypePlugins={[rehypeKatex]}
+                      >
+                        {card.front || ""}
+                      </ReactMarkdown>
                     </div>
                   </div>
                 </div>
@@ -205,7 +234,6 @@ export default function DeckPage({ params }: PageProps) {
         )}
       </main>
 
-      {/* Modal adaugare card */}
       <CardEditorModal
         open={addOpen}
         onClose={() => setAddOpen(false)}
@@ -213,7 +241,6 @@ export default function DeckPage({ params }: PageProps) {
         title="Add Card"
       />
 
-      {/* Modal stergere card */}
       {deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setDeleteTarget(null)} aria-hidden="true" />

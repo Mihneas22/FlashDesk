@@ -12,7 +12,6 @@ interface DeckCardProps {
 export function DeckCard({ deck }: DeckCardProps) {
   return (
     <div className="group relative flex flex-col rounded-xl border border-border bg-card p-5 transition-all duration-200 hover:border-primary/40 hover:bg-card-hover hover:shadow-lg hover:shadow-black/20">
-      {/* Accent dot */}
       <div
         className={cn(
           "mb-4 flex h-10 w-10 items-center justify-center rounded-lg",
@@ -54,7 +53,6 @@ export function DeckCard({ deck }: DeckCardProps) {
         </div>
       </div>
 
-      {/* Full-card link for accessibility */}
       <Link href={`/deck/${deck.id}`} className="absolute inset-0 rounded-xl" aria-label={`Open ${deck.title}`} />
     </div>
   );

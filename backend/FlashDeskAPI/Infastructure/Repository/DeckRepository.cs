@@ -1,5 +1,7 @@
 ﻿using Application.DTOs.Deck.CreateDeck;
+using Application.DTOs.Deck.GetDeckById;
 using Application.DTOs.Deck.GetDecks;
+using Application.DTOs.Deck.GetPublicDecks;
 using Application.Repository;
 using Domain.Models;
 using Infastructure.AppDbContext;
@@ -25,39 +27,44 @@ namespace Infastructure.Repository
                 return new CreateDeckResponse(false, "Invalid DTO.");
 
             var user = await dbContext.UserEntity
-                .Include(dc => dc.UserDecks)
                 .FirstOrDefaultAsync(us => us.UserId == createDeckDTO.UserId);
-
-            Guid userId = Guid.Empty;
-
-            if (user != null)
-                userId = user.UserId;
 
             var deck = new Deck
             {
                 Title = createDeckDTO.Title,
                 Description = createDeckDTO.Description,
                 Topic = createDeckDTO.Topic,
-                DeckUser = user,
-                DeckUserId = userId,
+                DeckUserId = (user != null) ? user.UserId : (Guid?)null,
                 DeckCards = new List<Card>(),
-                Status = createDeckDTO.Status=="Public" ? true : false,
+                Status = createDeckDTO.Status == "Public",
                 CreatedAt = DateTime.UtcNow,
             };
 
-            dbContext.DeckEntity.Add(deck);
-
-            if (user != null)
+            try
             {
-                if(user.UserDecks == null)
-                    user.UserDecks = new List<Deck>();
-
-                user.UserDecks.Add(deck);
+                dbContext.DeckEntity.Add(deck);
+                await dbContext.SaveChangesAsync();
+                return new CreateDeckResponse(true, "Added deck!");
             }
+            catch (Exception ex)
+            {
+                return new CreateDeckResponse(false, $"Database error: {ex.InnerException?.Message ?? ex.Message}");
+            }
+        }
 
-            await dbContext.SaveChangesAsync();
+        public async Task<GetDeckByIdResponse> GetDeckByIdRepository(GetDeckByIdDTO getDeckByIdDTO)
+        {
+            if (getDeckByIdDTO == null)
+                return new GetDeckByIdResponse(false, "Invalid DTO");
 
-            return new CreateDeckResponse(true, "Added deck!");
+            var deck = await dbContext.DeckEntity
+                .Include(dc => dc.DeckCards)
+                .FirstOrDefaultAsync(dc => dc.DeckId == getDeckByIdDTO.DeckId);
+
+            if (deck == null)
+                return new GetDeckByIdResponse(false, "Deck not found");
+            else
+                return new GetDeckByIdResponse(true, "Deck found", deck);
         }
 
         public async Task<GetDecksResponse> GetDecksRepository(GetDecksDTO getDecksDTO)
@@ -65,17 +72,34 @@ namespace Infastructure.Repository
             if (getDecksDTO == null)
                 return new GetDecksResponse(false, "Invalid DTO");
 
-            var user = await dbContext.UserEntity
-                .Include(us => us.UserDecks)
-                .FirstOrDefaultAsync(us => us.UserId == getDecksDTO.UserId);
+            var decks = await dbContext.DeckEntity
+                .AsNoTracking()
+                .Where(d => d.DeckUserId == getDecksDTO.UserId)
+                .ToListAsync();
 
-            if (user == null)
-                return new GetDecksResponse(false, "No user found");
+            if (!decks.Any())
+                return new GetDecksResponse(true, "No decks found...", new List<Deck>());
 
-            if (user.UserDecks == null || user.UserDecks.Count == 0)
-                return new GetDecksResponse(true, "No decks found...");
-            else
-                return new GetDecksResponse(true, "Decks found!", user.UserDecks.ToList());
+            return new GetDecksResponse(true, "Decks found!", decks);
+        }
+
+        public async Task<GetPublicDecksResponse> GetPublicDecksRepository(GetPublicDecksDTO getPublicDecksDTO)
+        {
+            if (getPublicDecksDTO == null)
+                return new GetPublicDecksResponse(false, "Invalid DTO");
+
+            var query = dbContext.DeckEntity
+                .AsNoTracking()
+                .Where(dc => dc.Status == true);
+
+            if (getPublicDecksDTO.Filter != "all")
+            {
+                query = query.Where(dc => dc.Topic == getPublicDecksDTO.Filter);
+            }
+
+            var decks = await query.Take(40).ToListAsync();
+
+            return new GetPublicDecksResponse(true, "Decks retrieved", decks);
         }
     }
 }

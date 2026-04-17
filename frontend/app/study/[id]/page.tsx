@@ -8,15 +8,22 @@ import { FlashcardView } from "@/components/flashcard-view";
 import { useStore } from "@/lib/store";
 import type { Flashcard } from "@/lib/store";
 
+// IMPORTURI PENTRU MATH RENDER
+import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
+
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
 export default function StudyPage({ params }: PageProps) {
   const { id } = use(params);
-  const { getDeckById } = useStore();
-  const deck = getDeckById(id);
+  const { decks } = useStore();
   
+  // 1. Stare locală pentru deck (pentru a preveni eroarea la refresh)
+  const [localDeck, setLocalDeck] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [cards, setCards] = useState<Flashcard[]>([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -43,9 +50,18 @@ export default function StudyPage({ params }: PageProps) {
           id: c.cardId,
           front: c.question,
           back: c.answer,
-          tips: c.tips || [], // Asigurăm preluarea tips-urilor
+          tips: c.tips || [],
         }));
         setCards(mappedCards);
+
+        // 2. Salvăm datele deck-ului local pentru a evita "Deck not found"
+        if (data.flag) {
+          setLocalDeck({
+            id: id,
+            title: data.title || "Study Session",
+            description: data.description || "",
+          });
+        }
       }
     } catch (error) {
       console.error("Failed to fetch deck:", error);
@@ -57,6 +73,9 @@ export default function StudyPage({ params }: PageProps) {
   useEffect(() => {
     fetchDeckData();
   }, [fetchDeckData]);
+
+  // Fallback: căutăm în store, dacă nu, folosim ce a venit de la API
+  const deck = localDeck || decks.find(d => d.id === id);
 
   if (loading) {
     return (
@@ -71,7 +90,7 @@ export default function StudyPage({ params }: PageProps) {
       <div className="min-h-screen bg-background text-foreground">
         <Navbar isLoggedIn={isLoggedIn} />
         <div className="flex flex-col items-center justify-center pt-40 text-center">
-          <p className="text-lg font-semibold text-foreground">Deck not found</p>
+          <p className="text-lg font-semibold text-foreground">Deck details not found</p>
           <Link href="/" className="mt-4 text-sm text-primary hover:underline">
             &larr; Back to decks
           </Link>
@@ -96,7 +115,7 @@ export default function StudyPage({ params }: PageProps) {
   }
 
   const totalCards = cards.length;
-  const progress = (currentIndex / totalCards) * 100;
+  const progress = ((currentIndex + 1) / totalCards) * 100; // Calcul progres mai precis
   const currentCard = cards[currentIndex];
 
   function handleNext() {
@@ -170,7 +189,9 @@ export default function StudyPage({ params }: PageProps) {
           />
         </div>
 
-        {/* Trimitem cardul curent către vizualizator */}
+        {/* NOTĂ: Va trebui să modifici și componenta FlashcardView 
+            pentru a folosi ReactMarkdown în interiorul ei 
+        */}
         <FlashcardView card={currentCard} resetKey={currentCard.id} />
 
         <div className="mt-8 flex justify-center">
@@ -178,7 +199,7 @@ export default function StudyPage({ params }: PageProps) {
             onClick={handleNext}
             className="flex items-center gap-2 rounded-lg bg-primary px-8 py-3 font-medium text-primary-foreground hover:opacity-90 transition-opacity"
           >
-            Next Card
+            {currentIndex + 1 === totalCards ? "Finish Session" : "Next Card"}
             <ArrowRight className="h-4 w-4" />
           </button>
         </div>

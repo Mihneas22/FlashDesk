@@ -1,6 +1,12 @@
 @FlashDeskAPI_HostAddress = http://localhost:5195
 
-GET {{FlashDeskAPI_HostAddress}}/weatherforecast/
+POST {{FlashDeskAPI_HostAddress}}/api/card/addCard
 Accept: application/json
-
+Content-Type: application/json
+{
+      "DeckId": "019d9a9a-07d4-720c-a940-edd939fab76b",
+      "Question": "How do you find the area between two curves $f(x)$ and $g(x)$ from $a$ to $b$?",
+        "Answer": "$\\int_a^b |f(x) - g(x)| dx$",
+        "Tips": ["Always subtract the lower function from the upper function."]
+}
 ###

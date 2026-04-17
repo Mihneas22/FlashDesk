@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260416190633_db2")]
-    partial class db2
+    [Migration("20260417084055_db1")]
+    partial class db1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -28,6 +28,7 @@ namespace Infastructure.Migrations
             modelBuilder.Entity("Domain.Models.Card", b =>
                 {
                     b.Property<Guid>("CardId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<string>("Answer")
@@ -47,6 +48,8 @@ namespace Infastructure.Migrations
 
                     b.HasKey("CardId");
 
+                    b.HasIndex("DeckId");
+
                     b.ToTable("CardEntity");
                 });
 
@@ -59,7 +62,7 @@ namespace Infastructure.Migrations
                     b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("DeckUserId")
+                    b.Property<Guid?>("DeckUserId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Description")
@@ -108,7 +111,7 @@ namespace Infastructure.Migrations
                 {
                     b.HasOne("Domain.Models.Deck", "CardDeck")
                         .WithMany("DeckCards")
-                        .HasForeignKey("CardId")
+                        .HasForeignKey("DeckId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -120,8 +123,7 @@ namespace Infastructure.Migrations
                     b.HasOne("Domain.Models.User", "DeckUser")
                         .WithMany("UserDecks")
                         .HasForeignKey("DeckUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("DeckUser");
                 });
