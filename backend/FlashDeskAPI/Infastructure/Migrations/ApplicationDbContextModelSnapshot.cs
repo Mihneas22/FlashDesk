@@ -177,11 +177,17 @@ namespace Infastructure.Migrations
                     b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int?>("Elo")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Email")
                         .HasColumnType("text");
 
                     b.Property<string>("Password")
                         .HasColumnType("text");
+
+                    b.PrimitiveCollection<string[]>("Roles")
+                        .HasColumnType("text[]");
 
                     b.Property<string>("Username")
                         .HasColumnType("text");

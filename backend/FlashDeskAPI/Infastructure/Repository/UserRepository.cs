@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -31,13 +32,18 @@ namespace Infastructure.Repository
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-            var userClaims = new[]
-                {
-                    new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-                    new Claim(ClaimTypes.Name, user.Username!),
-                    new Claim(ClaimTypes.Email, user.Email!),
-                    new Claim(ClaimTypes.Role, "user")
-                };
+            var userClaims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                new Claim(ClaimTypes.Name, user.Username!),
+                new Claim(ClaimTypes.Email, user.Email!)
+            };
+
+            if (user.Roles != null && user.Roles.Any())
+                foreach (var role in user.Roles)
+                    userClaims.Add(new Claim(ClaimTypes.Role, role));
+            else
+                userClaims.Add(new Claim(ClaimTypes.Role, "user"));
 
 
             var token = new JwtSecurityToken(
@@ -88,8 +94,10 @@ namespace Infastructure.Repository
             {
                 Username = registerUserDTO.Username,
                 Email = registerUserDTO.Email,
+                Elo = 0,
                 Password = BCrypt.Net.BCrypt.HashPassword(registerUserDTO.Password),
                 UserDecks = new List<Deck>(),
+                Roles = new List<string> { "user" },
                 CreatedAt = DateTime.UtcNow
             });
 

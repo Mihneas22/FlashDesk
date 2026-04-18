@@ -118,7 +118,6 @@ C:\Users\Mihnea\Proiecte\FlashDesk\backend\FlashDeskAPI\FlashDeskAPI\obj\Debug\n
 C:\Users\Mihnea\Proiecte\FlashDesk\backend\FlashDeskAPI\FlashDeskAPI\obj\Debug\net10.0\FlashDeskAPI.AssemblyInfoInputs.cache
 C:\Users\Mihnea\Proiecte\FlashDesk\backend\FlashDeskAPI\FlashDeskAPI\obj\Debug\net10.0\FlashDeskAPI.AssemblyInfo.cs
 C:\Users\Mihnea\Proiecte\FlashDesk\backend\FlashDeskAPI\FlashDeskAPI\obj\Debug\net10.0\FlashDeskAPI.csproj.CoreCompileInputs.cache
-C:\Users\Mihnea\Proiecte\FlashDesk\backend\FlashDeskAPI\FlashDeskAPI\obj\Debug\net10.0\FlashDeskAPI.MvcApplicationPartsAssemblyInfo.cs
 C:\Users\Mihnea\Proiecte\FlashDesk\backend\FlashDeskAPI\FlashDeskAPI\obj\Debug\net10.0\FlashDeskAPI.MvcApplicationPartsAssemblyInfo.cache
 C:\Users\Mihnea\Proiecte\FlashDesk\backend\FlashDeskAPI\FlashDeskAPI\obj\Debug\net10.0\FlashDeskAPI.sourcelink.json
 C:\Users\Mihnea\Proiecte\FlashDesk\backend\FlashDeskAPI\FlashDeskAPI\obj\Debug\net10.0\rjimswa.dswa.cache.json

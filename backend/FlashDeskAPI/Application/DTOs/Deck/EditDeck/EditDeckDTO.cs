@@ -11,6 +11,9 @@ namespace Application.DTOs.Deck.EditDeck
         public Guid DeckId { get; set; } = Guid.Empty;
 
         [Required]
+        public Guid UserId { get; set; } = Guid.Empty;
+
+        [Required]
         public string Title { get; set; } = string.Empty;
 
         [Required]

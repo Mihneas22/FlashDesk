@@ -1,16 +1,20 @@
 ﻿using Application.DTOs.Deck.CreateDeck;
 using Application.DTOs.Deck.DeleteDeck;
 using Application.DTOs.Deck.EditDeck;
+using Application.DTOs.Deck.GetAllDecks;
 using Application.DTOs.Deck.GetDeckById;
+using Application.DTOs.Deck.GetDeckByName;
 using Application.DTOs.Deck.GetDecks;
 using Application.DTOs.Deck.GetPublicDecks;
 using Application.Repository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FlashDeskAPI.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize(Roles = "user")]
     [ApiController]
     public class DeckController : ControllerBase
     {
@@ -60,6 +64,22 @@ namespace FlashDeskAPI.Controllers
         public async Task<ActionResult<EditDeckResponse>> EditDeckAsync(EditDeckDTO editDeckDTO)
         {
             var result = await deckRepo.EditDeckRepository(editDeckDTO);
+            return Ok(result);
+        }
+
+        [HttpGet("getAllDecks")]
+        [Authorize(Roles = "admin")]
+        public async Task<ActionResult<GetAllDecksResponse>> GetAllDecksAsync()
+        {
+            var result = await deckRepo.GetAllDeckRepository();
+            return Ok(result);
+        }
+
+        [HttpGet("getDecksByName/{name}")]
+        [Authorize(Roles = "admin")]
+        public async Task<ActionResult<GetDeckByNameResponse>> GetDeckByNameAsync(string name)
+        {
+            var result = await deckRepo.GetDeckByNameRepository(new GetDeckByNameDTO { Name = name});
             return Ok(result);
         }
     }

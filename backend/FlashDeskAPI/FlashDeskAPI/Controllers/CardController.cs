@@ -1,12 +1,14 @@
 ﻿using Application.DTOs.Card.AddCard;
 using Application.DTOs.Card.GetCardsForDeck;
 using Application.Repository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FlashDeskAPI.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize(Roles = "user")]
     [ApiController]
     public class CardController : ControllerBase
     {

@@ -1,7 +1,9 @@
 ﻿using Application.DTOs.Deck.CreateDeck;
 using Application.DTOs.Deck.DeleteDeck;
 using Application.DTOs.Deck.EditDeck;
+using Application.DTOs.Deck.GetAllDecks;
 using Application.DTOs.Deck.GetDeckById;
+using Application.DTOs.Deck.GetDeckByName;
 using Application.DTOs.Deck.GetDecks;
 using Application.DTOs.Deck.GetPublicDecks;
 using Application.Repository;
@@ -59,7 +61,17 @@ namespace Infastructure.Repository
             if (deleteDeckDTO == null)
                 return new DeleteDeckResponse(false, "Invalid DTO");
 
-            var deck = await dbContext.DeckEntity.FirstOrDefaultAsync(dc => dc.DeckId == deleteDeckDTO.DeckId && dc.DeckUserId == deleteDeckDTO.UserId);
+            var user = await dbContext.UserEntity.FirstOrDefaultAsync(us => us.UserId == deleteDeckDTO.UserId);
+            if (user == null)
+                return new DeleteDeckResponse(false, "User not found");
+
+            var deck = new Deck();
+
+            if(user.Roles!.Contains("admin"))
+                deck = await dbContext.DeckEntity.FirstOrDefaultAsync(dc => dc.DeckId == deleteDeckDTO.DeckId);
+            else
+                deck = await dbContext.DeckEntity.FirstOrDefaultAsync(dc => dc.DeckId == deleteDeckDTO.DeckId && dc.DeckUserId == deleteDeckDTO.UserId);
+            
             if (deck == null)
                 return new DeleteDeckResponse(false, "Cannot delelte deck.");
 
@@ -76,7 +88,17 @@ namespace Infastructure.Repository
 
             try
             {
-                var existingDeck = await dbContext.DeckEntity.FindAsync(editDeckDTO.DeckId);
+                var user = await dbContext.UserEntity.FirstOrDefaultAsync(us => us.UserId == editDeckDTO.UserId);
+                if (user == null)
+                    return new EditDeckResponse(false, "User not found");
+
+                var existingDeck = new Deck();
+
+                if (user.Roles!.Contains("admin"))
+                    existingDeck = await dbContext.DeckEntity.FirstOrDefaultAsync(dc => dc.DeckId == editDeckDTO.DeckId);
+                else
+                    existingDeck = await dbContext.DeckEntity.FirstOrDefaultAsync(dc => dc.DeckId == editDeckDTO.DeckId && dc.DeckUserId == editDeckDTO.UserId);
+
                 if (existingDeck == null)
                     return new EditDeckResponse(false, "Deck was not found!");
 
@@ -96,8 +118,17 @@ namespace Infastructure.Repository
             catch (Exception ex)
             {
                 // Aici este recomandat să folosești un ILogger pentru a înregistra excepția reală
-                return new EditDeckResponse(false, $"Error: {ex.Message}");
+                return new EditDeckResponse(false, "An unexpected error occurred while updating the deck.");
             }
+        }
+
+        public async Task<GetAllDecksResponse> GetAllDeckRepository()
+        {
+            var decks = await dbContext.DeckEntity.Take(100).ToListAsync();
+            if (decks == null)
+                return new GetAllDecksResponse(false, "Decks were not found");
+            else
+                return new GetAllDecksResponse(true, "Decks found", decks);
         }
 
         public async Task<GetDeckByIdResponse> GetDeckByIdRepository(GetDeckByIdDTO getDeckByIdDTO)
@@ -113,6 +144,18 @@ namespace Infastructure.Repository
                 return new GetDeckByIdResponse(false, "Deck not found");
             else
                 return new GetDeckByIdResponse(true, "Deck found", deck);
+        }
+
+        public async Task<GetDeckByNameResponse> GetDeckByNameRepository(GetDeckByNameDTO getDeckByNameDTO)
+        {
+            if (getDeckByNameDTO == null)
+                return new GetDeckByNameResponse(false, "Invalid DTO");
+
+            var deck = await dbContext.DeckEntity.FirstOrDefaultAsync(dc => dc.Title == getDeckByNameDTO.Name);
+            if(deck == null)
+                return new GetDeckByNameResponse(false, "Deck not found");
+            else
+                return new GetDeckByNameResponse(true, "Deck found",deck);
         }
 
         public async Task<GetDecksResponse> GetDecksRepository(GetDecksDTO getDecksDTO)
