@@ -1,7 +1,9 @@
+using DotNetEnv;
 using Infastructure.DepInject;
-var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+Env.Load();
+
+var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers().AddJsonOptions(options =>
 {

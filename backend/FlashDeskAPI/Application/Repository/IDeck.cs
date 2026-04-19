@@ -29,5 +29,8 @@ namespace Application.Repository
         Task<GetAllDecksResponse> GetAllDeckRepository();
 
         Task<GetDeckByNameResponse> GetDeckByNameRepository(GetDeckByNameDTO getDeckByNameDTO);
+
+        //AI
+        Task<string> GenerateFlashCardsPdf(byte[] pdfBytes);
     }
 }

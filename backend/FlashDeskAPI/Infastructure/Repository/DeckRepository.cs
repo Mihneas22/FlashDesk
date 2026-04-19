@@ -10,9 +10,11 @@ using Application.Repository;
 using Domain.Models;
 using Infastructure.AppDbContext;
 using Microsoft.EntityFrameworkCore;
+using Mscc.GenerativeAI;
+using Mscc.GenerativeAI.Types;
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Threading.Tasks;
 
 namespace Infastructure.Repository
 {
@@ -120,6 +122,48 @@ namespace Infastructure.Repository
                 // Aici este recomandat să folosești un ILogger pentru a înregistra excepția reală
                 return new EditDeckResponse(false, "An unexpected error occurred while updating the deck.");
             }
+        }
+
+        public async Task<string> GenerateFlashCardsPdf(byte[] pdfBytes)
+        {
+            string key = Environment.GetEnvironmentVariable("GEMINI_API_KEY")
+                ?? throw new InvalidOperationException("GEMINI_API_KEY nu este configurată!");
+
+            var googleAI = new GoogleAI(key);
+
+            // Folosim string-ul modelului sau enum-ul (în funcție de versiunea exactă din NuGet)
+            var model = googleAI.GenerativeModel(Model.Gemini25Flash);
+
+            string prompt = @"Ești un asistent academic expert. Extrage 40 de carduri din textul oferit.
+                REGULI:
+                1. Folosește KaTeX pentru formule, încadrate între $ pentru inline și $$ pentru block.
+                2. Fiecare card trebuie să includă o listă de ""tips"" (1-2 indicii scurte, sfaturi sau context suplimentar).
+                3. Returnează DOAR un array JSON valid. FĂRĂ blocuri de cod markdown (fără ```json), FĂRĂ text explicativ înainte sau după.
+
+                Structura JSON obligatorie:
+                [
+                  {
+                    ""question"": ""Textul întrebării..."",
+                    ""answer"": ""Textul răspunsului..."",
+                    ""tips"": [""Primul indiciu aici..."", ""Al doilea indiciu aici...""]
+                  }
+                ]";
+
+            var request = new GenerateContentRequest(prompt);
+            request.Contents[0].Parts.Add(new Part
+            {
+                InlineData = new InlineData
+                {
+                    MimeType = "application/pdf",
+                    Data = Convert.ToBase64String(pdfBytes)
+                }
+            });
+
+            var response = await model.GenerateContent(request);
+            var result = response.Text ?? "empty result";
+            string cleanedJson = result.Replace(@"\\", @"\");
+
+            return cleanedJson;
         }
 
         public async Task<GetAllDecksResponse> GetAllDeckRepository()

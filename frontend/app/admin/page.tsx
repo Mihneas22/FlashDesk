@@ -415,7 +415,6 @@ export default function AdminDashboardPage() {
   
   if (!isAuthorized) return (
     <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center text-gray-100 p-4">
-      <Navbar isLoggedIn={isLoggedIn} />
       <div className="flex flex-col items-center max-w-md text-center animate-fade-in-up mt-20">
         <div className="w-24 h-24 bg-red-500/10 border border-red-500/20 rounded-3xl flex items-center justify-center mb-6"><ShieldAlert className="w-12 h-12 text-red-500" /></div>
         <h1 className="text-3xl font-black text-white mb-4">Access Denied</h1>

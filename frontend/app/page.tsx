@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Search, Loader2, Sparkles, BookOpen, Trophy, Zap } from "lucide-react";
+import { Plus, Search, Loader2, Sparkles, BookOpen, Trophy, Zap ,FileText, CheckCircle} from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { DeckCard } from "@/components/deck-card";
 import { useStore } from "@/lib/store";
@@ -19,7 +19,8 @@ const TOPICS = [
   "Linear Algebra",
   "Basics of Computer Operation",
   "Object-oriented programming",
-  "Assembly language programming"
+  "Assembly language programming",
+  "Others"
 ];
 
 const STATUS = [
@@ -40,6 +41,11 @@ export default function DashboardPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userId, setNewUserId] = useState("");
+
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [isGeneratingCards, setIsGeneratingCards] = useState(false);
+  const [generatedCards, setGeneratedCards] = useState<any[]>([]);
+  const [generationSuccess, setGenerationSuccess] = useState(false);
 
   const fetchDecks = useCallback(async (uId: string) => {
     try {
@@ -86,8 +92,6 @@ export default function DashboardPage() {
         }else {
           setLoading(false);
         }
-
-        console.log(decks);
       } catch (error) {
         console.error("Token invalid:", error);
         setIsLoggedIn(false);
@@ -105,6 +109,50 @@ export default function DashboardPage() {
       d.description?.toLowerCase().includes(search.toLowerCase())
   );
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setPdfFile(e.target.files[0]);
+      setGenerationSuccess(false);
+      setGeneratedCards([]);
+    }
+  };
+
+  const handleGenerateFromPdf = async () => {
+    if (!pdfFile) return;
+
+    setIsGeneratingCards(true);
+    setGenerationSuccess(false);
+
+    try {
+      const formData = new FormData();
+      formData.append("pdfFile", pdfFile);
+
+      const response = await fetch("http://localhost:5000/api/deck/generateFlashcards", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem("token")}`,
+          // ATENȚIE: Nu seta "Content-Type" aici. Browser-ul îl va seta automat la "multipart/form-data" cu tot cu "boundary".
+        },
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Presupunem că backend-ul returnează un JSON string sau array
+        const parsedCards = typeof data === 'string' ? JSON.parse(data) : data;
+        
+        setGeneratedCards(parsedCards);
+        setGenerationSuccess(true);
+      } else {
+        console.error("Eroare la generarea cardurilor:", await response.text());
+      }
+    } catch (error) {
+      console.error("Eroare de rețea la generare:", error);
+    } finally {
+      setIsGeneratingCards(false);
+    }
+  };
+
   async function handleCreate() {
     if (!newTitle.trim() || !userId || !newTopic) return;
 
@@ -113,7 +161,8 @@ export default function DashboardPage() {
       title: newTitle.trim(),
       description: newDesc.trim() || "No description",
       topic: newTopic.trim(),
-      status: newStatus.trim()
+      status: newStatus.trim(),
+      cards: generatedCards
     };
 
     try {
@@ -134,6 +183,7 @@ export default function DashboardPage() {
           setNewDesc("");
           setNewTopic("");
           setShowCreateModal(false);
+          setGeneratedCards([]);
         }
       }
     } catch (error) {
@@ -283,9 +333,6 @@ export default function DashboardPage() {
           <div className="relative w-full max-w-xl rounded-3xl bg-gray-900 border border-gray-800 shadow-2xl animate-scale-in overflow-hidden">
             {/* Modal Header with Gradient */}
             <div className="relative px-8 py-6 bg-gradient-to-r from-violet-900 via-purple-900 to-gray-900 border-b border-purple-500/20">
-              <div className="absolute inset-0 opacity-20">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500 rounded-full blur-3xl mix-blend-screen" />
-              </div>
               <div className="relative flex items-center gap-3">
                 <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 flex items-center justify-center">
                   <Sparkles className="w-6 h-6 text-purple-300" />
@@ -295,7 +342,59 @@ export default function DashboardPage() {
             </div>
 
             {/* Modal Content */}
-            <div className="px-8 py-8 space-y-6">
+            <div className="px-8 py-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
+
+              <div className="p-5 rounded-2xl border border-purple-500/30 bg-purple-900/10 space-y-4">
+                <div className="flex items-center gap-2 text-sm font-bold text-purple-300 uppercase tracking-wide">
+                  <Zap className="w-4 h-4 text-purple-400" />
+                  Auto-Generate AI Cards (Optional)
+                </div>
+                
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  <input
+                    type="file"
+                    accept="application/pdf"
+                    onChange={handleFileChange}
+                    className="hidden"
+                    id="pdf-upload"
+                  />
+                  <label
+                    htmlFor="pdf-upload"
+                    className="flex-1 px-4 py-3 border border-dashed border-purple-500/50 rounded-xl text-sm text-gray-300 hover:bg-purple-900/30 hover:border-purple-400 cursor-pointer transition-all flex items-center justify-center gap-2 group"
+                  >
+                    <FileText className="w-4 h-4 text-purple-400 group-hover:scale-110 transition-transform" />
+                    {pdfFile ? <span className="truncate max-w-[200px]">{pdfFile.name}</span> : "Upload PDF Document"}
+                  </label>
+                  
+                  {pdfFile && !generationSuccess && (
+                    <button
+                      type="button"
+                      onClick={handleGenerateFromPdf}
+                      disabled={isGeneratingCards}
+                      className="px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-purple-900/40"
+                    >
+                      {isGeneratingCards ? (
+                        <><Loader2 className="w-4 h-4 animate-spin" /> Generating...</>
+                      ) : (
+                        <><Sparkles className="w-4 h-4" /> Generate</>
+                      )}
+                    </button>
+                  )}
+                  
+                  {generationSuccess && (
+                    <div className="px-5 py-3 bg-green-500/10 text-green-400 rounded-xl border border-green-500/30 flex items-center justify-center gap-2 font-bold animate-fade-in">
+                      <CheckCircle className="w-5 h-5" />
+                      {generatedCards.length} Cards Ready
+                    </div>
+                  )}
+                </div>
+                {isGeneratingCards && (
+                  <p className="text-xs text-purple-400 animate-pulse text-center">
+                    Gemini is reading your PDF and extracting the best flashcards...
+                  </p>
+                )}
+              </div>
+
               <div className="space-y-2">
                 <label className="block text-sm font-bold text-gray-300 uppercase tracking-wide">
                   Deck Title
@@ -371,7 +470,7 @@ export default function DashboardPage() {
               </button>
               <button
                 onClick={handleCreate}
-                disabled={!newTitle.trim() || !newTopic}
+                disabled={!newTitle.trim() || !newTopic || !newStatus}
                 className="px-8 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white font-bold shadow-lg shadow-purple-900/40 hover:shadow-xl hover:shadow-purple-700/50 hover:scale-105 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none"
               >
                 Create Deck

@@ -6,8 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
 using System.Text;
 
 namespace Infastructure.DepInject
@@ -16,10 +14,13 @@ namespace Infastructure.DepInject
     {
         public static IServiceCollection InfastructureService(this IServiceCollection services, IConfiguration configuration)
         {
+            string connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
+                ?? throw new InvalidOperationException("DATABASE_URL nu este configurată!");
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"),
-                b => b.MigrationsAssembly(typeof(ServiceContainer).Assembly.FullName)),
-                ServiceLifetime.Scoped);
+            {
+                options.UseNpgsql(connectionString, b =>
+                    b.MigrationsAssembly(typeof(ServiceContainer).Assembly.FullName));
+            }, ServiceLifetime.Scoped);
 
             services.AddAuthentication(options =>
             {

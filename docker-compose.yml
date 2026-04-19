@@ -19,11 +19,8 @@ services:
       dockerfile: Dockerfile
     depends_on:
       - db
-    environment:
-      - DB_HOST=db
-      - DB_NAME=flashdesk_db
-      - DB_USER=mihneas22
-      - DB_PASS=12345
+    env_file:
+      - keys.env
     ports:
       - "5000:8080"
     networks:

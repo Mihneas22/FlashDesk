@@ -18,7 +18,8 @@ const TOPICS = [
   "Linear Algebra",
   "Basics of Computer Operation",
   "Object-oriented programming",
-  "Assembly language programming"
+  "Assembly language programming",
+  "Others"
 ];
 
 export default function PublicDecksPage() {

@@ -82,5 +82,23 @@ namespace FlashDeskAPI.Controllers
             var result = await deckRepo.GetDeckByNameRepository(new GetDeckByNameDTO { Name = name});
             return Ok(result);
         }
+
+        [HttpPost("generateFlashcards")]
+        public async Task<ActionResult<string>> GenerateFlashcardsWithPdfAsync(IFormFile pdfFile)
+        {
+            if (pdfFile == null || pdfFile.Length == 0)
+                return BadRequest("Te rugăm să încarci un fișier PDF valid.");
+
+            if (pdfFile.ContentType != "application/pdf")
+                return BadRequest("Doar fișierele PDF sunt acceptate.");
+
+            using var stream = new MemoryStream();
+            await pdfFile.CopyToAsync(stream);
+            byte[] fileBytes = stream.ToArray();
+
+            var flashcardsJson = await deckRepo.GenerateFlashCardsPdf(fileBytes);
+
+            return Ok(flashcardsJson);
+        }
     }
 }
