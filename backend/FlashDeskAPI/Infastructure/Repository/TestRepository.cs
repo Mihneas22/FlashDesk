@@ -1,4 +1,8 @@
-﻿using Application.DTOs.Test.AddTest;
+﻿using Application.DTOs.Deck.DeleteDeck;
+using Application.DTOs.Deck.EditDeck;
+using Application.DTOs.Test.AddTest;
+using Application.DTOs.Test.DeleteTest;
+using Application.DTOs.Test.EditTest;
 using Application.DTOs.Test.GetTestById;
 using Application.DTOs.Test.GetTests;
 using Application.Repository;
@@ -43,6 +47,58 @@ namespace Infastructure.Repository
             await dbContext.SaveChangesAsync();
 
             return new AddTestResponse(true, "Added test!");
+        }
+
+        public async Task<DeleteTestResponse> DeleteTestRepository(DeleteTestDTO deleteTestDTO)
+        {
+            if (deleteTestDTO == null)
+                return new DeleteTestResponse(false, "Invalid DTO");
+
+            var user = await dbContext.UserEntity.FirstOrDefaultAsync(us => us.UserId == deleteTestDTO.UserId);
+            if (user == null)
+                return new DeleteTestResponse(false, "User not found");
+
+            if (user.Roles!.Contains("admin") == false)
+                return new DeleteTestResponse(false, "Does not have permission");
+
+            var test = await dbContext.TestEntity.FirstOrDefaultAsync(dc => dc.TestId == deleteTestDTO.TestId);
+
+            if (test == null)
+                return new DeleteTestResponse(false, "Cannot delelte test.");
+
+            dbContext.TestEntity.Remove(test);
+            await dbContext.SaveChangesAsync();
+
+            return new DeleteTestResponse(true, "Test deleted!");
+        }
+
+        public async Task<EditTestResponse> EditTestRepository(EditTestDTO editTestDTO)
+        {
+            if (editTestDTO == null)
+                return new EditTestResponse(false, "Invalid DTO");
+
+            var user = await dbContext.UserEntity.FirstOrDefaultAsync(us => us.UserId == editTestDTO.UserId);
+            if (user == null)
+                return new EditTestResponse(false, "User not found");
+
+            bool authorize = user.Roles!.Contains("admin");
+            if (!authorize)
+                return new EditTestResponse(false, "User does not have sufficient permissions");
+
+            var existingTest = await dbContext.TestEntity.FirstOrDefaultAsync(ts => ts.TestId == editTestDTO.TestId);
+
+            if (existingTest == null)
+                return new EditTestResponse(false, "Test not found");
+
+            existingTest.Title = editTestDTO.Title;
+            existingTest.Description = editTestDTO.Description;
+            existingTest.Topic = editTestDTO.Topic;
+            existingTest.Questions = editTestDTO.Questions;
+
+            dbContext.TestEntity.Update(existingTest);
+            await dbContext.SaveChangesAsync();
+
+            return new EditTestResponse(true, "Test updated");
         }
 
         public async Task<GetTestByIdResponse> GetTestByIdRepository(GetTestByIdDTO getTestByIdDTO)

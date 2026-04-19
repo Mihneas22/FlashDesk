@@ -124,7 +124,9 @@ namespace Infastructure.Repository
 
         public async Task<GetAllDecksResponse> GetAllDeckRepository()
         {
-            var decks = await dbContext.DeckEntity.Take(100).ToListAsync();
+            var decks = await dbContext.DeckEntity
+                .Include(dc => dc.DeckCards)
+                .Take(100).ToListAsync();
             if (decks == null)
                 return new GetAllDecksResponse(false, "Decks were not found");
             else
@@ -165,6 +167,7 @@ namespace Infastructure.Repository
 
             var decks = await dbContext.DeckEntity
                 .AsNoTracking()
+                .Include(d => d.DeckCards)
                 .Where(d => d.DeckUserId == getDecksDTO.UserId)
                 .ToListAsync();
 

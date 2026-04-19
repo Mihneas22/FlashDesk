@@ -1,4 +1,6 @@
 ﻿using Application.DTOs.Test.AddTest;
+using Application.DTOs.Test.DeleteTest;
+using Application.DTOs.Test.EditTest;
 using Application.DTOs.Test.GetTestById;
 using Application.DTOs.Test.GetTests;
 using Application.Repository;
@@ -25,6 +27,22 @@ namespace FlashDeskAPI.Controllers
         public async Task<ActionResult<AddTestResponse>> AddTestAsync(AddTestDTO addTestDTO)
         {
             var result = await testRepo.AddTestRepository(addTestDTO);
+            return Ok(result);
+        }
+
+        [HttpPut("editTest")]
+        [Authorize(Roles = "admin")]
+        public async Task<ActionResult<EditTestResponse>> EditTestAsync(EditTestDTO editTestDTO)
+        {
+            var result = await testRepo.EditTestRepository(editTestDTO);
+            return Ok(result);
+        }
+
+        [HttpDelete("deleteTest")]
+        [Authorize(Roles = "admin")]
+        public async Task<ActionResult<DeleteTestResponse>> DeleteTestAsync(DeleteTestDTO deleteTestDTO)
+        {
+            var result = await testRepo.DeleteTestRepository(deleteTestDTO);
             return Ok(result);
         }
 

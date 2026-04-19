@@ -1,4 +1,6 @@
 ﻿using Application.DTOs.Card.AddCard;
+using Application.DTOs.Card.DeleteCard;
+using Application.DTOs.Card.EditCard;
 using Application.DTOs.Card.GetCardsForDeck;
 using Application.Repository;
 using Microsoft.AspNetCore.Authorization;
@@ -30,6 +32,20 @@ namespace FlashDeskAPI.Controllers
         public async Task<ActionResult<GetCardsByDeckResponse>> GetCardsByDeckAsync(string id)
         {
             var result = await cardRepository.GetCardsByDeckRepository(new GetCardsByDeckDTO { DeckId = Guid.Parse(id) });
+            return Ok(result);
+        }
+
+        [HttpDelete("deleteCard")]
+        public async Task<ActionResult<DeleteCardResponse>> DeleteCardAsync(DeleteCardDTO deleteCardDTO)
+        {
+            var result = await cardRepository.DeleteCardRepository(deleteCardDTO);
+            return Ok(result);
+        }
+
+        [HttpPut("editCard")]
+        public async Task<ActionResult<EditCardResponse>> EditCardAsync(EditCardDTO editCardDTO)
+        {
+            var result = await cardRepository.EditCardRepository(editCardDTO);
             return Ok(result);
         }
     }

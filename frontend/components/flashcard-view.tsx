@@ -17,6 +17,25 @@ interface FlashcardViewProps {
   resetKey: string;
 }
 
+// Funcție utilitară pentru a adăuga automat delimitatorii de matematică
+// dacă aceștia lipsesc din baza de date.
+const processLatex = (text: string) => {
+  if (!text) return "";
+  
+  // Dacă textul are deja delimitatori $, îl lăsăm exact cum este
+  if (text.includes('$')) return text;
+
+  // Verificăm dacă textul conține sintaxă specifică LaTeX (ex: \frac, ^, _)
+  const containsMath = text.includes('\\') || /[_^]/.test(text);
+  
+  if (containsMath) {
+    // Îl învelim în $$ pentru a fi recunoscut ca block-math de remark-math
+    return `$$${text}$$`;
+  }
+
+  return text;
+};
+
 export function FlashcardView({ card, resetKey }: FlashcardViewProps) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [showTips, setShowTips] = useState(false);
@@ -66,7 +85,8 @@ export function FlashcardView({ card, resetKey }: FlashcardViewProps) {
                 remarkPlugins={[remarkMath]} 
                 rehypePlugins={[rehypeKatex]}
               >
-                {card.front || ""}
+                {/* Procesăm textul înainte de randare */}
+                {processLatex(card.front)}
               </ReactMarkdown>
             </div>
 
@@ -99,7 +119,8 @@ export function FlashcardView({ card, resetKey }: FlashcardViewProps) {
                 remarkPlugins={[remarkMath]} 
                 rehypePlugins={[rehypeKatex]}
               >
-                {card.back || ""}
+                {/* Procesăm textul înainte de randare */}
+                {processLatex(card.back)}
               </ReactMarkdown>
             </div>
           </div>
@@ -133,7 +154,8 @@ export function FlashcardView({ card, resetKey }: FlashcardViewProps) {
                   </div>
                   <div className="text-sm font-medium text-gray-700 pt-1.5 flex-1 prose-sm prose-p:my-0">
                     <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
-                      {tip}
+                      {/* Procesăm și tips-urile */}
+                      {processLatex(tip)}
                     </ReactMarkdown>
                   </div>
                 </div>

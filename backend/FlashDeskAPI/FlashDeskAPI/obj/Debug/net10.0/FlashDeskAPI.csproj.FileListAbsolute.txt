@@ -136,3 +136,4 @@ C:\Users\Mihnea\Proiecte\FlashDesk\backend\FlashDeskAPI\FlashDeskAPI\obj\Debug\n
 C:\Users\Mihnea\Proiecte\FlashDesk\backend\FlashDeskAPI\FlashDeskAPI\obj\Debug\net10.0\FlashDeskAPI.pdb
 C:\Users\Mihnea\Proiecte\FlashDesk\backend\FlashDeskAPI\FlashDeskAPI\obj\Debug\net10.0\FlashDeskAPI.genruntimeconfig.cache
 C:\Users\Mihnea\Proiecte\FlashDesk\backend\FlashDeskAPI\FlashDeskAPI\obj\Debug\net10.0\ref\FlashDeskAPI.dll
+C:\Users\Mihnea\Proiecte\FlashDesk\backend\FlashDeskAPI\FlashDeskAPI\obj\Debug\net10.0\FlashDeskAPI.MvcApplicationPartsAssemblyInfo.cs

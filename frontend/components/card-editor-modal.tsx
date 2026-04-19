@@ -134,7 +134,7 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: a
           
           {/* --- FRONT EDITOR --- */}
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-bold text-gray-700 ml-1">Front (Question - LaTeX)</label>
+            <label className="text-sm font-bold text-gray-700 ml-1">Front (Question - LaTeX - Keep formulas between $$)</label>
             <div className="shadow-sm rounded-xl">
               <MathToolbar target="front" />
               <textarea
@@ -162,7 +162,7 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: a
 
           {/* --- BACK EDITOR --- */}
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-bold text-gray-700 ml-1">Back (Answer - LaTeX)</label>
+            <label className="text-sm font-bold text-gray-700 ml-1">Back (Answer - LaTeX - Keep formulas between $$)</label>
             <div className="shadow-sm rounded-xl">
               <MathToolbar target="back" />
               <textarea

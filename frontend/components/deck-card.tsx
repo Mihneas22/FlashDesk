@@ -38,6 +38,7 @@ const defaultColors = {
 };
 
 export function DeckCard({ usId, deck, onDeckDeleted, onDeckUpdated }: DeckCardProps) {
+  const token = localStorage.getItem("token");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -95,6 +96,7 @@ export function DeckCard({ usId, deck, onDeckDeleted, onDeckUpdated }: DeckCardP
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(deletePayload),
       });
@@ -120,6 +122,7 @@ export function DeckCard({ usId, deck, onDeckDeleted, onDeckUpdated }: DeckCardP
     const formData = new FormData(e.currentTarget);
     const editPayload = {
       deckId: deck.id,
+      userId: usId,
       title: formData.get("title") as string,
       description: formData.get("description") as string,
       topic: formData.get("topic") as string,
@@ -129,7 +132,10 @@ export function DeckCard({ usId, deck, onDeckDeleted, onDeckUpdated }: DeckCardP
     try {
       const response = await fetch(`http://localhost:5000/api/deck/editDeck`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          'Authorization': `Bearer ${token}`
+         },
         body: JSON.stringify(editPayload),
       });
 

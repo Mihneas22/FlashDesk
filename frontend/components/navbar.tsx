@@ -6,10 +6,40 @@ import { BookOpen, Layers, LogIn, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { jwtDecode } from "jwt-decode";
 
 export function Navbar({ isLoggedIn }: { isLoggedIn?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
+  const [isAuthorized, setIsAuthorized] = useState(false);
+
+  useEffect(() => {
+      const checkAuthorization = () => {
+        const token = localStorage.getItem("token");
+        
+        if (token) {
+          try {
+            const decoded: any = jwtDecode(token);
+            const roleClaim = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || decoded.role || decoded.Role;
+            
+            const userId = decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] || decoded.nameid || decoded.sub;
+            const roles = Array.isArray(roleClaim) ? roleClaim : [roleClaim];
+            const isAdmin = roles.some(r => r === "admin" || r === "Admin");
+  
+            setIsAuthorized(isAdmin);
+          } catch (error) {
+            console.error("Invalid token:", error);
+
+            setIsAuthorized(false);
+          }
+        } else {
+          setIsAuthorized(false);
+        }
+      };
+  
+      checkAuthorization();
+    }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -33,10 +63,26 @@ export function Navbar({ isLoggedIn }: { isLoggedIn?: boolean }) {
 
         {/* Nav links */}
         <nav className="flex items-center gap-6">
+          {isAuthorized ? (
+            <div className="flex items-center gap-2">
+            <NavLink href="/admin" active={pathname === "/admin"}>
+              <BookOpen className="h-4 w-4" />
+                Admin Dashboard
+            </NavLink>
+          </div>
+          ) : null}
+
           <div className="flex items-center gap-2">
             <NavLink href="/public-decks" active={pathname === "/public-decks"}>
               <BookOpen className="h-4 w-4" />
               Public Decks
+            </NavLink>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <NavLink href="/test" active={pathname === "/test"}>
+              <BookOpen className="h-4 w-4" />
+              Tests
             </NavLink>
           </div>
 

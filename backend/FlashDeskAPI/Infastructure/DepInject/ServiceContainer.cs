@@ -44,6 +44,7 @@ namespace Infastructure.DepInject
             services.AddScoped<IUser, UserRepository>();
             services.AddScoped<IDeck, DeckRepository>();
             services.AddScoped<ITest, TestRepository>();
+            services.AddScoped<IQuestion, QuestionRepository>();
 
             return services;
         }

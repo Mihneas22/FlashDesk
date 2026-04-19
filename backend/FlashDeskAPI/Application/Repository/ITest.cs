@@ -1,4 +1,6 @@
 ﻿using Application.DTOs.Test.AddTest;
+using Application.DTOs.Test.DeleteTest;
+using Application.DTOs.Test.EditTest;
 using Application.DTOs.Test.GetTestById;
 using Application.DTOs.Test.GetTests;
 using System;
@@ -14,6 +16,10 @@ namespace Application.Repository
         Task<GetTestByIdResponse> GetTestByIdRepository(GetTestByIdDTO getTestByIdDTO);
 
         Task<GetTestsResponse> GetTestsFilterRepository(GetTestsDTO getTestsDTO);
+
+        Task<EditTestResponse> EditTestRepository(EditTestDTO editTestDTO);
+
+        Task<DeleteTestResponse> DeleteTestRepository(DeleteTestDTO deleteTestDTO);
         /*
          * de implementatat
          * Add Test

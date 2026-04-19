@@ -1,5 +1,9 @@
 ﻿using Application.DTOs.Card.AddCard;
+using Application.DTOs.Card.DeleteCard;
+using Application.DTOs.Card.EditCard;
 using Application.DTOs.Card.GetCardsForDeck;
+using Application.DTOs.Deck.DeleteDeck;
+using Application.DTOs.Deck.EditDeck;
 using Application.Repository;
 using Domain.Models;
 using Infastructure.AppDbContext;
@@ -50,6 +54,57 @@ namespace Infastructure.Repository
             await dbContext.SaveChangesAsync();
 
             return new AddCardResponse(true, "Added succesfully!");
+        }
+
+        public async Task<DeleteCardResponse> DeleteCardRepository(DeleteCardDTO deleteCardDTO)
+        {
+            if (deleteCardDTO == null)
+                return new DeleteCardResponse(false, "Invalid DTO");
+
+            var user = await dbContext.UserEntity.FirstOrDefaultAsync(us => us.UserId == deleteCardDTO.UserId);
+            if (user == null)
+                return new DeleteCardResponse(false, "User not found");
+
+            var deck = await dbContext.DeckEntity.FirstOrDefaultAsync(dc => dc.DeckId == deleteCardDTO.DeckId && dc.DeckUserId == user.UserId);
+            if (deck == null)
+                return new DeleteCardResponse(false, "Deck not found");
+
+            var card = await dbContext.CardEntity.FirstOrDefaultAsync(cd => cd.CardId == deleteCardDTO.CardId);
+
+            if (card == null)
+                return new DeleteCardResponse(false, "Cannot delelte card.");
+
+            dbContext.CardEntity.Remove(card);
+            await dbContext.SaveChangesAsync();
+
+            return new DeleteCardResponse(true, "Card deleted!");
+        }
+
+        public async Task<EditCardResponse> EditCardRepository(EditCardDTO editCardDTO)
+        {
+            if (editCardDTO == null)
+                return new EditCardResponse(false, "Invalid DTO");
+
+            var user = await dbContext.UserEntity.FirstOrDefaultAsync(us => us.UserId == editCardDTO.UserId);
+            if (user == null)
+                return new EditCardResponse(false, "User not found");
+
+            var deck = await dbContext.DeckEntity.FirstOrDefaultAsync(dc => dc.DeckId == editCardDTO.DeckId && dc.DeckUserId == user.UserId);
+            if (deck == null)
+                return new EditCardResponse(false, "Deck not found");
+
+            var card = await dbContext.CardEntity.FirstOrDefaultAsync(cd => cd.CardId == editCardDTO.CardId);
+            if (card == null)
+                return new EditCardResponse(false, "Card not found");
+
+            card.Question = editCardDTO.Question;
+            card.Answer = editCardDTO.Answer;
+            card.Tips = editCardDTO.Tips;
+
+            dbContext.CardEntity.Update(card);
+            await dbContext.SaveChangesAsync();
+
+            return new EditCardResponse(true, "Card has been updated");
         }
 
         public async Task<GetCardsByDeckResponse> GetCardsByDeckRepository(GetCardsByDeckDTO getCardsByDeckDTO)

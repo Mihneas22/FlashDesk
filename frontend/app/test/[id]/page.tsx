@@ -1,33 +1,91 @@
 "use client";
 
 import { use, useState, useEffect } from "react";
-import { Timer, Lightbulb, ChevronRight, CheckCircle2, XCircle, Trophy, ArrowLeft } from "lucide-react";
+import { Timer, Lightbulb, ChevronRight, Trophy, ArrowLeft, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { TestData, mockTests } from "@/lib/test-store"; // Adaptează calea
+import { jwtDecode } from "jwt-decode";
+
+// Importurile pentru KaTeX
+import 'katex/dist/katex.min.css';
+import Latex from 'react-latex-next';
 
 export default function ActiveTestPage({ params }: { params: Promise<{ id: string }>; }) {
   const { id } = use(params);
-  const test = mockTests.find(t => t.id === id)!;
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const [questions, setQuestions] = useState<any[]>([]);
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [score, setScore] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(test.durationMinutes * 60);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [time, setTime] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
   const [tipUsed, setTipUsed] = useState(false);
 
-  const question = test.questions[currentQuestionIndex];
-  const maxPossibleScore = test.questions.reduce((acc, q) => acc + q.points, 0);
-
-  // Timer logic
   useEffect(() => {
-    if (isFinished || timeLeft <= 0) {
-      if (timeLeft <= 0) setIsFinished(true);
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const decoded: any = jwtDecode(token);
+        const extractedId = decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] || decoded.sub || decoded.nameid;
+
+        if (extractedId) {
+          setIsLoggedIn(true);
+        }
+
+      } catch (error) {
+        console.error("Token invalid:", error);
+        setIsLoggedIn(false);
+      }
+    } else {
+      setIsLoggedIn(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch(`http://localhost:5000/api/question/getQuestionsByTest/${id}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem("token")}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error("Failed to fetch questions");
+        }
+        
+        const data = await response.json();
+        
+        if (data.flag === true && Array.isArray(data.questions)) {
+          setQuestions(data.questions);
+          setTime(data.time);
+          setTimeLeft(data.time * 60); 
+        } else {
+          setQuestions([]);
+        }
+      } catch (error) {
+        console.error("Error while taking questions:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchQuestions();
+  }, [id]);
+
+  useEffect(() => {
+    if (isLoading || isFinished || timeLeft <= 0) {
+      if (timeLeft <= 0 && !isLoading && questions.length > 0) setIsFinished(true);
       return;
     }
     const timer = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
     return () => clearInterval(timer);
-  }, [timeLeft, isFinished]);
+  }, [timeLeft, isFinished, isLoading, questions.length]);
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
@@ -36,15 +94,15 @@ export default function ActiveTestPage({ params }: { params: Promise<{ id: strin
   };
 
   const handleNextQuestion = () => {
-    // Calculăm scorul pentru întrebarea curentă
-    if (selectedOption === question.correctAnswerIndex) {
-      let earnedPoints = question.points;
-      if (tipUsed) earnedPoints -= question.tipPenalty;
+    const currentQuestion = questions[currentQuestionIndex];
+    
+    if (selectedOption === currentQuestion.correctAnswerIndex) {
+      let earnedPoints = 10;
+      if (tipUsed) earnedPoints -= 2;
       setScore(prev => prev + earnedPoints);
     }
 
-    // Trecem mai departe sau terminăm
-    if (currentQuestionIndex < test.questions.length - 1) {
+    if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
       setSelectedOption(null);
       setTipUsed(false);
@@ -52,125 +110,200 @@ export default function ActiveTestPage({ params }: { params: Promise<{ id: strin
       setIsFinished(true);
     }
   };
-
-  if (isFinished) {
+  
+  if (isLoading) {
     return (
-      <div className="max-w-2xl mx-auto p-6 mt-10 animate-in fade-in zoom-in-95 duration-500">
-        <div className="bg-white rounded-3xl p-10 text-center shadow-[0_20px_40px_rgb(0,0,0,0.08)] border border-gray-100">
-          <div className="w-20 h-20 mx-auto bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mb-6 shadow-xl shadow-yellow-500/30">
-            <Trophy className="w-10 h-10 text-white" />
-          </div>
-          <h2 className="text-3xl font-black text-gray-900 mb-2">Test Completed!</h2>
-          <p className="text-gray-500 font-medium mb-8">You finished the test in {formatTime(test.durationMinutes * 60 - timeLeft)}.</p>
-          
-          <div className="bg-gray-50 rounded-2xl p-6 mb-8 inline-block min-w-[250px]">
-            <p className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-1">Final Score</p>
-            <p className="text-5xl font-black text-indigo-600">
-              {score} <span className="text-2xl text-gray-400">/ {maxPossibleScore}</span>
-            </p>
-          </div>
-
-          <Link href="/tests" className="flex items-center justify-center gap-2 w-full px-6 py-4 rounded-xl font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors">
-            <ArrowLeft className="w-5 h-5" /> Back to Tests
-          </Link>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-950 text-gray-100">
+        <div className="w-10 h-10 border-4 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
-  const isTimeRunningOut = timeLeft < 60; // Mai puțin de 1 minut
+  if (questions.length === 0) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-950 text-gray-100 p-6">
+        <h2 className="text-2xl font-bold mb-4">No questions found</h2>
+        <Link href="/test" className="px-6 py-3 bg-gray-800 rounded-xl">Back to tests</Link>
+      </div>
+    );
+  }
+
+  const question = questions[currentQuestionIndex];
+  const maxPossibleScore = questions.length * 10;
+  const isTimeRunningOut = timeLeft < 60;
+
+  // Ecran de final
+  if (isFinished && isLoggedIn) {
+    return (
+      <div className="min-h-screen relative overflow-hidden bg-gray-950 text-gray-100 flex items-center justify-center p-6">
+        <div className="fixed inset-0 -z-10 bg-gradient-to-br from-gray-950 via-purple-950/20 to-gray-900" />
+        <div className="fixed inset-0 -z-10 opacity-20 pointer-events-none">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-600 rounded-full mix-blend-screen filter blur-3xl animate-blob" />
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-fuchsia-600 rounded-full mix-blend-screen filter blur-3xl animate-blob animation-delay-2000" />
+        </div>
+
+        <div className="max-w-2xl w-full animate-scale-in">
+          <div className="bg-gray-900/60 backdrop-blur-md rounded-3xl p-10 text-center shadow-2xl border border-purple-500/30 relative overflow-hidden">
+            <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-purple-500 to-transparent opacity-50" />
+            
+            <div className="w-20 h-20 mx-auto bg-gradient-to-br from-yellow-400 to-amber-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-yellow-600/20 animate-float rotate-3">
+              <Trophy className="w-10 h-10 text-white" />
+            </div>
+            
+            <h2 className="text-3xl font-black bg-gradient-to-r from-violet-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
+              Test Completed!
+            </h2>
+            <p className="text-gray-400 font-medium mb-8">
+              You finished the test in {formatTime(time * 60 - timeLeft)}.
+            </p>
+            
+            <div className="bg-gray-950/50 border border-gray-800 rounded-2xl p-6 mb-8 inline-block min-w-[250px] shadow-inner">
+              <p className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-1">Final Score</p>
+              <p className="text-5xl font-black text-white">
+                {score} <span className="text-2xl text-gray-600">/ {maxPossibleScore}</span>
+              </p>
+            </div>
+
+            <Link 
+              href="/test" 
+              className="flex items-center justify-center gap-2 w-full px-6 py-4 rounded-xl font-bold text-white bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-gray-600 transition-all"
+            >
+              <ArrowLeft className="w-5 h-5" /> Back to Tests
+            </Link>
+          </div>
+        </div>
+
+        <style jsx>{`
+          @keyframes blob { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-20px, 20px) scale(0.9); } }
+          @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+          @keyframes scale-in { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+          .animate-blob { animation: blob 7s infinite; }
+          .animation-delay-2000 { animation-delay: 2s; }
+          .animate-float { animation: float 3s ease-in-out infinite; }
+          .animate-scale-in { animation: scale-in 0.4s ease-out; }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-3xl mx-auto p-4 md:p-6">
-      {/* Header: Progress, Timer, Score */}
-      <div className="flex items-center justify-between mb-8 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-        <div className="flex-1">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-            Question {currentQuestionIndex + 1} of {test.questions.length}
-          </p>
-          <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-indigo-500 transition-all duration-500"
-              style={{ width: `${((currentQuestionIndex) / test.questions.length) * 100}%` }}
-            />
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4 ml-8">
-          <div className="text-right hidden md:block">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Score</p>
-            <p className="text-lg font-black text-gray-900">{score} pts</p>
-          </div>
-          <div className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold ${isTimeRunningOut ? 'bg-red-50 text-red-600 animate-pulse' : 'bg-gray-50 text-gray-700'}`}>
-            <Timer className="w-5 h-5" />
-            <span className="w-12 text-center">{formatTime(timeLeft)}</span>
-          </div>
-        </div>
+    <div className="min-h-screen relative overflow-hidden bg-gray-950 text-gray-100 py-8">
+      <div className="fixed inset-0 -z-10 bg-gradient-to-br from-gray-950 via-purple-950/20 to-gray-900" />
+      <div className="fixed inset-0 -z-10 opacity-20 pointer-events-none">
+        <div className="absolute top-0 -left-4 w-96 h-96 bg-purple-600 rounded-full mix-blend-screen filter blur-3xl animate-blob" />
+        <div className="absolute top-0 -right-4 w-96 h-96 bg-fuchsia-600 rounded-full mix-blend-screen filter blur-3xl animate-blob animation-delay-2000" />
       </div>
 
-      {/* Question Area */}
-      <div className="bg-white rounded-3xl p-6 md:p-10 shadow-[0_10px_40px_rgb(0,0,0,0.05)] border border-gray-100 mb-6 relative overflow-hidden">
-        <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8 leading-tight">
-          {question.text}
-        </h2>
+      <div className="max-w-3xl mx-auto p-4 md:p-6 relative z-10 animate-fade-in-up">
+        <div className="flex items-center justify-between mb-8 bg-gray-900/60 backdrop-blur-md p-5 rounded-2xl shadow-lg border border-purple-500/20">
+          <div className="flex-1">
+            <div className="flex justify-between items-end mb-2">
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                Question {currentQuestionIndex + 1} of {questions.length}
+              </p>
+              <Sparkles className="w-4 h-4 text-purple-500 animate-pulse" />
+            </div>
+            <div className="w-full h-2.5 bg-gray-950 rounded-full overflow-hidden border border-gray-800">
+              <div 
+                className="h-full bg-gradient-to-r from-violet-500 to-purple-500 transition-all duration-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]"
+                style={{ width: `${((currentQuestionIndex) / questions.length) * 100}%` }}
+              />
+            </div>
+          </div>
 
-        <div className="space-y-3">
-          {question.options.map((option, idx) => {
-            const isSelected = selectedOption === idx;
-            return (
-              <button
-                key={idx}
-                onClick={() => setSelectedOption(idx)}
-                className={`w-full flex items-center justify-between p-4 md:p-5 rounded-2xl border-2 transition-all duration-200 outline-none text-left
-                  ${isSelected 
-                    ? 'border-indigo-500 bg-indigo-50 shadow-md shadow-indigo-500/10' 
-                    : 'border-gray-100 bg-gray-50 hover:border-gray-200 hover:bg-gray-100'
-                  }`}
-              >
-                <span className={`text-lg font-medium ${isSelected ? 'text-indigo-900' : 'text-gray-700'}`}>
-                  {option}
-                </span>
-                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors
-                  ${isSelected ? 'border-indigo-500 bg-indigo-500' : 'border-gray-300'}
-                `}>
-                  {isSelected && <div className="w-2.5 h-2.5 bg-white rounded-full" />}
+          <div className="flex items-center gap-6 ml-8">
+            <div className="text-right hidden md:block">
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Score</p>
+              <p className="text-lg font-black text-violet-300">{score} pts</p>
+            </div>
+            <div className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold border transition-colors ${
+              isTimeRunningOut 
+                ? 'bg-red-500/20 text-red-400 border-red-500/50 animate-pulse' 
+                : 'bg-gray-950/50 text-gray-300 border-gray-800'
+            }`}>
+              <Timer className={`w-5 h-5 ${isTimeRunningOut ? 'text-red-400' : 'text-violet-400'}`} />
+              <span className="w-12 text-center">{formatTime(timeLeft)}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-gray-900/60 backdrop-blur-md rounded-3xl p-6 md:p-10 shadow-xl border border-purple-500/20 mb-6 relative overflow-hidden">
+          {/* Randare KaTeX pentru enunțul întrebării */}
+          <h2 className="text-2xl md:text-3xl font-bold text-white mb-8 leading-tight">
+            <Latex>{question.questionText}</Latex>
+          </h2>
+
+          <div className="space-y-3">
+            {question.possibleAnswers?.map((option: string, idx: number) => {
+              const isSelected = selectedOption === idx;
+              return (
+                <button
+                  key={idx}
+                  onClick={() => setSelectedOption(idx)}
+                  className={`w-full flex items-center justify-between p-4 md:p-5 rounded-2xl border-2 transition-all duration-200 outline-none text-left group
+                    ${isSelected 
+                      ? 'border-violet-500 bg-violet-500/10 shadow-[0_0_15px_rgba(139,92,246,0.15)]' 
+                      : 'border-gray-800 bg-gray-950/50 hover:border-gray-600 hover:bg-gray-800'
+                    }`}
+                >
+                  {/* Randare KaTeX pentru variantele de răspuns */}
+                  <span className={`text-lg font-medium transition-colors ${isSelected ? 'text-violet-300' : 'text-gray-300 group-hover:text-white'}`}>
+                    <Latex>{option}</Latex>
+                  </span>
+                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all shrink-0 ml-4
+                    ${isSelected ? 'border-violet-500 bg-violet-500' : 'border-gray-600 group-hover:border-gray-400'}
+                  `}>
+                    {isSelected && <div className="w-2.5 h-2.5 bg-white rounded-full animate-scale-in" />}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+          {question.hints && question.hints.length > 0 ? (
+            <div className="w-full md:w-auto flex-1">
+              {!tipUsed ? (
+                <button 
+                  onClick={() => setTipUsed(true)}
+                  className="flex items-center gap-2 text-sm font-bold text-yellow-400 bg-yellow-500/10 border border-yellow-500/20 px-4 py-3 rounded-xl hover:bg-yellow-500/20 transition-colors w-full md:w-auto justify-center"
+                >
+                  <Lightbulb className="w-4 h-4" />
+                  Need a hint? (-2 pts)
+                </button>
+              ) : (
+                <div className="animate-in fade-in slide-in-from-left-2 p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20 text-yellow-200 text-sm font-medium flex gap-3 items-start backdrop-blur-sm">
+                  <Lightbulb className="w-5 h-5 text-yellow-400 shrink-0 mt-0.5" />
+                  {/* Randare KaTeX pentru hint-uri */}
+                  <div className="flex-1 overflow-x-auto">
+                    <Latex>{question.hints[0]}</Latex>
+                  </div>
                 </div>
-              </button>
-            );
-          })}
+              )}
+            </div>
+          ) : <div className="flex-1" />}
+
+          <button
+            onClick={handleNextQuestion}
+            disabled={selectedOption === null}
+            className="w-full md:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-bold text-white bg-gradient-to-r from-violet-600 to-purple-600 hover:shadow-lg hover:shadow-purple-700/50 disabled:from-gray-800 disabled:to-gray-800 disabled:text-gray-500 disabled:shadow-none disabled:cursor-not-allowed transition-all active:scale-[0.98]"
+          >
+            {currentQuestionIndex === questions.length - 1 ? "Finish Test" : "Next Question"}
+            <ChevronRight className="w-5 h-5" />
+          </button>
         </div>
       </div>
 
-      {/* Footer: Tips & Next Actions */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-        {question.tip ? (
-          <div className="w-full md:w-auto flex-1">
-            {!tipUsed ? (
-              <button 
-                onClick={() => setTipUsed(true)}
-                className="flex items-center gap-2 text-sm font-bold text-amber-600 bg-amber-50 px-4 py-3 rounded-xl hover:bg-amber-100 transition-colors w-full md:w-auto justify-center"
-              >
-                <Lightbulb className="w-4 h-4" />
-                Need a hint? (-{question.tipPenalty} pts)
-              </button>
-            ) : (
-              <div className="animate-in fade-in slide-in-from-left-2 p-4 rounded-xl bg-amber-50 border border-amber-100 text-amber-800 text-sm font-medium flex gap-3 items-start">
-                <Lightbulb className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-                <p>{question.tip}</p>
-              </div>
-            )}
-          </div>
-        ) : <div className="flex-1" />}
-
-        <button
-          onClick={handleNextQuestion}
-          disabled={selectedOption === null}
-          className="w-full md:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-bold text-white bg-gray-900 hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
-        >
-          {currentQuestionIndex === test.questions.length - 1 ? "Finish Test" : "Next Question"}
-          <ChevronRight className="w-5 h-5" />
-        </button>
-      </div>
+      <style jsx>{`
+        @keyframes blob { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-20px, 20px) scale(0.9); } }
+        @keyframes fade-in-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes scale-in { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: scale(1); } }
+        .animate-blob { animation: blob 7s infinite; }
+        .animation-delay-2000 { animation-delay: 2s; }
+        .animate-fade-in-up { animation: fade-in-up 0.6s ease-out; }
+        .animate-scale-in { animation: scale-in 0.2s ease-out; }
+      `}</style>
     </div>
   );
 }

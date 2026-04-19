@@ -7,6 +7,7 @@ import { Navbar } from "@/components/navbar";
 import { CardEditorModal } from "@/components/card-editor-modal";
 import { cn } from "@/lib/utils";
 import { Flashcard } from "@/lib/store";
+import { jwtDecode } from "jwt-decode";
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
@@ -22,7 +23,26 @@ interface DeckDetails {
   description: string;
   topic: string;
   color?: string;
+  deckUsId: string;
 }
+
+// Funcția care adaugă delimitatorii de matematică (dacă lipsesc)
+/*const processLatex = (text: string) => {
+  if (!text) return "";
+  if (text.includes('$')) return text;
+  
+  const containsMath = 
+    text.includes('\\') || 
+    text.includes('frac') ||
+    text.includes('sin(') || 
+    /[_^]/.test(text);
+  
+  if (containsMath) {
+    return `$$${text}$$`;
+  }
+
+  return text;
+};*/
 
 export default function DeckPage({ params }: PageProps) {
   const { id } = use(params);
@@ -34,6 +54,7 @@ export default function DeckPage({ params }: PageProps) {
   const [addOpen, setAddOpen] = useState(false);
   const [editCard, setEditCard] = useState<any | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [userId, setNewUserId] = useState("");
 
   const fetchDeckData = useCallback(async () => {
     const token = localStorage.getItem("token");
@@ -55,7 +76,8 @@ export default function DeckPage({ params }: PageProps) {
             title: data.deck.title || "Untitled Deck",
             description: data.deck.description || "No description provided.",
             topic: data.deck.topic || "General",
-            color: data.deck.color || "bg-gradient-to-br from-violet-500 to-purple-600"
+            color: data.deck.color || "bg-gradient-to-br from-violet-500 to-purple-600",
+            deckUsId: data.deck.deckUserId || "Undefined Deck User Id"
           });
 
           const rawCards = data.deck.deckCards || data.deck.cards || [];
@@ -81,7 +103,27 @@ export default function DeckPage({ params }: PageProps) {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    setIsLoggedIn(!!token);
+    if (token) {
+      try {
+        const decoded: any = jwtDecode(token);
+        const extractedId = decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] || decoded.sub || decoded.nameid;
+
+        if (extractedId) {
+          setIsLoggedIn(true);
+          setNewUserId(extractedId);
+        }else {
+          setLoading(false);
+        }
+
+      } catch (error) {
+        console.error("Token invalid:", error);
+        setIsLoggedIn(false);
+        setLoading(false);
+      }
+    } else {
+      setIsLoggedIn(false);
+      setLoading(false);
+    }
     fetchDeckData();
   }, [id, fetchDeckData]);
 
@@ -106,17 +148,65 @@ export default function DeckPage({ params }: PageProps) {
   async function confirmDelete() {
     if (!deleteTarget) return;
     const token = localStorage.getItem("token");
+    
     try {
-      const response = await fetch(`http://localhost:5000/api/card/deleteCard/${deleteTarget}`, {
+      const response = await fetch(`http://localhost:5000/api/card/deleteCard`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify({ 
+          CardId: deleteTarget, 
+          DeckId: id,
+          UserId: userId
+        })
       });
+      
       if (response.ok) {
         setDeleteTarget(null);
         fetchDeckData();
+      } else {
+        console.error("Eroare la ștergerea cardului");
       }
-    } catch (err) { console.error(err); }
+    } catch (err) { 
+      console.error(err); 
+    }
   }
+
+  async function handleEditCard(front: string, back: string, tips: string[]) {
+    if (!editCard) return;
+    const token = localStorage.getItem("token");
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/card/editCard`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ 
+          CardId: editCard.id, 
+          DeckId: id, 
+          UserId: userId,
+          Question: front, 
+          Answer: back, 
+          Tips: tips 
+        })
+      });
+
+      if (response.ok) {
+        setEditCard(null);
+        fetchDeckData(); 
+      } else {
+        console.error("Eroare la editarea cardului");
+      }
+    } catch (err) { 
+      console.error(err); 
+    }
+  }
+
+  const showEditsModal = userId === currentDeck?.deckUsId;
 
   if (loading) {
     return (
@@ -262,19 +352,19 @@ export default function DeckPage({ params }: PageProps) {
                       {i + 1}
                     </div>
                     <div className="min-w-0 flex-1 overflow-hidden pt-1">
-                      {/* Adăugat 'prose-invert' pentru a colora corect markdown-ul in Dark Mode */}
                       <div className="prose prose-sm prose-invert max-w-none text-gray-300 font-medium markdown-content">
                         <ReactMarkdown 
                           remarkPlugins={[remarkMath]} 
                           rehypePlugins={[rehypeKatex]}
                         >
-                          {card.front || ""}
+                          {/* AICI FOLOSIM FUNCȚIA processLatex */}
+                          {card.front}
                         </ReactMarkdown>
                       </div>
                     </div>
                   </div>
 
-                  {isLoggedIn && (
+                  {isLoggedIn && showEditsModal && (
                     <div className="flex items-center gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity shrink-0 sm:ml-4 self-end sm:self-auto">
                       <button 
                         onClick={() => setEditCard(card)} 
@@ -304,9 +394,19 @@ export default function DeckPage({ params }: PageProps) {
         onClose={() => setAddOpen(false)}
         onSave={handleAddCard}
         title="Add New Card"
+        initialCard={null}
       />
 
-      {/* Delete Modal */}
+      {editCard && (
+        <CardEditorModal
+          open={!!editCard}
+          onClose={() => setEditCard(null)}
+          onSave={handleEditCard}
+          title="Edit Card"
+          initialCard={editCard} 
+        />
+      )}
+
       {deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in" role="dialog" aria-modal="true">
           <div 
