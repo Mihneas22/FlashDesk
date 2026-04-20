@@ -282,7 +282,7 @@ export default function AdminDashboardPage() {
 
     try {
       if (activeTab === "decks") {
-        const payload = { DeckId: id, UserId: currentUserId };
+        const payload = { DeckId: id};
         const res = await fetch(`${API_BASE_URL}/deck/deleteDeck`, {
           method: "DELETE",
           headers: getAuthHeaders(),
@@ -378,8 +378,7 @@ export default function AdminDashboardPage() {
           } else alert(`Error: ${data.message}`);
         } else {
           const payload = { 
-            DeckId: editingId, 
-            UserId: currentUserId, 
+            DeckId: editingId,  
             Title: formData.title, 
             Description: formData.description, 
             Topic: formData.topic, 

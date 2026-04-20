@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "FtZJDcVg5Ng=",
+  "dgSpecHash": "XTI4P75FxHQ=",
   "success": true,
-  "projectFilePath": "c:\\Users\\Mihnea\\Proiecte\\FlashDesk\\backend\\FlashDeskAPI\\FlashDeskAPI\\FlashDeskAPI.csproj",
+  "projectFilePath": "C:\\Users\\Mihnea\\Proiecte\\FlashDesk\\backend\\FlashDeskAPI\\FlashDeskAPI\\FlashDeskAPI.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Mihnea\\.nuget\\packages\\bcrypt.net-next\\4.1.0\\bcrypt.net-next.4.1.0.nupkg.sha512",
     "C:\\Users\\Mihnea\\.nuget\\packages\\dotnetenv\\3.1.1\\dotnetenv.3.1.1.nupkg.sha512",
@@ -11,7 +11,7 @@
     "C:\\Users\\Mihnea\\.nuget\\packages\\jsonpointer.net\\5.3.1\\jsonpointer.net.5.3.1.nupkg.sha512",
     "C:\\Users\\Mihnea\\.nuget\\packages\\jsonschema.net\\7.3.4\\jsonschema.net.7.3.4.nupkg.sha512",
     "C:\\Users\\Mihnea\\.nuget\\packages\\jsonschema.net.generation\\5.0.4\\jsonschema.net.generation.5.0.4.nupkg.sha512",
-    "C:\\Users\\Mihnea\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\10.0.5\\microsoft.aspnetcore.authentication.jwtbearer.10.0.5.nupkg.sha512",
+    "C:\\Users\\Mihnea\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\10.0.6\\microsoft.aspnetcore.authentication.jwtbearer.10.0.6.nupkg.sha512",
     "C:\\Users\\Mihnea\\.nuget\\packages\\microsoft.aspnetcore.openapi\\10.0.6\\microsoft.aspnetcore.openapi.10.0.6.nupkg.sha512",
     "C:\\Users\\Mihnea\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\6.0.0\\microsoft.bcl.asyncinterfaces.6.0.0.nupkg.sha512",
     "C:\\Users\\Mihnea\\.nuget\\packages\\microsoft.codeanalysis.analyzers\\3.3.3\\microsoft.codeanalysis.analyzers.3.3.3.nupkg.sha512",
@@ -23,7 +23,7 @@
     "C:\\Users\\Mihnea\\.nuget\\packages\\microsoft.entityframeworkcore.abstractions\\10.0.6\\microsoft.entityframeworkcore.abstractions.10.0.6.nupkg.sha512",
     "C:\\Users\\Mihnea\\.nuget\\packages\\microsoft.entityframeworkcore.analyzers\\10.0.6\\microsoft.entityframeworkcore.analyzers.10.0.6.nupkg.sha512",
     "C:\\Users\\Mihnea\\.nuget\\packages\\microsoft.entityframeworkcore.design\\8.0.0\\microsoft.entityframeworkcore.design.8.0.0.nupkg.sha512",
-    "C:\\Users\\Mihnea\\.nuget\\packages\\microsoft.entityframeworkcore.relational\\10.0.4\\microsoft.entityframeworkcore.relational.10.0.4.nupkg.sha512",
+    "C:\\Users\\Mihnea\\.nuget\\packages\\microsoft.entityframeworkcore.relational\\10.0.6\\microsoft.entityframeworkcore.relational.10.0.6.nupkg.sha512",
     "C:\\Users\\Mihnea\\.nuget\\packages\\microsoft.entityframeworkcore.tools\\10.0.6\\microsoft.entityframeworkcore.tools.10.0.6.nupkg.sha512",
     "C:\\Users\\Mihnea\\.nuget\\packages\\microsoft.extensions.dependencymodel\\8.0.0\\microsoft.extensions.dependencymodel.8.0.0.nupkg.sha512",
     "C:\\Users\\Mihnea\\.nuget\\packages\\microsoft.identitymodel.abstractions\\8.0.1\\microsoft.identitymodel.abstractions.8.0.1.nupkg.sha512",

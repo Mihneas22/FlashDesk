@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace Application.DTOs.Card.EditCard
 {
@@ -13,7 +14,7 @@ namespace Application.DTOs.Card.EditCard
         [Required]
         public Guid DeckId { get; set; } = Guid.Empty;
 
-        [Required]
+        [JsonIgnore]
         public Guid UserId { get; set; } = Guid.Empty;
 
         [Required]
@@ -24,5 +25,8 @@ namespace Application.DTOs.Card.EditCard
 
         [Required]
         public List<string> Tips { get; set; } = new List<string>();
+
+        [JsonIgnore]
+        public bool IsAdmin { get; set; }
     }
 }

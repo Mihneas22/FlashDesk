@@ -8,6 +8,7 @@ using Application.DTOs.Deck.GetDecks;
 using Application.DTOs.Deck.GetPublicDecks;
 using Application.Repository;
 using Domain.Models;
+using Humanizer;
 using Infastructure.AppDbContext;
 using Microsoft.EntityFrameworkCore;
 using Mscc.GenerativeAI;
@@ -32,16 +33,19 @@ namespace Infastructure.Repository
             if (createDeckDTO == null)
                 return new CreateDeckResponse(false, "Invalid DTO.");
 
-            var user = await dbContext.UserEntity
-                .FirstOrDefaultAsync(us => us.UserId == createDeckDTO.UserId);
-
             var deck = new Deck
             {
                 Title = createDeckDTO.Title,
                 Description = createDeckDTO.Description,
                 Topic = createDeckDTO.Topic,
-                DeckUserId = (user != null) ? user.UserId : (Guid?)null,
-                DeckCards = new List<Card>(),
+                DeckUserId = createDeckDTO.UserId,
+                DeckCards = createDeckDTO.Cards?.Select(cardDto => new Card
+                {
+                    Question = cardDto.Question,
+                    Answer = cardDto.Answer,
+                    Tips = cardDto.Tips,
+                    CreatedAt = DateTime.UtcNow
+                }).ToList() ?? new List<Card>(),
                 Status = createDeckDTO.Status == "Public",
                 CreatedAt = DateTime.UtcNow,
             };
@@ -50,6 +54,7 @@ namespace Infastructure.Repository
             {
                 dbContext.DeckEntity.Add(deck);
                 await dbContext.SaveChangesAsync();
+
                 return new CreateDeckResponse(true, "Added deck!");
             }
             catch (Exception ex)
@@ -63,13 +68,9 @@ namespace Infastructure.Repository
             if (deleteDeckDTO == null)
                 return new DeleteDeckResponse(false, "Invalid DTO");
 
-            var user = await dbContext.UserEntity.FirstOrDefaultAsync(us => us.UserId == deleteDeckDTO.UserId);
-            if (user == null)
-                return new DeleteDeckResponse(false, "User not found");
-
             var deck = new Deck();
 
-            if(user.Roles!.Contains("admin"))
+            if(deleteDeckDTO.IsAdmin)
                 deck = await dbContext.DeckEntity.FirstOrDefaultAsync(dc => dc.DeckId == deleteDeckDTO.DeckId);
             else
                 deck = await dbContext.DeckEntity.FirstOrDefaultAsync(dc => dc.DeckId == deleteDeckDTO.DeckId && dc.DeckUserId == deleteDeckDTO.UserId);
@@ -90,13 +91,9 @@ namespace Infastructure.Repository
 
             try
             {
-                var user = await dbContext.UserEntity.FirstOrDefaultAsync(us => us.UserId == editDeckDTO.UserId);
-                if (user == null)
-                    return new EditDeckResponse(false, "User not found");
-
                 var existingDeck = new Deck();
 
-                if (user.Roles!.Contains("admin"))
+                if (editDeckDTO.IsAdmin)
                     existingDeck = await dbContext.DeckEntity.FirstOrDefaultAsync(dc => dc.DeckId == editDeckDTO.DeckId);
                 else
                     existingDeck = await dbContext.DeckEntity.FirstOrDefaultAsync(dc => dc.DeckId == editDeckDTO.DeckId && dc.DeckUserId == editDeckDTO.UserId);
@@ -131,25 +128,28 @@ namespace Infastructure.Repository
 
             var googleAI = new GoogleAI(key);
 
-            // Folosim string-ul modelului sau enum-ul (în funcție de versiunea exactă din NuGet)
             var model = googleAI.GenerativeModel(Model.Gemini25Flash);
 
-            string prompt = @"Ești un asistent academic expert. Extrage 40 de carduri din textul oferit.
-                REGULI:
-                1. Folosește KaTeX pentru formule, încadrate între $ pentru inline și $$ pentru block.
-                2. Fiecare card trebuie să includă o listă de ""tips"" (1-2 indicii scurte, sfaturi sau context suplimentar).
-                3. Returnează DOAR un array JSON valid. FĂRĂ blocuri de cod markdown (fără ```json), FĂRĂ text explicativ înainte sau după.
-
-                Structura JSON obligatorie:
-                [
-                  {
-                    ""question"": ""Textul întrebării..."",
-                    ""answer"": ""Textul răspunsului..."",
-                    ""tips"": [""Primul indiciu aici..."", ""Al doilea indiciu aici...""]
-                  }
-                ]";
+            string prompt = @"Ești un asistent academic expert. Extrage 15 carduri din textul oferit.                
+                    REGULI:                
+                    1. Folosește KaTeX pentru formule, încadrate între $ pentru inline și $$ pentru block.                
+                    2. CRITIC PENTRU JSON: Toate backslash-urile din formulele matematice LaTeX trebuie să fie dublate (escaped) pentru a genera un JSON valid. De exemplu, folosește \\int în loc de \int, \\infty în loc de \infty, și \\frac în loc de \frac.            
+                    3. Fiecare card trebuie să includă o listă de ""tips"" (2-3 indicii explicative, sfaturi sau context suplimentar).                
+                    4. Returnează DOAR un array JSON valid. FĂRĂ blocuri de cod markdown (fără ```json), FĂRĂ text explicativ înainte sau după.                
+                    5. Folosește limba engleză când adaugi textele.                
+    
+                    Structura JSON obligatorie:                
+                    [                    
+                        {                        
+                            ""question"": ""Textul întrebării..."",                        
+                            ""answer"": ""Example formula: $\\int_{-\\infty}^{\\infty} (e^{-x^2})dx$"",                        
+                            ""tips"": [""Primul indiciu aici..."", ""Al doilea indiciu aici...""]                    
+                        }                
+                    ]";
 
             var request = new GenerateContentRequest(prompt);
+            request.GenerationConfig = new GenerationConfig { ResponseMimeType = "application/json" };
+
             request.Contents[0].Parts.Add(new Part
             {
                 InlineData = new InlineData
@@ -160,8 +160,18 @@ namespace Infastructure.Repository
             });
 
             var response = await model.GenerateContent(request);
-            var result = response.Text ?? "empty result";
-            string cleanedJson = result.Replace(@"\\", @"\");
+            var result = response.Text ?? "[]";
+            string cleanedJson = result.Replace("```json", "", StringComparison.OrdinalIgnoreCase)
+                                       .Replace("```", "")
+                                       .Trim();
+
+            int startIndex = cleanedJson.IndexOf('[');
+            int endIndex = cleanedJson.LastIndexOf(']');
+
+            if (startIndex != -1 && endIndex != -1 && endIndex > startIndex)
+                cleanedJson = cleanedJson.Substring(startIndex, endIndex - startIndex + 1);
+            else
+                return "[]";
 
             return cleanedJson;
         }
@@ -169,6 +179,7 @@ namespace Infastructure.Repository
         public async Task<GetAllDecksResponse> GetAllDeckRepository()
         {
             var decks = await dbContext.DeckEntity
+                .AsNoTracking()
                 .Include(dc => dc.DeckCards)
                 .Take(100).ToListAsync();
             if (decks == null)
@@ -183,6 +194,7 @@ namespace Infastructure.Repository
                 return new GetDeckByIdResponse(false, "Invalid DTO");
 
             var deck = await dbContext.DeckEntity
+                .AsNoTracking()
                 .Include(dc => dc.DeckCards)
                 .FirstOrDefaultAsync(dc => dc.DeckId == getDeckByIdDTO.DeckId);
 
@@ -197,7 +209,9 @@ namespace Infastructure.Repository
             if (getDeckByNameDTO == null)
                 return new GetDeckByNameResponse(false, "Invalid DTO");
 
-            var deck = await dbContext.DeckEntity.FirstOrDefaultAsync(dc => dc.Title == getDeckByNameDTO.Name);
+            var deck = await dbContext.DeckEntity
+                .AsNoTracking()
+                .FirstOrDefaultAsync(dc => dc.Title == getDeckByNameDTO.Name);
             if(deck == null)
                 return new GetDeckByNameResponse(false, "Deck not found");
             else

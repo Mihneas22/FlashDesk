@@ -17,6 +17,7 @@ namespace Application.DTOs.User.RegisterUser
         public string Password { get; set; } = string.Empty;
 
         [Required]
+        [Compare("Password", ErrorMessage = "The passwords don't match!")]
         public string ConfirmPassword { get; set; } = string.Empty;
     }
 }

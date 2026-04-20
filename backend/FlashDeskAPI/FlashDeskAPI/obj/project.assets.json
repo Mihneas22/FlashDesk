@@ -104,7 +104,7 @@
           }
         }
       },
-      "Microsoft.AspNetCore.Authentication.JwtBearer/10.0.5": {
+      "Microsoft.AspNetCore.Authentication.JwtBearer/10.0.6": {
         "type": "package",
         "dependencies": {
           "Microsoft.IdentityModel.Protocols.OpenIdConnect": "8.0.1"
@@ -457,10 +457,10 @@
           "build/net8.0/Microsoft.EntityFrameworkCore.Design.props": {}
         }
       },
-      "Microsoft.EntityFrameworkCore.Relational/10.0.4": {
+      "Microsoft.EntityFrameworkCore.Relational/10.0.6": {
         "type": "package",
         "dependencies": {
-          "Microsoft.EntityFrameworkCore": "10.0.4"
+          "Microsoft.EntityFrameworkCore": "10.0.6"
         },
         "compile": {
           "lib/net10.0/Microsoft.EntityFrameworkCore.Relational.dll": {
@@ -857,8 +857,9 @@
           "Application": "1.0.0",
           "BCrypt.Net-Next": "4.1.0",
           "DotNetEnv": "3.1.1",
-          "Microsoft.AspNetCore.Authentication.JwtBearer": "10.0.5",
-          "Microsoft.EntityFrameworkCore": "10.0.5",
+          "Microsoft.AspNetCore.Authentication.JwtBearer": "10.0.6",
+          "Microsoft.EntityFrameworkCore": "10.0.6",
+          "Microsoft.EntityFrameworkCore.Relational": "10.0.6",
           "Mscc.GenerativeAI": "3.1.0",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "10.0.1"
         },
@@ -1016,10 +1017,10 @@
         "lib/netstandard2.0/JsonSchema.Net.Generation.xml"
       ]
     },
-    "Microsoft.AspNetCore.Authentication.JwtBearer/10.0.5": {
-      "sha512": "fZzXogChrwQ/SfifQJgeW7AtR8hUv5+LH9oLWjm5OqfnVt3N8MwcMHHMdawvqqdjP79lIZgetnSpj77BLsSI1g==",
+    "Microsoft.AspNetCore.Authentication.JwtBearer/10.0.6": {
+      "sha512": "JVPyTTr5J/Z5PikptDP2g8qwNJBJ09GZ7yHpaPDAMZ0qKeA2ZKqpZhUNJk1clBqZJeMj2T7gZ5o6oOrmLxuBdw==",
       "type": "package",
-      "path": "microsoft.aspnetcore.authentication.jwtbearer/10.0.5",
+      "path": "microsoft.aspnetcore.authentication.jwtbearer/10.0.6",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -1028,7 +1029,7 @@
         "THIRD-PARTY-NOTICES.TXT",
         "lib/net10.0/Microsoft.AspNetCore.Authentication.JwtBearer.dll",
         "lib/net10.0/Microsoft.AspNetCore.Authentication.JwtBearer.xml",
-        "microsoft.aspnetcore.authentication.jwtbearer.10.0.5.nupkg.sha512",
+        "microsoft.aspnetcore.authentication.jwtbearer.10.0.6.nupkg.sha512",
         "microsoft.aspnetcore.authentication.jwtbearer.nuspec"
       ]
     },
@@ -1562,10 +1563,10 @@
         "microsoft.entityframeworkcore.design.nuspec"
       ]
     },
-    "Microsoft.EntityFrameworkCore.Relational/10.0.4": {
-      "sha512": "DOTjTHy93W3TwpMLM4SCm0n57Sc0Jj3+m2S6LSTstKyBB34eT1UouaMS19mpWwvtj42+sRiEjA3+rOTNoNzXFQ==",
+    "Microsoft.EntityFrameworkCore.Relational/10.0.6": {
+      "sha512": "t+pXPUjiAemBTstY57yUAoywOO6znVD3lwy7UERJpji0wmS70XHg0h8EcpX6+7KT6ZVCIndr1pW0GdOobZ4yCg==",
       "type": "package",
-      "path": "microsoft.entityframeworkcore.relational/10.0.4",
+      "path": "microsoft.entityframeworkcore.relational/10.0.6",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -1573,7 +1574,7 @@
         "PACKAGE.md",
         "lib/net10.0/Microsoft.EntityFrameworkCore.Relational.dll",
         "lib/net10.0/Microsoft.EntityFrameworkCore.Relational.xml",
-        "microsoft.entityframeworkcore.relational.10.0.4.nupkg.sha512",
+        "microsoft.entityframeworkcore.relational.10.0.6.nupkg.sha512",
         "microsoft.entityframeworkcore.relational.nuspec"
       ]
     },
@@ -2119,11 +2120,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "c:\\Users\\Mihnea\\Proiecte\\FlashDesk\\backend\\FlashDeskAPI\\FlashDeskAPI\\FlashDeskAPI.csproj",
+      "projectUniqueName": "C:\\Users\\Mihnea\\Proiecte\\FlashDesk\\backend\\FlashDeskAPI\\FlashDeskAPI\\FlashDeskAPI.csproj",
       "projectName": "FlashDeskAPI",
-      "projectPath": "c:\\Users\\Mihnea\\Proiecte\\FlashDesk\\backend\\FlashDeskAPI\\FlashDeskAPI\\FlashDeskAPI.csproj",
+      "projectPath": "C:\\Users\\Mihnea\\Proiecte\\FlashDesk\\backend\\FlashDeskAPI\\FlashDeskAPI\\FlashDeskAPI.csproj",
       "packagesPath": "C:\\Users\\Mihnea\\.nuget\\packages\\",
-      "outputPath": "c:\\Users\\Mihnea\\Proiecte\\FlashDesk\\backend\\FlashDeskAPI\\FlashDeskAPI\\obj\\",
+      "outputPath": "C:\\Users\\Mihnea\\Proiecte\\FlashDesk\\backend\\FlashDeskAPI\\FlashDeskAPI\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Users\\Mihnea\\AppData\\Roaming\\Godot\\mono\\GodotNuGetFallbackFolder",
@@ -2146,8 +2147,8 @@
         "net10.0": {
           "targetAlias": "net10.0",
           "projectReferences": {
-            "c:\\Users\\Mihnea\\Proiecte\\FlashDesk\\backend\\FlashDeskAPI\\Infastructure\\Infastructure.csproj": {
-              "projectPath": "c:\\Users\\Mihnea\\Proiecte\\FlashDesk\\backend\\FlashDeskAPI\\Infastructure\\Infastructure.csproj"
+            "C:\\Users\\Mihnea\\Proiecte\\FlashDesk\\backend\\FlashDeskAPI\\Infastructure\\Infastructure.csproj": {
+              "projectPath": "C:\\Users\\Mihnea\\Proiecte\\FlashDesk\\backend\\FlashDeskAPI\\Infastructure\\Infastructure.csproj"
             }
           }
         }

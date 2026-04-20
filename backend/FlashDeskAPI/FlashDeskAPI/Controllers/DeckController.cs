@@ -10,11 +10,12 @@ using Application.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace FlashDeskAPI.Controllers
 {
     [Route("api/[controller]")]
-    [Authorize(Roles = "user")]
+    [Authorize(Roles = "user,admin")]
     [ApiController]
     public class DeckController : ControllerBase
     {
@@ -28,18 +29,26 @@ namespace FlashDeskAPI.Controllers
         [HttpPost("addDeck")]
         public async Task<ActionResult<CreateDeckResponse>> CreateDeckAsync(CreateDeckDTO createDeckDTO)
         {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdString)) return Unauthorized();
+
+            createDeckDTO.UserId = Guid.Parse(userIdString);
             var result = await deckRepo.CreateDeckRepository(createDeckDTO);
             return Ok(result);
         }
 
-        [HttpGet("getDecksByUser/{id}")]
-        public async Task<ActionResult<GetDecksResponse>> GetDecksByUserAsync(string id)
+        [HttpGet("getDecksByUser")]
+        public async Task<ActionResult<GetDecksResponse>> GetDecksByUserAsync()
         {
-            var result = await deckRepo.GetDecksRepository(new GetDecksDTO { UserId = Guid.Parse(id) });
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdString)) return Unauthorized();
+
+            var result = await deckRepo.GetDecksRepository(new GetDecksDTO { UserId = Guid.Parse(userIdString) });
             return Ok(result);
         }
 
         [HttpGet("getPublicDecks/{filter}")]
+        [AllowAnonymous]
         public async Task<ActionResult<GetPublicDecksResponse>> GetPublicDecksAsync(string filter)
         {
             var result = await deckRepo.GetPublicDecksRepository(new GetPublicDecksDTO { Filter = filter });
@@ -56,6 +65,12 @@ namespace FlashDeskAPI.Controllers
         [HttpDelete("deleteDeck")]
         public async Task<ActionResult<DeleteDeckResponse>> DeleteDeckAsync(DeleteDeckDTO deleteDeckDTO)
         {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdString)) return Unauthorized();
+
+            deleteDeckDTO.UserId = Guid.Parse(userIdString);
+            deleteDeckDTO.IsAdmin = User.IsInRole("admin");
+
             var result = await deckRepo.DeleteDeckRepository(deleteDeckDTO);
             return Ok(result);
         }
@@ -63,6 +78,12 @@ namespace FlashDeskAPI.Controllers
         [HttpPut("editDeck")]
         public async Task<ActionResult<EditDeckResponse>> EditDeckAsync(EditDeckDTO editDeckDTO)
         {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdString)) return Unauthorized();
+
+            editDeckDTO.UserId = Guid.Parse(userIdString);
+            editDeckDTO.IsAdmin = User.IsInRole("admin");
+
             var result = await deckRepo.EditDeckRepository(editDeckDTO);
             return Ok(result);
         }
@@ -79,7 +100,7 @@ namespace FlashDeskAPI.Controllers
         [Authorize(Roles = "admin")]
         public async Task<ActionResult<GetDeckByNameResponse>> GetDeckByNameAsync(string name)
         {
-            var result = await deckRepo.GetDeckByNameRepository(new GetDeckByNameDTO { Name = name});
+            var result = await deckRepo.GetDeckByNameRepository(new GetDeckByNameDTO { Name = name });
             return Ok(result);
         }
 
@@ -91,6 +112,10 @@ namespace FlashDeskAPI.Controllers
 
             if (pdfFile.ContentType != "application/pdf")
                 return BadRequest("Doar fișierele PDF sunt acceptate.");
+
+            const long maxFileSize = 10 * 1024 * 1024; // 10 MB
+            if (pdfFile.Length > maxFileSize)
+                return BadRequest("Fișierul este prea mare. Dimensiunea maximă permisă este de 10MB.");
 
             using var stream = new MemoryStream();
             await pdfFile.CopyToAsync(stream);

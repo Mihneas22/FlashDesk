@@ -4,5 +4,5 @@ using System.Text;
 
 namespace Application.DTOs.User.GetUserData
 {
-    public record GetUserDataResponse(bool Flag, string message = null!, Domain.Models.User userData = null!);
+    public record GetUserDataResponse(bool Flag, string message = null!, Object userData = null!);
 }

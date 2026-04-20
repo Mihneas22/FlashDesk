@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace Application.DTOs.Deck.EditDeck
 {
@@ -10,7 +11,7 @@ namespace Application.DTOs.Deck.EditDeck
         [Required]
         public Guid DeckId { get; set; } = Guid.Empty;
 
-        [Required]
+        [JsonIgnore]
         public Guid UserId { get; set; } = Guid.Empty;
 
         [Required]
@@ -24,5 +25,8 @@ namespace Application.DTOs.Deck.EditDeck
 
         [Required]
         public string Status { get; set; } = string.Empty;
+
+        [JsonIgnore]
+        public bool IsAdmin { get; set; }
     }
 }

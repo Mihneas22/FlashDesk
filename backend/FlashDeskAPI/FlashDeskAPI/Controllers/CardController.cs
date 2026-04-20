@@ -3,14 +3,16 @@ using Application.DTOs.Card.DeleteCard;
 using Application.DTOs.Card.EditCard;
 using Application.DTOs.Card.GetCardsForDeck;
 using Application.Repository;
+using Domain.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace FlashDeskAPI.Controllers
 {
     [Route("api/[controller]")]
-    [Authorize(Roles = "user")]
+    [Authorize(Roles = "user,admin")]
     [ApiController]
     public class CardController : ControllerBase
     {
@@ -29,6 +31,7 @@ namespace FlashDeskAPI.Controllers
         }
 
         [HttpGet("getDeckCards/{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<GetCardsByDeckResponse>> GetCardsByDeckAsync(string id)
         {
             var result = await cardRepository.GetCardsByDeckRepository(new GetCardsByDeckDTO { DeckId = Guid.Parse(id) });
@@ -38,6 +41,12 @@ namespace FlashDeskAPI.Controllers
         [HttpDelete("deleteCard")]
         public async Task<ActionResult<DeleteCardResponse>> DeleteCardAsync(DeleteCardDTO deleteCardDTO)
         {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdString)) return Unauthorized();
+
+            deleteCardDTO.UserId = Guid.Parse(userIdString);
+            deleteCardDTO.IsAdmin = User.IsInRole("admin");
+
             var result = await cardRepository.DeleteCardRepository(deleteCardDTO);
             return Ok(result);
         }
@@ -45,6 +54,12 @@ namespace FlashDeskAPI.Controllers
         [HttpPut("editCard")]
         public async Task<ActionResult<EditCardResponse>> EditCardAsync(EditCardDTO editCardDTO)
         {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdString)) return Unauthorized();
+
+            editCardDTO.UserId = Guid.Parse(userIdString);
+            editCardDTO.IsAdmin = User.IsInRole("admin");
+
             var result = await cardRepository.EditCardRepository(editCardDTO);
             return Ok(result);
         }

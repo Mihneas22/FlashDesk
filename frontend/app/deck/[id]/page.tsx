@@ -26,40 +26,26 @@ interface DeckDetails {
   deckUsId: string;
 }
 
-// Funcția care adaugă delimitatorii de matematică (dacă lipsesc)
-/*const processLatex = (text: string) => {
-  if (!text) return "";
-  if (text.includes('$')) return text;
-  
-  const containsMath = 
-    text.includes('\\') || 
-    text.includes('frac') ||
-    text.includes('sin(') || 
-    /[_^]/.test(text);
-  
-  if (containsMath) {
-    return `$$${text}$$`;
-  }
-
-  return text;
-};*/
-
 export default function DeckPage({ params }: PageProps) {
   const { id } = use(params);
   
   const [currentDeck, setCurrentDeck] = useState<DeckDetails | null>(null);
   const [cards, setCards] = useState<Flashcard[] | null>(null);
   const [loading, setLoading] = useState(true);
+  
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userId, setNewUserId] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
+  
   const [addOpen, setAddOpen] = useState(false);
   const [editCard, setEditCard] = useState<any | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
-  const [userId, setNewUserId] = useState("");
 
   const fetchDeckData = useCallback(async () => {
     const token = localStorage.getItem("token");
     try {
       setLoading(true);
+      // Dacă ai actualizat și DeckController la "api/decks", schimbă URL-ul de mai jos
       const response = await fetch(`http://localhost:5000/api/deck/getDeckById/${id}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -107,21 +93,26 @@ export default function DeckPage({ params }: PageProps) {
       try {
         const decoded: any = jwtDecode(token);
         const extractedId = decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] || decoded.sub || decoded.nameid;
+        
+        const roleClaim = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || decoded.role;
+        const userRoles = Array.isArray(roleClaim) ? roleClaim : [roleClaim];
 
         if (extractedId) {
           setIsLoggedIn(true);
           setNewUserId(extractedId);
-        }else {
+          setIsAdmin(userRoles.includes("admin"));
+        } else {
           setLoading(false);
         }
-
       } catch (error) {
         console.error("Token invalid:", error);
         setIsLoggedIn(false);
+        setIsAdmin(false);
         setLoading(false);
       }
     } else {
       setIsLoggedIn(false);
+      setIsAdmin(false);
       setLoading(false);
     }
     fetchDeckData();
@@ -150,7 +141,7 @@ export default function DeckPage({ params }: PageProps) {
     const token = localStorage.getItem("token");
     
     try {
-      const response = await fetch(`http://localhost:5000/api/card/deleteCard`, {
+      const response = await fetch(`http://localhost:5000/api/card/deleteCard"`, {
         method: 'DELETE',
         headers: { 
           'Content-Type': 'application/json',
@@ -159,7 +150,6 @@ export default function DeckPage({ params }: PageProps) {
         body: JSON.stringify({ 
           CardId: deleteTarget, 
           DeckId: id,
-          UserId: userId
         })
       });
       
@@ -188,7 +178,6 @@ export default function DeckPage({ params }: PageProps) {
         body: JSON.stringify({ 
           CardId: editCard.id, 
           DeckId: id, 
-          UserId: userId,
           Question: front, 
           Answer: back, 
           Tips: tips 
@@ -206,7 +195,7 @@ export default function DeckPage({ params }: PageProps) {
     }
   }
 
-  const showEditsModal = userId === currentDeck?.deckUsId;
+  const showEditsModal = (userId === currentDeck?.deckUsId) || isAdmin;
 
   if (loading) {
     return (
@@ -244,7 +233,6 @@ export default function DeckPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-[#0a0a0a]">
-      {/* Animated gradient background - Dark Mode */}
       <div className="fixed inset-0 -z-10 opacity-20">
         <div className="absolute top-0 -left-4 w-96 h-96 bg-violet-600 rounded-full mix-blend-screen filter blur-[100px] animate-blob" />
         <div className="absolute top-0 -right-4 w-96 h-96 bg-fuchsia-600 rounded-full mix-blend-screen filter blur-[100px] animate-blob animation-delay-2000" />
@@ -263,7 +251,6 @@ export default function DeckPage({ params }: PageProps) {
             Back to Decks
           </Link>
 
-          {/* Header Section */}
           <div className="mb-10 bg-[#121317] rounded-3xl p-6 sm:p-8 border border-white/10 shadow-2xl flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div className="flex items-center gap-5">
               <div className={cn("flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl shadow-lg", 
@@ -289,7 +276,7 @@ export default function DeckPage({ params }: PageProps) {
                 Study Now
               </Link>
               
-              {isLoggedIn && (
+              {isLoggedIn && showEditsModal && (
                 <button 
                   onClick={() => setAddOpen(true)} 
                   className="flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-6 py-3.5 text-sm font-bold text-gray-300 hover:bg-white/10 hover:text-white transition-all active:scale-95 group"
@@ -317,7 +304,6 @@ export default function DeckPage({ params }: PageProps) {
             </div>
           </div>
 
-          {/* Cards List */}
           {cards == null || cards.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-white/10 bg-[#121317] py-24 text-center px-6 animate-fade-in-up">
               <div className="w-20 h-20 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center mb-4">
@@ -329,7 +315,7 @@ export default function DeckPage({ params }: PageProps) {
                   ? "Build your knowledge base by adding your first flashcard." 
                   : "Sign in to contribute and add cards to this deck."}
               </p>
-              {isLoggedIn && (
+              {isLoggedIn && showEditsModal && (
                 <button 
                   onClick={() => setAddOpen(true)} 
                   className="mt-6 flex items-center gap-2 rounded-xl bg-white/5 px-6 py-3 text-sm font-bold text-white border border-white/10 shadow-sm hover:bg-white/10 transition-all"
@@ -357,7 +343,6 @@ export default function DeckPage({ params }: PageProps) {
                           remarkPlugins={[remarkMath]} 
                           rehypePlugins={[rehypeKatex]}
                         >
-                          {/* AICI FOLOSIM FUNCȚIA processLatex */}
                           {card.front}
                         </ReactMarkdown>
                       </div>

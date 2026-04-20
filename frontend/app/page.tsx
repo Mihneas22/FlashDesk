@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Search, Loader2, Sparkles, BookOpen, Trophy, Zap ,FileText, CheckCircle} from "lucide-react";
+import { Plus, Search, Loader2, Sparkles, BookOpen, Trophy, Zap, FileText, CheckCircle } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { DeckCard } from "@/components/deck-card";
 import { useStore } from "@/lib/store";
@@ -50,7 +50,7 @@ export default function DashboardPage() {
   const fetchDecks = useCallback(async (uId: string) => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5000/api/deck/getDecksByUser/${uId}`, {
+      const response = await fetch(`http://localhost:5000/api/deck/getDecksByUser`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem("token")}`,
           'Content-Type': 'application/json'
@@ -89,7 +89,7 @@ export default function DashboardPage() {
           setIsLoggedIn(true);
           setNewUserId(extractedId);
           fetchDecks(extractedId);
-        }else {
+        } else {
           setLoading(false);
         }
       } catch (error) {
@@ -131,23 +131,43 @@ export default function DashboardPage() {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${localStorage.getItem("token")}`,
-          // ATENȚIE: Nu seta "Content-Type" aici. Browser-ul îl va seta automat la "multipart/form-data" cu tot cu "boundary".
         },
         body: formData,
       });
 
       if (response.ok) {
-        const data = await response.json();
-        // Presupunem că backend-ul returnează un JSON string sau array
-        const parsedCards = typeof data === 'string' ? JSON.parse(data) : data;
+        const rawText = await response.text();
         
-        setGeneratedCards(parsedCards);
+        let cleanText = rawText;
+        const firstIndex = cleanText.indexOf('[');
+        const lastIndex = cleanText.lastIndexOf(']');
+        
+        if (firstIndex !== -1 && lastIndex !== -1) {
+          cleanText = cleanText.substring(firstIndex, lastIndex + 1);
+        }
+
+        let data;
+        try {
+          data = JSON.parse(cleanText);
+        } catch (err) {
+          console.error("Error parsing JSON. The extracted text was:", cleanText);
+          alert("Error: The API generated an incomplete or invalid response. Please try again.");
+          setIsGeneratingCards(false);
+          return;
+        }
+        
+        const parsedCards = typeof data === 'string' ? JSON.parse(data) : data;
+        const cardsArray = Array.isArray(parsedCards) ? parsedCards : (parsedCards.cards || []);
+
+        console.log("Cards processed:", cardsArray);
+        
+        setGeneratedCards(cardsArray);
         setGenerationSuccess(true);
       } else {
-        console.error("Eroare la generarea cardurilor:", await response.text());
+        console.error("Error generating cards:", await response.text());
       }
     } catch (error) {
-      console.error("Eroare de rețea la generare:", error);
+      console.error("Network error during generation:", error);
     } finally {
       setIsGeneratingCards(false);
     }
@@ -157,12 +177,15 @@ export default function DashboardPage() {
     if (!newTitle.trim() || !userId || !newTopic) return;
 
     const deckDto = {
-      userId: userId,
       title: newTitle.trim(),
       description: newDesc.trim() || "No description",
       topic: newTopic.trim(),
       status: newStatus.trim(),
-      cards: generatedCards
+      cards: (generatedCards || []).map(card => ({
+          question: card.question || "", 
+          answer: card.answer || "",
+          tips: card.tips || []
+      }))
     };
 
     try {
@@ -195,7 +218,6 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-gray-950 text-gray-100">
-      {/* Animated gradient background - Dark mode optimized */}
       <div className="fixed inset-0 -z-10 bg-gradient-to-br from-gray-950 via-purple-950/20 to-gray-900" />
       <div className="fixed inset-0 -z-10 opacity-20">
         <div className="absolute top-0 -left-4 w-96 h-96 bg-purple-600 rounded-full mix-blend-screen filter blur-3xl animate-blob" />
@@ -390,7 +412,7 @@ export default function DashboardPage() {
                 </div>
                 {isGeneratingCards && (
                   <p className="text-xs text-purple-400 animate-pulse text-center">
-                    Gemini is reading your PDF and extracting the best flashcards...
+                    The AI is reading your PDF and extracting the best flashcards...
                   </p>
                 )}
               </div>
@@ -470,7 +492,7 @@ export default function DashboardPage() {
               </button>
               <button
                 onClick={handleCreate}
-                disabled={!newTitle.trim() || !newTopic || !newStatus}
+                disabled={!newTitle.trim() || !newTopic || !newStatus || isGeneratingCards}
                 className="px-8 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white font-bold shadow-lg shadow-purple-900/40 hover:shadow-xl hover:shadow-purple-700/50 hover:scale-105 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none"
               >
                 Create Deck

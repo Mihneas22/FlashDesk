@@ -50,7 +50,7 @@ namespace Infastructure.Repository
                 issuer: configuration["Jwt:Issuer"],
                 audience: configuration["Jwt:Audience"],
                 claims: userClaims,
-                expires: DateTime.Now.AddDays(30),
+                expires: DateTime.UtcNow.AddDays(30),
                 signingCredentials: credentials
             );
 
@@ -82,13 +82,8 @@ namespace Infastructure.Repository
             if (registerUserDTO == null)
                 return new RegisterUserResponse(false, "Invalid data.");
 
-            if (registerUserDTO.Password != registerUserDTO.ConfirmPassword)
-                return new RegisterUserResponse(false, "Passwords do not match.");
-
-            var user = await dbContext.UserEntity!.FirstOrDefaultAsync(u => u.Email == registerUserDTO.Email || u.Username == registerUserDTO.Username);
-            
-            if (user != null)
-                return new RegisterUserResponse(false, "User with email or username already exists.");
+            bool userExists = await dbContext.UserEntity!
+                .AnyAsync(u => u.Email == registerUserDTO.Email || u.Username == registerUserDTO.Username);
 
             dbContext.UserEntity!.Add(new User
             {
@@ -111,7 +106,19 @@ namespace Infastructure.Repository
             if (getUserDataDTO == null)
                 return new GetUserDataResponse(false, "Invalid DTO");
 
-            var user = await dbContext.UserEntity.FirstOrDefaultAsync(us => us.Email == getUserDataDTO.Email);
+            var user = await dbContext.UserEntity
+                .AsNoTracking()
+                .Where(us => us.Email == getUserDataDTO.Email)
+                .Select(us => new
+                {
+                    us.UserId,
+                    us.Username,
+                    us.Email,
+                    us.Elo,
+                    us.Roles,
+                    us.CreatedAt
+                })
+                .FirstOrDefaultAsync();
 
             if (user == null)
                 return new GetUserDataResponse(false, "No user found");

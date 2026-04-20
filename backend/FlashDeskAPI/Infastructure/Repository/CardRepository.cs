@@ -61,18 +61,20 @@ namespace Infastructure.Repository
             if (deleteCardDTO == null)
                 return new DeleteCardResponse(false, "Invalid DTO");
 
-            var user = await dbContext.UserEntity.FirstOrDefaultAsync(us => us.UserId == deleteCardDTO.UserId);
-            if (user == null)
-                return new DeleteCardResponse(false, "User not found");
-
-            var deck = await dbContext.DeckEntity.FirstOrDefaultAsync(dc => dc.DeckId == deleteCardDTO.DeckId && dc.DeckUserId == user.UserId);
-            if (deck == null)
-                return new DeleteCardResponse(false, "Deck not found");
-
-            var card = await dbContext.CardEntity.FirstOrDefaultAsync(cd => cd.CardId == deleteCardDTO.CardId);
+            var card = await dbContext.CardEntity
+                .FirstOrDefaultAsync(cd => cd.CardId == deleteCardDTO.CardId && cd.DeckId == deleteCardDTO.DeckId);
 
             if (card == null)
-                return new DeleteCardResponse(false, "Cannot delelte card.");
+                return new DeleteCardResponse(false, "Cardul nu a fost găsit în acest pachet.");
+
+            if (!deleteCardDTO.IsAdmin)
+            {
+                var isDeckOwner = await dbContext.DeckEntity
+                    .AnyAsync(dc => dc.DeckId == deleteCardDTO.DeckId && dc.DeckUserId == deleteCardDTO.UserId);
+
+                if (!isDeckOwner)
+                    return new DeleteCardResponse(false, "Nu ai permisiunea să ștergi carduri din acest pachet.");
+            }
 
             dbContext.CardEntity.Remove(card);
             await dbContext.SaveChangesAsync();
@@ -85,23 +87,25 @@ namespace Infastructure.Repository
             if (editCardDTO == null)
                 return new EditCardResponse(false, "Invalid DTO");
 
-            var user = await dbContext.UserEntity.FirstOrDefaultAsync(us => us.UserId == editCardDTO.UserId);
-            if (user == null)
-                return new EditCardResponse(false, "User not found");
+            var card = await dbContext.CardEntity
+                .FirstOrDefaultAsync(cd => cd.CardId == editCardDTO.CardId && cd.DeckId == editCardDTO.DeckId);
 
-            var deck = await dbContext.DeckEntity.FirstOrDefaultAsync(dc => dc.DeckId == editCardDTO.DeckId && dc.DeckUserId == user.UserId);
-            if (deck == null)
-                return new EditCardResponse(false, "Deck not found");
-
-            var card = await dbContext.CardEntity.FirstOrDefaultAsync(cd => cd.CardId == editCardDTO.CardId);
             if (card == null)
-                return new EditCardResponse(false, "Card not found");
+                return new EditCardResponse(false, "Cardul nu a fost găsit în acest pachet.");
+
+            if (!editCardDTO.IsAdmin)
+            {
+                var isDeckOwner = await dbContext.DeckEntity
+                    .AnyAsync(dc => dc.DeckId == editCardDTO.DeckId && dc.DeckUserId == editCardDTO.UserId);
+
+                if (!isDeckOwner)
+                    return new EditCardResponse(false, "Nu ai permisiunea să modifici carduri din acest pachet.");
+            }
 
             card.Question = editCardDTO.Question;
             card.Answer = editCardDTO.Answer;
             card.Tips = editCardDTO.Tips;
 
-            dbContext.CardEntity.Update(card);
             await dbContext.SaveChangesAsync();
 
             return new EditCardResponse(true, "Card has been updated");
@@ -113,6 +117,7 @@ namespace Infastructure.Repository
                 return new GetCardsByDeckResponse(false, "Invalid DTO");
 
             var deck = await dbContext.DeckEntity
+                .AsNoTracking()
                 .Include(dc => dc.DeckCards)
                 .FirstOrDefaultAsync(dc => dc.DeckId == getCardsByDeckDTO.DeckId);
 

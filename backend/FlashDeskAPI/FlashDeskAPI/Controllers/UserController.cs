@@ -20,6 +20,7 @@ namespace FlashDeskAPI.Controllers
         }
 
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<ActionResult<LoginUserResponse>> LoginUserAsync(LoginUserDTO loginUserDTO)
         {
             var result = await userRepo.LoginUserRepository(loginUserDTO);
@@ -27,6 +28,7 @@ namespace FlashDeskAPI.Controllers
         }
 
         [HttpPost("register")]
+        [AllowAnonymous]
         public async Task<ActionResult<RegisterUserResponse>> RegisterUserAsync(RegisterUserDTO registerUserDTO)
         {
             var result = await userRepo.RegisterUserRepository(registerUserDTO);

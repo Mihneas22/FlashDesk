@@ -88,7 +88,6 @@ export function DeckCard({ usId, deck, onDeckDeleted, onDeckUpdated }: DeckCardP
     
     const deletePayload = {
       deckId: deck.id,
-      userId: usId 
     };
 
     try {
@@ -122,7 +121,6 @@ export function DeckCard({ usId, deck, onDeckDeleted, onDeckUpdated }: DeckCardP
     const formData = new FormData(e.currentTarget);
     const editPayload = {
       deckId: deck.id,
-      userId: usId,
       title: formData.get("title") as string,
       description: formData.get("description") as string,
       topic: formData.get("topic") as string,
