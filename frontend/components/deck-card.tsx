@@ -85,19 +85,14 @@ export function DeckCard({ usId, deck, onDeckDeleted, onDeckUpdated }: DeckCardP
 
   const handleDelete = async () => {
     setIsLoading(true);
-    
-    const deletePayload = {
-      deckId: deck.id,
-    };
 
     try {
-      const response = await fetch(`http://localhost:5000/api/deck/deleteDeck`, {
+      const response = await fetch(`http://localhost:5000/api/deck/deleteDeck${deck.id}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(deletePayload),
       });
 
       if (response.ok) {

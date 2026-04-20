@@ -7,6 +7,7 @@ using Application.DTOs.Deck.GetDeckByName;
 using Application.DTOs.Deck.GetDecks;
 using Application.DTOs.Deck.GetPublicDecks;
 using Application.Repository;
+using Domain.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -62,14 +63,18 @@ namespace FlashDeskAPI.Controllers
             return Ok(result);
         }
 
-        [HttpDelete("deleteDeck")]
-        public async Task<ActionResult<DeleteDeckResponse>> DeleteDeckAsync(DeleteDeckDTO deleteDeckDTO)
+        [HttpDelete("deleteDeck/{deckId}")]
+        public async Task<ActionResult<DeleteDeckResponse>> DeleteDeckAsync(string deckId)
         {
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdString)) return Unauthorized();
 
-            deleteDeckDTO.UserId = Guid.Parse(userIdString);
-            deleteDeckDTO.IsAdmin = User.IsInRole("admin");
+            var deleteDeckDTO = new DeleteDeckDTO
+            {
+                DeckId = Guid.Parse(deckId),
+                UserId = Guid.Parse(userIdString),
+                IsAdmin = User.IsInRole("admin")
+            };
 
             var result = await deckRepo.DeleteDeckRepository(deleteDeckDTO);
             return Ok(result);
@@ -108,14 +113,14 @@ namespace FlashDeskAPI.Controllers
         public async Task<ActionResult<string>> GenerateFlashcardsWithPdfAsync(IFormFile pdfFile)
         {
             if (pdfFile == null || pdfFile.Length == 0)
-                return BadRequest("Te rugăm să încarci un fișier PDF valid.");
+                return BadRequest("Please upload a valid PDF file.");
 
             if (pdfFile.ContentType != "application/pdf")
-                return BadRequest("Doar fișierele PDF sunt acceptate.");
+                return BadRequest("Only PDF files are accepted.");
 
-            const long maxFileSize = 10 * 1024 * 1024; // 10 MB
+            const long maxFileSize = 10 * 1024 * 1024;
             if (pdfFile.Length > maxFileSize)
-                return BadRequest("Fișierul este prea mare. Dimensiunea maximă permisă este de 10MB.");
+                return BadRequest("The file is too large. The maximum allowed size is 10MB.");
 
             using var stream = new MemoryStream();
             await pdfFile.CopyToAsync(stream);

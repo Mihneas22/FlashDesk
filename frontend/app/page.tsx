@@ -47,7 +47,7 @@ export default function DashboardPage() {
   const [generatedCards, setGeneratedCards] = useState<any[]>([]);
   const [generationSuccess, setGenerationSuccess] = useState(false);
 
-  const fetchDecks = useCallback(async (uId: string) => {
+  const fetchDecks = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(`http://localhost:5000/api/deck/getDecksByUser`, {
@@ -88,7 +88,7 @@ export default function DashboardPage() {
         if (extractedId) {
           setIsLoggedIn(true);
           setNewUserId(extractedId);
-          fetchDecks(extractedId);
+          fetchDecks();
         } else {
           setLoading(false);
         }
@@ -201,7 +201,7 @@ export default function DashboardPage() {
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
-          fetchDecks(userId);
+          fetchDecks();
           setNewTitle("");
           setNewDesc("");
           setNewTopic("");

@@ -121,10 +121,23 @@ namespace Infastructure.Repository
                 .Include(dc => dc.DeckCards)
                 .FirstOrDefaultAsync(dc => dc.DeckId == getCardsByDeckDTO.DeckId);
 
-            if (deck == null || deck.DeckCards == null)
-                return new GetCardsByDeckResponse(false, "Deck not found or empty.");
-            else
-                return new GetCardsByDeckResponse(true, "Deck found!", deck.DeckCards.ToList());
+            if (deck == null)
+                return new GetCardsByDeckResponse(false, "Deck not found.");
+
+            bool hasAccess = deck.Status == true ||
+                             (getCardsByDeckDTO.UserId.HasValue && deck.DeckUserId == getCardsByDeckDTO.UserId) ||
+                             getCardsByDeckDTO.IsAdmin;
+
+            if (!hasAccess)
+                return new GetCardsByDeckResponse(false, "You do not have permission to study this private deck.");
+            if (deck.DeckCards == null || !deck.DeckCards.Any())
+                return new GetCardsByDeckResponse(false, "This deck is empty.");
+
+            return new GetCardsByDeckResponse(
+                true,
+                "Deck found!",
+                deck.DeckCards.ToList()
+            );
         }
     }
 }

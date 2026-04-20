@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace Application.DTOs.Card.GetCardsForDeck
 {
@@ -9,5 +10,11 @@ namespace Application.DTOs.Card.GetCardsForDeck
     {
         [Required]
         public Guid DeckId { get; set; } = Guid.Empty;
+
+        [JsonIgnore]
+        public Guid? UserId { get; set; } = Guid.Empty;
+
+        [JsonIgnore]
+        public bool IsAdmin { get; set; }
     }
 }

@@ -34,7 +34,17 @@ namespace FlashDeskAPI.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<GetCardsByDeckResponse>> GetCardsByDeckAsync(string id)
         {
-            var result = await cardRepository.GetCardsByDeckRepository(new GetCardsByDeckDTO { DeckId = Guid.Parse(id) });
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            Guid? currentUserId = string.IsNullOrEmpty(userIdString) ? null : Guid.Parse(userIdString);
+            bool isAdmin = currentUserId.HasValue && User.IsInRole("admin");
+
+            var dto = new GetCardsByDeckDTO
+            {
+                DeckId = Guid.Parse(id),
+                UserId = currentUserId,
+                IsAdmin = isAdmin
+            };
+            var result = await cardRepository.GetCardsByDeckRepository(dto);
             return Ok(result);
         }
 
