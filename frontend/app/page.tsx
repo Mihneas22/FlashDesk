@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Search, Loader2, Sparkles, BookOpen, Trophy, Zap, FileText, CheckCircle } from "lucide-react";
+import { Plus, Search, Loader2, Sparkles, BookOpen, Trophy, Zap, FileText, CheckCircle, AlertCircle, X } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { DeckCard } from "@/components/deck-card";
 import { useStore } from "@/lib/store";
@@ -47,6 +47,13 @@ export default function DashboardPage() {
   const [generatedCards, setGeneratedCards] = useState<any[]>([]);
   const [generationSuccess, setGenerationSuccess] = useState(false);
 
+  const [toast, setToast] = useState({ show: false, message: "", type: "error" });
+
+  const showToast = useCallback((message: string, type: "error" | "success" = "error") => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast(prev => ({ ...prev, show: false })), 5000);
+  }, []);
+
   const fetchDecks = useCallback(async () => {
     try {
       setLoading(true);
@@ -58,25 +65,36 @@ export default function DashboardPage() {
       });
 
       if (response.ok) {
-        const data = await response.json();
-        if (data.flag) {
-          const rawDecks = data.decks || [];
-          const mappedDecks = rawDecks.map((d: any) => ({
-            ...d,
-            id: d.id || d.deckId,
-            cards: d.deckCards || []
-          }));
-          
-          console.log(mappedDecks);
-          setDecks(mappedDecks); 
+        const text = await response.text();
+        if (text) {
+          try {
+            const data = JSON.parse(text);
+            // If the API returns success, or if flag is not explicitly false
+            if (data.flag !== false && data.success !== false) {
+              const rawDecks = data.decks || (Array.isArray(data) ? data : []);
+              const mappedDecks = rawDecks.map((d: any) => ({
+                ...d,
+                id: d.id || d.deckId,
+                cards: d.deckCards || []
+              }));
+              setDecks(mappedDecks); 
+            } else {
+              showToast(data.message || "Failed to fetch decks.", "error");
+            }
+          } catch (e) {
+             console.error("Failed to parse fetch decks response");
+          }
         }
+      } else {
+        showToast("Server encountered an error while fetching decks.", "error");
       }
     } catch (error) {
       console.error("Failed to fetch decks:", error);
+      showToast("Network error. Please check your connection.", "error");
     } finally {
       setLoading(false);
     }
-  }, [setDecks]);
+  }, [setDecks, showToast]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -151,23 +169,24 @@ export default function DashboardPage() {
           data = JSON.parse(cleanText);
         } catch (err) {
           console.error("Error parsing JSON. The extracted text was:", cleanText);
-          alert("Error: The API generated an incomplete or invalid response. Please try again.");
+          showToast("The API generated an incomplete or invalid response. Please try again.", "error");
           setIsGeneratingCards(false);
           return;
         }
         
         const parsedCards = typeof data === 'string' ? JSON.parse(data) : data;
         const cardsArray = Array.isArray(parsedCards) ? parsedCards : (parsedCards.cards || []);
-
-        console.log("Cards processed:", cardsArray);
         
         setGeneratedCards(cardsArray);
         setGenerationSuccess(true);
+        showToast("Flashcards generated successfully!", "success");
       } else {
         console.error("Error generating cards:", await response.text());
+        showToast("Failed to generate cards from the PDF.", "error");
       }
     } catch (error) {
       console.error("Network error during generation:", error);
+      showToast("Network error. Please check your connection and try again.", "error");
     } finally {
       setIsGeneratingCards(false);
     }
@@ -199,18 +218,41 @@ export default function DashboardPage() {
       });
 
       if (response.ok) {
-        const result = await response.json();
-        if (result.success) {
+        // Read response safely as text to avoid crash on empty or non-JSON returns
+        const text = await response.text();
+        let isSuccess = true;
+        let errorMessage = "Could not create the deck.";
+
+        if (text) {
+          try {
+            const result = JSON.parse(text);
+            // Check if server explicitly returned a false success or flag status
+            if (result.success === false || result.flag === false) {
+              isSuccess = false;
+              errorMessage = result.message || errorMessage;
+            }
+          } catch (e) {
+            // Text is not JSON, but the response was ok (200), so we consider it a success
+          }
+        }
+
+        if (isSuccess) {
           fetchDecks();
           setNewTitle("");
           setNewDesc("");
           setNewTopic("");
           setShowCreateModal(false);
           setGeneratedCards([]);
+          showToast("Deck created successfully!", "success");
+        } else {
+          showToast(errorMessage, "error");
         }
+      } else {
+        showToast("Server encountered an error while creating the deck.", "error");
       }
     } catch (error) {
       console.error("Network error:", error);
+      showToast("Network error. Please check your connection.", "error");
     }
   }
 
@@ -499,6 +541,30 @@ export default function DashboardPage() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Global Toast Notification */}
+      {toast.show && (
+        <div className={`fixed bottom-6 right-6 z-[100] px-6 py-4 rounded-2xl shadow-2xl border backdrop-blur-md flex items-center gap-3 animate-slide-up transition-all ${
+          toast.type === "error" 
+            ? "bg-red-950/90 border-red-500/50 text-red-200" 
+            : "bg-green-950/90 border-green-500/50 text-green-200"
+        }`}>
+          {toast.type === "error" ? (
+            <AlertCircle className="w-5 h-5 text-red-400" />
+          ) : (
+            <CheckCircle className="w-5 h-5 text-green-400" />
+          )}
+          <p className="font-semibold text-sm mr-2">{toast.message}</p>
+          <button 
+            onClick={() => setToast(prev => ({ ...prev, show: false }))} 
+            className={`p-1 rounded-lg transition-colors ${
+              toast.type === "error" ? "hover:bg-red-900/50" : "hover:bg-green-900/50"
+            }`}
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
 

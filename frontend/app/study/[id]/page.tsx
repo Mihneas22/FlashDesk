@@ -2,7 +2,7 @@
 
 import { use, useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { ArrowLeft, RotateCcw, Check, Loader2, ArrowRight, Trophy, Brain, Sparkles } from "lucide-react";
+import { ArrowLeft, RotateCcw, Check, Loader2, ArrowRight, Trophy, Brain, Sparkles, AlertCircle, CheckCircle, X } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { FlashcardView } from "@/components/flashcard-view";
 import { useStore } from "@/lib/store";
@@ -29,6 +29,14 @@ export default function StudyPage({ params }: PageProps) {
   
   const [currentIndex, setCurrentIndex] = useState(0);
   const [sessionDone, setSessionDone] = useState(false);
+
+  // Toast Notification State
+  const [toast, setToast] = useState({ show: false, message: "", type: "error" });
+
+  const showToast = useCallback((message: string, type: "error" | "success" = "error") => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast(prev => ({ ...prev, show: false })), 5000);
+  }, []);
 
   const fetchDeckData = useCallback(async () => {
     const token = localStorage.getItem("token");
@@ -59,14 +67,20 @@ export default function StudyPage({ params }: PageProps) {
             title: data.title || "Study Session",
             description: data.description || "",
           });
+        } else {
+          showToast(data.message || "Failed to load deck data.", "error");
         }
+      } else {
+        console.error("Eroare de la server:", response.statusText);
+        showToast("Failed to fetch deck from the server.", "error");
       }
     } catch (error) {
       console.error("Failed to fetch deck:", error);
+      showToast("Network error. Could not connect to the server.", "error");
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [id, showToast]);
 
   useEffect(() => {
     fetchDeckData();
@@ -104,6 +118,30 @@ export default function StudyPage({ params }: PageProps) {
             Back to Decks
           </Link>
         </div>
+        
+        {/* Global Toast Notification */}
+        {toast.show && (
+          <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-4 rounded-2xl shadow-2xl border backdrop-blur-md flex items-center gap-3 animate-fade-in-up transition-all ${
+            toast.type === "error" 
+              ? "bg-red-950/90 border-red-500/50 text-red-200" 
+              : "bg-green-950/90 border-green-500/50 text-green-200"
+          }`}>
+            {toast.type === "error" ? (
+              <AlertCircle className="w-5 h-5 text-red-400" />
+            ) : (
+              <CheckCircle className="w-5 h-5 text-green-400" />
+            )}
+            <p className="font-semibold text-sm mr-2">{toast.message}</p>
+            <button 
+              onClick={() => setToast(prev => ({ ...prev, show: false }))} 
+              className={`p-1 rounded-lg transition-colors ${
+                toast.type === "error" ? "hover:bg-red-900/50" : "hover:bg-green-900/50"
+              }`}
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
       </div>
     );
   }
@@ -192,7 +230,7 @@ export default function StudyPage({ params }: PageProps) {
   return (
     <div className="min-h-screen relative overflow-hidden bg-[#0a0a0a]">
       {/* Animated gradient background - Dark Mode Version */}
-      <div className="fixed inset-0 -z-10 opacity-20">
+      <div className="fixed inset-0 -z-10 opacity-20 pointer-events-none">
         <div className="absolute top-0 -left-4 w-96 h-96 bg-violet-600 rounded-full mix-blend-screen filter blur-[100px] animate-blob" />
         <div className="absolute top-0 -right-4 w-96 h-96 bg-fuchsia-600 rounded-full mix-blend-screen filter blur-[100px] animate-blob animation-delay-2000" />
         <div className="absolute -bottom-8 left-20 w-96 h-96 bg-cyan-600 rounded-full mix-blend-screen filter blur-[100px] animate-blob animation-delay-4000" />
@@ -254,6 +292,30 @@ export default function StudyPage({ params }: PageProps) {
           </button>
         </div>
       </main>
+
+      {/* Global Toast Notification */}
+      {toast.show && (
+        <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-4 rounded-2xl shadow-2xl border backdrop-blur-md flex items-center gap-3 animate-fade-in-up transition-all ${
+          toast.type === "error" 
+            ? "bg-red-950/90 border-red-500/50 text-red-200" 
+            : "bg-green-950/90 border-green-500/50 text-green-200"
+        }`}>
+          {toast.type === "error" ? (
+            <AlertCircle className="w-5 h-5 text-red-400" />
+          ) : (
+            <CheckCircle className="w-5 h-5 text-green-400" />
+          )}
+          <p className="font-semibold text-sm mr-2">{toast.message}</p>
+          <button 
+            onClick={() => setToast(prev => ({ ...prev, show: false }))} 
+            className={`p-1 rounded-lg transition-colors ${
+              toast.type === "error" ? "hover:bg-red-900/50" : "hover:bg-green-900/50"
+            }`}
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       <style jsx>{`
         @keyframes blob {

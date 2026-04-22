@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, Layers, LogIn, LogOut } from "lucide-react";
+// Am adăugat iconița 'User' pentru un aspect mai plăcut
+import { BookOpen, Layers, LogIn, LogOut, User } from "lucide-react"; 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
@@ -13,6 +14,8 @@ export function Navbar({ isLoggedIn }: { isLoggedIn?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
   const [isAuthorized, setIsAuthorized] = useState(false);
+  // 1. Am adăugat state-ul pentru username
+  const [username, setUsername] = useState<string | null>(null); 
 
   useEffect(() => {
       const checkAuthorization = () => {
@@ -23,18 +26,24 @@ export function Navbar({ isLoggedIn }: { isLoggedIn?: boolean }) {
             const decoded: any = jwtDecode(token);
             const roleClaim = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || decoded.role || decoded.Role;
             
-            const userId = decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] || decoded.nameid || decoded.sub;
+            // 2. Extragem username-ul și îl salvăm în state
+            const extractedUsername = decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] || decoded.nameid || decoded.sub;
+            if (extractedUsername) {
+              setUsername(extractedUsername);
+            }
+
             const roles = Array.isArray(roleClaim) ? roleClaim : [roleClaim];
             const isAdmin = roles.some(r => r === "admin" || r === "Admin");
   
             setIsAuthorized(isAdmin);
           } catch (error) {
             console.error("Invalid token:", error);
-
             setIsAuthorized(false);
+            setUsername(null);
           }
         } else {
           setIsAuthorized(false);
+          setUsername(null);
         }
       };
   
@@ -43,6 +52,7 @@ export function Navbar({ isLoggedIn }: { isLoggedIn?: boolean }) {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    setUsername(null); // Curățăm username-ul la logout
     router.push("/login");
     router.refresh();
   };
@@ -90,14 +100,28 @@ export function Navbar({ isLoggedIn }: { isLoggedIn?: boolean }) {
 
           {/* Authentication Logic */}
           {isLoggedIn ? (
-            <Button 
-              variant="ghost" 
-              className="h-10 px-4 rounded-xl gap-2 font-bold text-red-500 hover:text-red-600 hover:bg-red-50 transition-colors"
-              onClick={handleLogout}
-            >
-              <LogOut className="h-4 w-4" />
-              Log out
-            </Button>
+            // 3. Am grupat username-ul și butonul de logout
+            <div className="flex items-center gap-4">
+              
+              {/* Afișare Username */}
+              {username && (
+                <div className="flex items-center gap-2 text-gray-300 bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
+                  <User className="h-4 w-4 text-purple-400" />
+                  <span className="text-sm font-semibold tracking-wide">
+                    {username}
+                  </span>
+                </div>
+              )}
+
+              <Button 
+                variant="ghost" 
+                className="h-10 px-4 rounded-xl gap-2 font-bold text-red-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+                onClick={handleLogout}
+              >
+                <LogOut className="h-4 w-4" />
+                Log out
+              </Button>
+            </div>
           ) : (
             <Button asChild className="h-10 px-6 rounded-xl gap-2 font-bold bg-gradient-to-r from-violet-600 to-pink-600 text-white shadow-lg shadow-purple-500/25 hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all duration-300 border-0">
               <Link href="/login">

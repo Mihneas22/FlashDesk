@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect, FormEvent } from "react";
+import { useState, useRef, useEffect, FormEvent, useCallback } from "react";
 import { 
   BookOpen, MoreVertical, Eye, Lock, Sparkles, Layers, 
-  Edit2, Trash2, X, AlertCircle, Save, Loader2 
+  Edit2, Trash2, X, AlertCircle, Save, Loader2, CheckCircle 
 } from "lucide-react";
 import Link from "next/link";
 import { Deck } from "@/lib/store";
@@ -38,17 +38,23 @@ const defaultColors = {
 };
 
 export function DeckCard({ usId, deck, onDeckDeleted, onDeckUpdated }: DeckCardProps) {
-  const token = localStorage.getItem("token");
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  const [toast, setToast] = useState({ show: false, message: "", type: "error" });
   const menuRef = useRef<HTMLDivElement>(null);
   
   const colors = deck.topic ? (topicColors[deck.topic] || defaultColors) : defaultColors;
   const cardCount = deck.cards?.length || 0;
+
+  const showToast = useCallback((message: string, type: "error" | "success" = "error") => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast(prev => ({ ...prev, show: false })), 5000);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -82,12 +88,12 @@ export function DeckCard({ usId, deck, onDeckDeleted, onDeckUpdated }: DeckCardP
     setIsDeleteModalOpen(true);
   };
   
-
+  // --- API CALL: DELETE ---
   const handleDelete = async () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`http://localhost:5000/api/deck/deleteDeck${deck.id}`, {
+      const response = await fetch(`http://localhost:5000/api/deck/deleteDeck/${deck.id}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -96,13 +102,39 @@ export function DeckCard({ usId, deck, onDeckDeleted, onDeckUpdated }: DeckCardP
       });
 
       if (response.ok) {
-        setIsDeleteModalOpen(false);
-        if (onDeckDeleted) onDeckDeleted(deck.id);
+        const text = await response.text();
+        let isSuccess = true;
+        let errorMessage = "Could not delete the deck.";
+
+        if (text) {
+          try {
+            const result = JSON.parse(text);
+            if (result.success === false || result.flag === false) {
+              isSuccess = false;
+              errorMessage = result.message || errorMessage;
+            }
+          } catch (e) {
+            // Valid OK response, but empty/non-JSON
+          }
+        }
+
+        if (isSuccess) {
+          setIsDeleteModalOpen(false);
+          // Only trigger onDeckDeleted after a slight delay if you want the success toast to be seen
+          // However, if the parent unmounts this card, the toast will disappear.
+          showToast("Deck deleted successfully!", "success");
+          setTimeout(() => {
+             if (onDeckDeleted) onDeckDeleted(deck.id);
+          }, 300);
+        } else {
+          showToast(errorMessage, "error");
+        }
       } else {
-        console.error("Eroare la ștergere.");
+        showToast("Server encountered an error while deleting.", "error");
       }
     } catch (error) {
       console.error("Network error:", error);
+      showToast("Network error. Please check your connection.", "error");
     } finally {
       setIsLoading(false);
     }
@@ -119,7 +151,7 @@ export function DeckCard({ usId, deck, onDeckDeleted, onDeckUpdated }: DeckCardP
       title: formData.get("title") as string,
       description: formData.get("description") as string,
       topic: formData.get("topic") as string,
-      status: formData.get("status") ? "1" : "0" // 1 public, 0 private (conform C#)
+      status: formData.get("status") ? "1" : "0" // 1 public, 0 private (C# requirement)
     };
 
     try {
@@ -133,13 +165,35 @@ export function DeckCard({ usId, deck, onDeckDeleted, onDeckUpdated }: DeckCardP
       });
 
       if (response.ok) {
-        setIsEditModalOpen(false);
-        if (onDeckUpdated) onDeckUpdated();
+        const text = await response.text();
+        let isSuccess = true;
+        let errorMessage = "Could not update the deck.";
+
+        if (text) {
+          try {
+            const result = JSON.parse(text);
+            if (result.success === false || result.flag === false) {
+              isSuccess = false;
+              errorMessage = result.message || errorMessage;
+            }
+          } catch (e) {
+            // Valid OK response, but empty/non-JSON
+          }
+        }
+
+        if (isSuccess) {
+          setIsEditModalOpen(false);
+          showToast("Deck updated successfully!", "success");
+          if (onDeckUpdated) onDeckUpdated();
+        } else {
+          showToast(errorMessage, "error");
+        }
       } else {
-        console.error("Eroare la editare.");
+        showToast("Server encountered an error while updating.", "error");
       }
     } catch (error) {
       console.error("Network error:", error);
+      showToast("Network error. Please check your connection.", "error");
     } finally {
       setIsLoading(false);
     }
@@ -161,7 +215,7 @@ export function DeckCard({ usId, deck, onDeckDeleted, onDeckUpdated }: DeckCardP
                   </div>
                 </div>
 
-                {/* Meniu Dropdown */}
+                {/* Dropdown Menu */}
                 {usId !== "empty" && (
                   <div className="relative" ref={menuRef}>
                     <button 
@@ -248,7 +302,7 @@ export function DeckCard({ usId, deck, onDeckDeleted, onDeckUpdated }: DeckCardP
         </div>
       </Link>
 
-      {/* 2. MODAL ȘTERGERE (Rămâne în afara Link-ului) */}
+      {/* 2. DELETE MODAL (Kept outside Link) */}
       {isDeleteModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => !isLoading && setIsDeleteModalOpen(false)} />
@@ -283,7 +337,7 @@ export function DeckCard({ usId, deck, onDeckDeleted, onDeckUpdated }: DeckCardP
         </div>
       )}
 
-      {/* 3. MODAL EDITARE (Rămâne în afara Link-ului) */}
+      {/* 3. EDIT MODAL (Kept outside Link) */}
       {isEditModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => !isLoading && setIsEditModalOpen(false)} />
@@ -350,6 +404,30 @@ export function DeckCard({ usId, deck, onDeckDeleted, onDeckUpdated }: DeckCardP
               </div>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* Global Toast Notification */}
+      {toast.show && (
+        <div className={`fixed bottom-6 right-6 z-[100] px-6 py-4 rounded-2xl shadow-2xl border backdrop-blur-md flex items-center gap-3 animate-in slide-in-from-bottom-5 transition-all ${
+          toast.type === "error" 
+            ? "bg-red-950/90 border-red-500/50 text-red-200" 
+            : "bg-green-950/90 border-green-500/50 text-green-200"
+        }`}>
+          {toast.type === "error" ? (
+            <AlertCircle className="w-5 h-5 text-red-400" />
+          ) : (
+            <CheckCircle className="w-5 h-5 text-green-400" />
+          )}
+          <p className="font-semibold text-sm mr-2">{toast.message}</p>
+          <button 
+            onClick={() => setToast(prev => ({ ...prev, show: false }))} 
+            className={`p-1 rounded-lg transition-colors ${
+              toast.type === "error" ? "hover:bg-red-900/50" : "hover:bg-green-900/50"
+            }`}
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
     </>

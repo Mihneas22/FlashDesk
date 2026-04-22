@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Layers, Eye, EyeOff, Check, AlertCircle, Sparkles, Loader2, Github } from "lucide-react";
+import { Layers, Eye, EyeOff, Check, AlertCircle, Sparkles, Loader2, Github, CheckCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,6 +23,14 @@ export default function RegisterPage() {
     confirmPassword: "",
   });
 
+  // Toast Notification State
+  const [toast, setToast] = useState({ show: false, message: "", type: "error" });
+
+  const showToast = useCallback((message: string, type: "error" | "success" = "error") => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast(prev => ({ ...prev, show: false })), 5000);
+  }, []);
+
   const passwordRequirements = [
     { label: "At least 8 characters", met: formData.password.length >= 8 },
     { label: "Contains a number", met: /\d/.test(formData.password) },
@@ -39,7 +47,9 @@ export default function RegisterPage() {
     setError(null);
 
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match.");
+      const errorMsg = "Passwords do not match.";
+      setError(errorMsg);
+      showToast(errorMsg, "error");
       setIsLoading(false);
       return;
     }
@@ -63,12 +73,16 @@ export default function RegisterPage() {
       const data = await response.json();
 
       if (data.flag) {
+        showToast("Account created successfully!", "success");
         router.push("/login");
       } else {
         setError(data.message);
+        showToast(data.message || "Failed to create account.", "error");
       }
     } catch (err) {
-      setError("Connection error. Is the backend running?");
+      const errorMsg = "Connection error. Is the backend running?";
+      setError(errorMsg);
+      showToast(errorMsg, "error");
     } finally {
       setIsLoading(false);
     }
@@ -78,7 +92,7 @@ export default function RegisterPage() {
     <div className="min-h-screen relative overflow-hidden flex flex-col items-center justify-center px-4 sm:px-6 py-12">
       {/* Animated gradient background */}
       <div className="fixed inset-0 -z-10 bg-gradient-to-br from-violet-50 via-pink-50 to-cyan-50" />
-      <div className="fixed inset-0 -z-10 opacity-40">
+      <div className="fixed inset-0 -z-10 opacity-40 pointer-events-none">
         <div className="absolute top-0 -left-4 w-96 h-96 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl animate-blob" />
         <div className="absolute top-0 -right-4 w-96 h-96 bg-pink-400 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000" />
         <div className="absolute -bottom-8 left-20 w-96 h-96 bg-cyan-400 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000" />
@@ -204,13 +218,37 @@ export default function RegisterPage() {
           </form>
         </div>
 
-        <p className="mt-8 text-center text-sm font-medium text-gray-300 bg-white/40 py-3 px-6 rounded-2xl backdrop-blur-sm border border-white/50 shadow-sm mx-auto max-w-[fit-content]">
+        <p className="mt-8 text-center text-sm font-medium text-gray-500 bg-white/40 py-3 px-6 rounded-2xl backdrop-blur-sm border border-white/50 shadow-sm mx-auto max-w-[fit-content]">
           Already have an account?{" "}
           <Link href="/login" className="font-black text-violet-600 hover:text-violet-500 transition-colors">
             Sign in
           </Link>
         </p>
       </div>
+
+      {/* Global Toast Notification */}
+      {toast.show && (
+        <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-4 rounded-2xl shadow-2xl border backdrop-blur-md flex items-center gap-3 animate-fade-in-up transition-all ${
+          toast.type === "error" 
+            ? "bg-red-950/90 border-red-500/50 text-red-200" 
+            : "bg-green-950/90 border-green-500/50 text-green-200"
+        }`}>
+          {toast.type === "error" ? (
+            <AlertCircle className="w-5 h-5 text-red-400" />
+          ) : (
+            <CheckCircle className="w-5 h-5 text-green-400" />
+          )}
+          <p className="font-semibold text-sm mr-2">{toast.message}</p>
+          <button 
+            onClick={() => setToast(prev => ({ ...prev, show: false }))} 
+            className={`p-1 rounded-lg transition-colors ${
+              toast.type === "error" ? "hover:bg-red-900/50" : "hover:bg-green-900/50"
+            }`}
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       <style jsx>{`
         @keyframes blob {

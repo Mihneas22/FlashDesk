@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { 
   Plus, Search, Settings, FileText, Layers, 
-  Edit, Trash2, X, AlertCircle, ShieldAlert, Filter, ListCollapse
+  Edit, Trash2, X, AlertCircle, ShieldAlert, Filter, ListCollapse, CheckCircle
 } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { jwtDecode } from "jwt-decode";
@@ -21,7 +21,6 @@ export default function AdminDashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState<string>("");
 
   const [activeTab, setActiveTab] = useState<"tests" | "decks">("tests");
   const [search, setSearch] = useState("");
@@ -53,6 +52,14 @@ export default function AdminDashboardPage() {
   });
   const [newCardFront, setNewCardFront] = useState("");
   const [newCardBack, setNewCardBack] = useState("");
+
+  // Toast Notification State
+  const [toast, setToast] = useState({ show: false, message: "", type: "error" });
+
+  const showToast = useCallback((message: string, type: "error" | "success" = "error") => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast(prev => ({ ...prev, show: false })), 5000);
+  }, []);
   
   const getAuthHeaders = useCallback(() => {
     const token = localStorage.getItem("token");
@@ -82,12 +89,12 @@ export default function AdminDashboardPage() {
       if (res.ok) {
         setTests(data.tests || data || []); 
       } else {
-        console.error("Error fetching tests:", data.message);
+        showToast(data.message || "Eroare la obținerea testelor.", "error");
       }
     } catch (error) {
-      console.error("Network error fetching tests:", error);
+      showToast("Eroare de rețea la obținerea testelor.", "error");
     }
-  }, [testFilter, getAuthHeaders]);
+  }, [testFilter, getAuthHeaders, showToast]);
 
   const fetchDecksList = useCallback(async () => {
     try {
@@ -106,12 +113,12 @@ export default function AdminDashboardPage() {
         setDecks(query ? (data.deck ? [data.deck] : []) : (data.decks || []));
       } else {
         setDecks([]);
-        if(query) console.warn(`Deck not found: ${data.message}`);
+        if(query) showToast(`Pachetul nu a fost găsit: ${data.message}`, "error");
       }
     } catch (error) {
-      console.error("Network error fetching decks:", error);
+      showToast("Eroare de rețea la obținerea pachetelor.", "error");
     }
-  }, [search, getAuthHeaders]);
+  }, [search, getAuthHeaders, showToast]);
 
   useEffect(() => {
     const checkAuthorization = () => {
@@ -120,9 +127,7 @@ export default function AdminDashboardPage() {
         try {
           const decoded: any = jwtDecode(token);
           const roleClaim = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || decoded.role || decoded.Role;
-          const userId = decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] || decoded.nameid || decoded.sub;
           
-          if (userId) setCurrentUserId(userId);
           setIsLoggedIn(true);
           
           const roles = Array.isArray(roleClaim) ? roleClaim : [roleClaim];
@@ -200,12 +205,12 @@ export default function AdminDashboardPage() {
 
       const data = await response.json();
       if (response.ok && (data.flag === true || data.Flag === true)) {
-        alert("Toate întrebările au fost salvate cu succes!");
+        showToast("Toate întrebările au fost salvate cu succes!", "success");
       } else {
-        alert(`Eroare: ${data.message}`);
+        showToast(`Eroare: ${data.message}`, "error");
       }
     } catch (error) {
-      console.error("Eroare:", error);
+      showToast("Eroare de rețea la salvarea întrebărilor.", "error");
     }
   };
 
@@ -278,7 +283,7 @@ export default function AdminDashboardPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this item?")) return;
+    if (!confirm("Ești sigur că vrei să ștergi acest element?")) return;
 
     try {
       if (activeTab === "decks") {
@@ -292,9 +297,10 @@ export default function AdminDashboardPage() {
         
         if (res.ok && data.flag) {
           setDecks(decks.filter(d => d.id !== id && d.deckId !== id));
-        } else alert(`Deletion error: ${data.message || "Unknown error occurred."}`);
+          showToast("Pachet șters cu succes!", "success");
+        } else showToast(`Eroare la ștergere: ${data.message || "A apărut o eroare."}`, "error");
       } else {
-        const payload = { TestId: id, UserId: currentUserId };
+        const payload = { TestId: id };
         const res = await fetch(`${API_BASE_URL}/test/deleteTest`, { 
           method: 'DELETE',
           headers: getAuthHeaders(),
@@ -303,14 +309,14 @@ export default function AdminDashboardPage() {
         
         if (res.ok) {
           setTests(tests.filter(t => t.testId !== id && t.id !== id));
+          showToast("Test șters cu succes!", "success");
         } else {
           const data = await res.json();
-          alert(`Deletion error: ${data.message || "Unknown error occurred."}`);
+          showToast(`Eroare la ștergere: ${data.message || "A apărut o eroare."}`, "error");
         }
       }
     } catch (error) {
-      console.error("Delete error:", error);
-      alert("A network error has occurred.");
+      showToast("A apărut o eroare de rețea.", "error");
     }
   };
 
@@ -334,17 +340,16 @@ export default function AdminDashboardPage() {
           if (res.ok && data.flag) {
             await fetchTestsList(); 
             setShowModal(false);
-          } else alert(`Error: ${data.message}`);
+            showToast("Test adăugat cu succes!", "success");
+          } else showToast(`Eroare: ${data.message}`, "error");
         } else {
           const payload = { 
             TestId: editingId,
-            UserId: currentUserId,
             Title: formData.title, 
             Description: formData.description, 
             Topic: formData.topic, 
             Status: formData.status,
             Time: Number(formData.time),
-            Questions: formData.questions 
           };
           
           const res = await fetch(`${API_BASE_URL}/test/editTest`, {
@@ -355,12 +360,12 @@ export default function AdminDashboardPage() {
           if (res.ok && data.flag) {
             await fetchTestsList();
             setShowModal(false);
-          } else alert(`Error: ${data.message}`);
+            showToast("Test editat cu succes!", "success");
+          } else showToast(`Eroare: ${data.message}`, "error");
         }
       } else {
         if (!editingId) {
-          const payload = { 
-            UserId: currentUserId, 
+          const payload = {  
             Title: formData.title, 
             Description: formData.description, 
             Topic: formData.topic, 
@@ -375,7 +380,8 @@ export default function AdminDashboardPage() {
           if (res.ok && data.flag) {
             await fetchDecksList();
             setShowModal(false);
-          } else alert(`Error: ${data.message}`);
+            showToast("Pachet adăugat cu succes!", "success");
+          } else showToast(`Eroare: ${data.message}`, "error");
         } else {
           const payload = { 
             DeckId: editingId,  
@@ -394,12 +400,12 @@ export default function AdminDashboardPage() {
           if (res.ok && data.flag) {
             await fetchDecksList();
             setShowModal(false);
-          } else alert(`Error: ${data.message}`);
+            showToast("Pachet editat cu succes!", "success");
+          } else showToast(`Eroare: ${data.message}`, "error");
         }
       }
     } catch (error) {
-      console.error("Save error:", error);
-      alert("Problem communicating with the server.");
+      showToast("Problemă la comunicarea cu serverul.", "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -580,6 +586,29 @@ export default function AdminDashboardPage() {
             <p className="text-2xl font-bold text-white mb-2">No data found</p>
           </div>
         )}
+
+        {toast.show && (
+            <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-4 rounded-2xl shadow-2xl border backdrop-blur-md flex items-center gap-3 animate-fade-in-up transition-all ${
+              toast.type === "error" 
+                ? "bg-red-950/90 border-red-500/50 text-red-200" 
+                : "bg-green-950/90 border-green-500/50 text-green-200"
+            }`}>
+              {toast.type === "error" ? (
+                <AlertCircle className="w-5 h-5 text-red-400" />
+              ) : (
+                <CheckCircle className="w-5 h-5 text-green-400" />
+              )}
+              <p className="font-semibold text-sm mr-2">{toast.message}</p>
+              <button 
+                onClick={() => setToast(prev => ({ ...prev, show: false }))} 
+                className={`p-1 rounded-lg transition-colors ${
+                  toast.type === "error" ? "hover:bg-red-900/50" : "hover:bg-green-900/50"
+                }`}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
       </main>
 
       {showModal && (

@@ -2,7 +2,7 @@
 
 import { use, useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { ArrowLeft, Plus, PlayCircle, Pencil, Trash2, Sparkles, BookOpen, Layers } from "lucide-react";
+import { ArrowLeft, Plus, PlayCircle, Pencil, Trash2, Sparkles, BookOpen, Layers, AlertCircle, CheckCircle, X } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { CardEditorModal } from "@/components/card-editor-modal";
 import { cn } from "@/lib/utils";
@@ -41,11 +41,17 @@ export default function DeckPage({ params }: PageProps) {
   const [editCard, setEditCard] = useState<any | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
+  const [toast, setToast] = useState({ show: false, message: "", type: "error" });
+
+  const showToast = useCallback((message: string, type: "error" | "success" = "error") => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast(prev => ({ ...prev, show: false })), 5000);
+  }, []);
+
   const fetchDeckData = useCallback(async () => {
     const token = localStorage.getItem("token");
     try {
       setLoading(true);
-      // Dacă ai actualizat și DeckController la "api/decks", schimbă URL-ul de mai jos
       const response = await fetch(`http://localhost:5000/api/deck/getDeckById/${id}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -79,13 +85,16 @@ export default function DeckPage({ params }: PageProps) {
           setCurrentDeck(null);
           setCards([]);
         }
+      } else {
+        showToast("Failed to fetch deck data.", "error");
       }
     } catch (error) {
       console.error("Failed to fetch deck:", error);
+      showToast("Network error. Could not connect to the server.", "error");
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [id, showToast]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -131,9 +140,15 @@ export default function DeckPage({ params }: PageProps) {
       });
       if (response.ok) {
         setAddOpen(false);
+        showToast("Card added successfully!", "success");
         fetchDeckData();
+      } else {
+        showToast("Failed to add the card.", "error");
       }
-    } catch (err) { console.error(err); }
+    } catch (err) { 
+      console.error(err);
+      showToast("Network error. Could not add the card.", "error");
+    }
   }
 
   async function confirmDelete() {
@@ -141,7 +156,7 @@ export default function DeckPage({ params }: PageProps) {
     const token = localStorage.getItem("token");
     
     try {
-      const response = await fetch(`http://localhost:5000/api/card/deleteCard"`, {
+      const response = await fetch(`http://localhost:5000/api/card/deleteCard`, {
         method: 'DELETE',
         headers: { 
           'Content-Type': 'application/json',
@@ -155,12 +170,15 @@ export default function DeckPage({ params }: PageProps) {
       
       if (response.ok) {
         setDeleteTarget(null);
+        showToast("Card deleted successfully!", "success");
         fetchDeckData();
       } else {
-        console.error("Eroare la ștergerea cardului");
+        console.error("Error deleting card");
+        showToast("Failed to delete the card.", "error");
       }
     } catch (err) { 
-      console.error(err); 
+      console.error(err);
+      showToast("Network error. Could not delete the card.", "error");
     }
   }
 
@@ -186,12 +204,15 @@ export default function DeckPage({ params }: PageProps) {
 
       if (response.ok) {
         setEditCard(null);
+        showToast("Card updated successfully!", "success");
         fetchDeckData(); 
       } else {
-        console.error("Eroare la editarea cardului");
+        console.error("Error editing card");
+        showToast("Failed to update the card.", "error");
       }
     } catch (err) { 
-      console.error(err); 
+      console.error(err);
+      showToast("Network error. Could not update the card.", "error");
     }
   }
 
@@ -233,7 +254,7 @@ export default function DeckPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-[#0a0a0a]">
-      <div className="fixed inset-0 -z-10 opacity-20">
+      <div className="fixed inset-0 -z-10 opacity-20 pointer-events-none">
         <div className="absolute top-0 -left-4 w-96 h-96 bg-violet-600 rounded-full mix-blend-screen filter blur-[100px] animate-blob" />
         <div className="absolute top-0 -right-4 w-96 h-96 bg-fuchsia-600 rounded-full mix-blend-screen filter blur-[100px] animate-blob animation-delay-2000" />
         <div className="absolute -bottom-8 left-20 w-96 h-96 bg-cyan-600 rounded-full mix-blend-screen filter blur-[100px] animate-blob animation-delay-4000" />
@@ -425,6 +446,30 @@ export default function DeckPage({ params }: PageProps) {
         </div>
       )}
 
+      {/* Global Toast Notification */}
+      {toast.show && (
+        <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-4 rounded-2xl shadow-2xl border backdrop-blur-md flex items-center gap-3 animate-fade-in-up transition-all ${
+          toast.type === "error" 
+            ? "bg-red-950/90 border-red-500/50 text-red-200" 
+            : "bg-green-950/90 border-green-500/50 text-green-200"
+        }`}>
+          {toast.type === "error" ? (
+            <AlertCircle className="w-5 h-5 text-red-400" />
+          ) : (
+            <CheckCircle className="w-5 h-5 text-green-400" />
+          )}
+          <p className="font-semibold text-sm mr-2">{toast.message}</p>
+          <button 
+            onClick={() => setToast(prev => ({ ...prev, show: false }))} 
+            className={`p-1 rounded-lg transition-colors ${
+              toast.type === "error" ? "hover:bg-red-900/50" : "hover:bg-green-900/50"
+            }`}
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       <style jsx>{`
         @keyframes blob {
           0%, 100% { transform: translate(0, 0) scale(1); }
@@ -452,7 +497,7 @@ export default function DeckPage({ params }: PageProps) {
         .animation-delay-2000 { animation-delay: 2s; }
         .animation-delay-4000 { animation-delay: 4s; }
         .animate-fade-in { animation: fade-in 0.5s ease-out; }
-        .animate-fade-in-up { animation: fade-in-up 0.6s ease-out; }
+        .animate-fade-in-up { animation: fade-in-up 0.6s ease-out forwards; }
         .animate-slide-up { animation: slide-up 0.5s ease-out backwards; }
         .animate-scale-in { animation: scale-in 0.3s ease-out; }
       `}</style>

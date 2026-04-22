@@ -29,8 +29,8 @@ namespace Infastructure.Repository
             if (addTestDTO == null)
                 return new AddTestResponse(false, "Invalid DTO");
 
-            var test = await dbContext.TestEntity.FirstOrDefaultAsync(ts => ts.Title == addTestDTO.Title);
-            if (test != null)
+            var test = await dbContext.TestEntity.AnyAsync(ts => ts.Title == addTestDTO.Title);
+            if (test)
                 return new AddTestResponse(false, "Test with name already exists");
 
             dbContext.TestEntity.Add(new Domain.Models.Test
@@ -77,15 +77,9 @@ namespace Infastructure.Repository
             if (editTestDTO == null)
                 return new EditTestResponse(false, "Invalid DTO");
 
-            var user = await dbContext.UserEntity.FirstOrDefaultAsync(us => us.UserId == editTestDTO.UserId);
-            if (user == null)
-                return new EditTestResponse(false, "User not found");
-
-            bool authorize = user.Roles!.Contains("admin");
-            if (!authorize)
-                return new EditTestResponse(false, "User does not have sufficient permissions");
-
-            var existingTest = await dbContext.TestEntity.FirstOrDefaultAsync(ts => ts.TestId == editTestDTO.TestId);
+            var existingTest = await dbContext.TestEntity
+                .Include(t => t.Questions)
+                .FirstOrDefaultAsync(ts => ts.TestId == editTestDTO.TestId);
 
             if (existingTest == null)
                 return new EditTestResponse(false, "Test not found");
@@ -93,7 +87,7 @@ namespace Infastructure.Repository
             existingTest.Title = editTestDTO.Title;
             existingTest.Description = editTestDTO.Description;
             existingTest.Topic = editTestDTO.Topic;
-            existingTest.Questions = editTestDTO.Questions;
+            existingTest.Time = editTestDTO.Time;
 
             dbContext.TestEntity.Update(existingTest);
             await dbContext.SaveChangesAsync();

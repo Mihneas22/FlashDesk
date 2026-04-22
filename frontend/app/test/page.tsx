@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Timer, BrainCircuit, Play, HelpCircle, Loader2 } from "lucide-react";
+import { Timer, BrainCircuit, Play, HelpCircle, Loader2, AlertCircle, CheckCircle, X } from "lucide-react";
 import { Navbar } from "@/components/navbar"; 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { jwtDecode } from "jwt-decode";
 
 const TOPICS = [
@@ -28,6 +28,14 @@ export default function TestsListPage() {
   const [tests, setTests] = useState<any[]>([]);
   const [filter, setFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
+
+  // Toast Notification State
+  const [toast, setToast] = useState({ show: false, message: "", type: "error" });
+
+  const showToast = useCallback((message: string, type: "error" | "success" = "error") => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast(prev => ({ ...prev, show: false })), 5000);
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -61,6 +69,7 @@ export default function TestsListPage() {
         });
         
         if (!response.ok) {
+          showToast("Failed to fetch tests from the server.", "error");
           throw new Error("Failed to fetch tests");
         }
         
@@ -69,16 +78,21 @@ export default function TestsListPage() {
           setTests(data.tests);
         } else {
           setTests([]);
+          if (data.flag === false && data.message) {
+            showToast(data.message, "error");
+          }
         }
       } catch (error) {
         console.error("Error while taking tests:", error);
+        showToast("Network error. Could not connect to the server.", "error");
+        setTests([]);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchTests();
-  }, [filter]);
+  }, [filter, showToast]);
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-gray-950 text-gray-100">
@@ -197,6 +211,30 @@ export default function TestsListPage() {
           </div>
         )}
       </main>
+
+      {/* Global Toast Notification */}
+      {toast.show && (
+        <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-4 rounded-2xl shadow-2xl border backdrop-blur-md flex items-center gap-3 animate-fade-in-up transition-all ${
+          toast.type === "error" 
+            ? "bg-red-950/90 border-red-500/50 text-red-200" 
+            : "bg-green-950/90 border-green-500/50 text-green-200"
+        }`}>
+          {toast.type === "error" ? (
+            <AlertCircle className="w-5 h-5 text-red-400" />
+          ) : (
+            <CheckCircle className="w-5 h-5 text-green-400" />
+          )}
+          <p className="font-semibold text-sm mr-2">{toast.message}</p>
+          <button 
+            onClick={() => setToast(prev => ({ ...prev, show: false }))} 
+            className={`p-1 rounded-lg transition-colors ${
+              toast.type === "error" ? "hover:bg-red-900/50" : "hover:bg-green-900/50"
+            }`}
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       <style jsx>{`
         @keyframes blob {

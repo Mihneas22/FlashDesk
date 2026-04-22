@@ -10,9 +10,6 @@ namespace Application.DTOs.Test.EditTest
     {
         [Required]
         public Guid TestId { get; set; } = Guid.Empty;
-
-        [Required]
-        public Guid UserId { get; set; } = Guid.Empty;
         
         [Required]
         public string Title { get; set; } = string.Empty;
@@ -25,8 +22,5 @@ namespace Application.DTOs.Test.EditTest
 
         [Required]
         public int Time { get; set; } = 0;
-
-        [Required]
-        public ICollection<TestQuestion> Questions { get; set; } = new List<TestQuestion>();
     }
 }

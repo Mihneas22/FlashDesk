@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Search, Sparkles, BookOpen, Trophy, Zap } from "lucide-react";
+import { Search, Sparkles, BookOpen, Trophy, Zap, AlertCircle, CheckCircle, X } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { DeckCard } from "@/components/deck-card";
 import { jwtDecode } from "jwt-decode";
@@ -28,6 +28,14 @@ export default function PublicDecksPage() {
   const [selectedTopic, setSelectedTopic] = useState("All Topics");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // Toast Notification State
+  const [toast, setToast] = useState({ show: false, message: "", type: "error" });
+
+  const showToast = useCallback((message: string, type: "error" | "success" = "error") => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast(prev => ({ ...prev, show: false })), 5000);
+  }, []);
 
   const fetchPublicDecks = useCallback(async (filterText: string) => {
     const safeFilter = filterText === "All Topics" ? "all" : encodeURIComponent(filterText);
@@ -56,14 +64,16 @@ export default function PublicDecksPage() {
       } else {
         console.error("Eroare de la server:", response.statusText);
         setPublicDecks([]);
+        showToast("Failed to load decks from the server.", "error");
       }
     } catch (error) {
       console.error("Failed to fetch public decks:", error);
       setPublicDecks([]);
+      showToast("Network error. Could not connect to the server.", "error");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [showToast]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -97,7 +107,7 @@ export default function PublicDecksPage() {
     <div className="min-h-screen relative overflow-hidden bg-gray-950 text-gray-100">
       {/* Animated gradient background - Dark mode optimized */}
       <div className="fixed inset-0 -z-10 bg-gradient-to-br from-gray-950 via-purple-950/20 to-gray-900" />
-      <div className="fixed inset-0 -z-10 opacity-20">
+      <div className="fixed inset-0 -z-10 opacity-20 pointer-events-none">
         <div className="absolute top-0 -left-4 w-96 h-96 bg-purple-600 rounded-full mix-blend-screen filter blur-3xl animate-blob" />
         <div className="absolute top-0 -right-4 w-96 h-96 bg-fuchsia-600 rounded-full mix-blend-screen filter blur-3xl animate-blob animation-delay-2000" />
         <div className="absolute -bottom-8 left-20 w-96 h-96 bg-violet-600 rounded-full mix-blend-screen filter blur-3xl animate-blob animation-delay-4000" />
@@ -218,6 +228,30 @@ export default function PublicDecksPage() {
           </div>
         )}
       </main>
+
+      {/* Global Toast Notification */}
+      {toast.show && (
+        <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-4 rounded-2xl shadow-2xl border backdrop-blur-md flex items-center gap-3 animate-fade-in-up transition-all ${
+          toast.type === "error" 
+            ? "bg-red-950/90 border-red-500/50 text-red-200" 
+            : "bg-green-950/90 border-green-500/50 text-green-200"
+        }`}>
+          {toast.type === "error" ? (
+            <AlertCircle className="w-5 h-5 text-red-400" />
+          ) : (
+            <CheckCircle className="w-5 h-5 text-green-400" />
+          )}
+          <p className="font-semibold text-sm mr-2">{toast.message}</p>
+          <button 
+            onClick={() => setToast(prev => ({ ...prev, show: false }))} 
+            className={`p-1 rounded-lg transition-colors ${
+              toast.type === "error" ? "hover:bg-red-900/50" : "hover:bg-green-900/50"
+            }`}
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       <style jsx>{`
         @keyframes blob {

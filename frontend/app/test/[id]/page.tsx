@@ -1,7 +1,7 @@
 "use client";
 
-import { use, useState, useEffect } from "react";
-import { Timer, Lightbulb, ChevronRight, Trophy, ArrowLeft, Sparkles } from "lucide-react";
+import { use, useState, useEffect, useCallback } from "react";
+import { Timer, Lightbulb, ChevronRight, Trophy, ArrowLeft, Sparkles, AlertCircle, CheckCircle, X } from "lucide-react";
 import Link from "next/link";
 import { jwtDecode } from "jwt-decode";
 
@@ -23,6 +23,14 @@ export default function ActiveTestPage({ params }: { params: Promise<{ id: strin
   const [time, setTime] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
   const [tipUsed, setTipUsed] = useState(false);
+
+  // Toast Notification State
+  const [toast, setToast] = useState({ show: false, message: "", type: "error" });
+
+  const showToast = useCallback((message: string, type: "error" | "success" = "error") => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast(prev => ({ ...prev, show: false })), 5000);
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -56,6 +64,7 @@ export default function ActiveTestPage({ params }: { params: Promise<{ id: strin
         });
         
         if (!response.ok) {
+          showToast("Failed to fetch questions from the server.", "error");
           throw new Error("Failed to fetch questions");
         }
         
@@ -67,16 +76,20 @@ export default function ActiveTestPage({ params }: { params: Promise<{ id: strin
           setTimeLeft(data.time * 60); 
         } else {
           setQuestions([]);
+          if (data.flag === false && data.message) {
+            showToast(data.message, "error");
+          }
         }
       } catch (error) {
         console.error("Error while taking questions:", error);
+        showToast("Network error. Could not connect to the server.", "error");
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchQuestions();
-  }, [id]);
+  }, [id, showToast]);
 
   useEffect(() => {
     if (isLoading || isFinished || timeLeft <= 0) {
@@ -110,6 +123,30 @@ export default function ActiveTestPage({ params }: { params: Promise<{ id: strin
       setIsFinished(true);
     }
   };
+
+  // Elementul de Toast pentru a putea fi refolosit în return-urile condiționate
+  const toastElement = toast.show && (
+    <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-4 rounded-2xl shadow-2xl border backdrop-blur-md flex items-center gap-3 animate-fade-in-up transition-all ${
+      toast.type === "error" 
+        ? "bg-red-950/90 border-red-500/50 text-red-200" 
+        : "bg-green-950/90 border-green-500/50 text-green-200"
+    }`}>
+      {toast.type === "error" ? (
+        <AlertCircle className="w-5 h-5 text-red-400" />
+      ) : (
+        <CheckCircle className="w-5 h-5 text-green-400" />
+      )}
+      <p className="font-semibold text-sm mr-2">{toast.message}</p>
+      <button 
+        onClick={() => setToast(prev => ({ ...prev, show: false }))} 
+        className={`p-1 rounded-lg transition-colors ${
+          toast.type === "error" ? "hover:bg-red-900/50" : "hover:bg-green-900/50"
+        }`}
+      >
+        <X className="w-4 h-4" />
+      </button>
+    </div>
+  );
   
   if (isLoading) {
     return (
@@ -121,9 +158,10 @@ export default function ActiveTestPage({ params }: { params: Promise<{ id: strin
 
   if (questions.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-950 text-gray-100 p-6">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-950 text-gray-100 p-6 relative">
         <h2 className="text-2xl font-bold mb-4">No questions found</h2>
         <Link href="/test" className="px-6 py-3 bg-gray-800 rounded-xl">Back to tests</Link>
+        {toastElement}
       </div>
     );
   }
@@ -172,7 +210,7 @@ export default function ActiveTestPage({ params }: { params: Promise<{ id: strin
             </Link>
           </div>
         </div>
-
+        {toastElement}
         <style jsx>{`
           @keyframes blob { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-20px, 20px) scale(0.9); } }
           @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
@@ -294,6 +332,8 @@ export default function ActiveTestPage({ params }: { params: Promise<{ id: strin
           </button>
         </div>
       </div>
+
+      {toastElement}
 
       <style jsx>{`
         @keyframes blob { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-20px, 20px) scale(0.9); } }

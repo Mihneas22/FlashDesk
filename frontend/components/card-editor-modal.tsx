@@ -1,20 +1,20 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { X, Delete, Plus, Sparkles, AlertCircle } from "lucide-react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { X, Delete, Plus, Sparkles, AlertCircle, CheckCircle } from "lucide-react";
 import 'katex/dist/katex.min.css';
 import { BlockMath } from 'react-katex';
-import { Button } from "@/components/ui/button"; // Asum că ai acest component pe baza fișierelor anterioare
+import { Button } from "@/components/ui/button";
 
 const MATH_KEYS = [
-  { id: "frac", display: "a/b", code: "\\frac{}{}", cursorOffset: -3, title: "Fracție" },
-  { id: "pow", display: "x²", code: "^{2}", cursorOffset: 0, title: "La puterea 2" },
-  { id: "pow-custom", display: "xⁿ", code: "^{}", cursorOffset: -1, title: "Putere personalizată" },
-  { id: "sqrt", display: "√", code: "\\sqrt{}", cursorOffset: -1, title: "Radical" },
+  { id: "frac", display: "a/b", code: "\\frac{}{}", cursorOffset: -3, title: "Fraction" },
+  { id: "pow", display: "x²", code: "^{2}", cursorOffset: 0, title: "Squared" },
+  { id: "pow-custom", display: "xⁿ", code: "^{}", cursorOffset: -1, title: "Custom Power" },
+  { id: "sqrt", display: "√", code: "\\sqrt{}", cursorOffset: -1, title: "Square Root" },
   { id: "pi", display: "π", code: "\\pi ", cursorOffset: 0, title: "Pi" },
-  { id: "int", display: "∫", code: "\\int ", cursorOffset: 0, title: "Integrală" },
-  { id: "inf", display: "∞", code: "\\infty ", cursorOffset: 0, title: "Infinit" },
-  { id: "sum", display: "∑", code: "\\sum_{i=1}^{n} ", cursorOffset: 0, title: "Sumă" },
+  { id: "int", display: "∫", code: "\\int ", cursorOffset: 0, title: "Integral" },
+  { id: "inf", display: "∞", code: "\\infty ", cursorOffset: 0, title: "Infinity" },
+  { id: "sum", display: "∑", code: "\\sum_{i=1}^{n} ", cursorOffset: 0, title: "Sum" },
   { id: "alpha", display: "α", code: "\\alpha ", cursorOffset: 0, title: "Alpha" },
   { id: "beta", display: "β", code: "\\beta ", cursorOffset: 0, title: "Beta" },
   { id: "theta", display: "θ", code: "\\theta ", cursorOffset: 0, title: "Theta" },
@@ -25,14 +25,22 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: a
   const [back, setBack] = useState("");
   const [tips, setTips] = useState<string[]>([]);
   
+  const [toast, setToast] = useState({ show: false, message: "", type: "error" });
+
   const frontTextareaRef = useRef<HTMLTextAreaElement>(null);
   const backTextareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const showToast = useCallback((message: string, type: "error" | "success" = "error") => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast(prev => ({ ...prev, show: false })), 5000);
+  }, []);
 
   useEffect(() => {
     if (open) {
       setFront(initialCard?.front || "");
       setBack(initialCard?.back || "");
       setTips(initialCard?.tips || []); 
+      setToast({ show: false, message: "", type: "error" }); // Reset toast on open
     }
   }, [open, initialCard]);
 
@@ -76,7 +84,11 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: a
   };
 
   const handleSave = () => {
-    if (!front.trim() || !back.trim()) return;
+    if (!front.trim() || !back.trim()) {
+      showToast("Both Front and Back fields are required.", "error");
+      return;
+    }
+
     const filteredTips = tips.filter(tip => tip.trim() !== "");
     onSave(front, back, filteredTips);
     
@@ -170,7 +182,7 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: a
                 value={back}
                 onChange={(e) => setBack(e.target.value)}
                 className="min-h-[100px] w-full rounded-b-xl border border-purple-100 bg-white px-4 py-3 text-gray-800 font-mono text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all resize-y"
-                placeholder="Răspunsul sau rezolvarea pas cu pas..."
+                placeholder="The answer or step-by-step solution..."
               />
             </div>
             {back.trim() && (
@@ -250,6 +262,30 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: a
           </Button>
         </div>
       </div>
+
+      {/* Global Toast Notification */}
+      {toast.show && (
+        <div className={`absolute bottom-6 z-[100] px-6 py-4 rounded-2xl shadow-2xl border backdrop-blur-md flex items-center gap-3 animate-fade-in-up transition-all ${
+          toast.type === "error" 
+            ? "bg-red-950/90 border-red-500/50 text-red-200" 
+            : "bg-green-950/90 border-green-500/50 text-green-200"
+        }`}>
+          {toast.type === "error" ? (
+            <AlertCircle className="w-5 h-5 text-red-400" />
+          ) : (
+            <CheckCircle className="w-5 h-5 text-green-400" />
+          )}
+          <p className="font-semibold text-sm mr-2">{toast.message}</p>
+          <button 
+            onClick={() => setToast(prev => ({ ...prev, show: false }))} 
+            className={`p-1 rounded-lg transition-colors ${
+              toast.type === "error" ? "hover:bg-red-900/50" : "hover:bg-green-900/50"
+            }`}
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       <style jsx>{`
         @keyframes scale-in {
