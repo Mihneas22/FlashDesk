@@ -96,6 +96,13 @@ export function Navbar({ isLoggedIn }: { isLoggedIn?: boolean }) {
             </NavLink>
           </div>
 
+          <div className="flex items-center gap-2">
+            <NavLink href="/lab-asist" active={pathname === "/lab-asist"}>
+              <BookOpen className="h-4 w-4" />
+              Lab Assistant
+            </NavLink>
+          </div>
+
           <div className="h-6 w-px bg-purple-100/60 hidden sm:block"></div>
 
           {/* Authentication Logic */}
