@@ -47,11 +47,19 @@ namespace Infastructure.AppDbContext
                 .WithOne(qs => qs.Subm_Test)
                 .HasForeignKey(qs => qs.Subm_TestId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<User>()
+                .HasOne(u => u.Streak)
+                .WithOne(s => s.User)
+                .HasForeignKey<Streak>(s => s.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
 
         public DbSet<User> UserEntity { get; set; }
         public DbSet<Deck> DeckEntity { get; set; }
         public DbSet<Card> CardEntity { get; set; }
+
+        public DbSet<Streak> StreakEntity { get; set; }
 
         public DbSet<Test> TestEntity { get; set; }
         public DbSet<TestQuestion> TestQuestionEntity { get; set; }

@@ -18,6 +18,8 @@ namespace Domain.Models
 
         public int? Elo { get; set; }
 
+        public Streak? Streak { get; set; }
+
         public ICollection<Deck>? UserDecks { get; set; }
 
         public ICollection<TestSubmission>? UserSubmissions { get; set; }

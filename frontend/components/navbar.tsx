@@ -2,143 +2,156 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-// Am adăugat iconița 'User' pentru un aspect mai plăcut
-import { BookOpen, Layers, LogIn, LogOut, User } from "lucide-react"; 
+import { BookOpen, Layers, LogIn, LogOut, User, Menu, X } from "lucide-react"; 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
+import { motion, AnimatePresence } from "framer-motion";
 
 export function Navbar({ isLoggedIn }: { isLoggedIn?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
   const [isAuthorized, setIsAuthorized] = useState(false);
-  // 1. Am adăugat state-ul pentru username
-  const [username, setUsername] = useState<string | null>(null); 
+  const [username, setUsername] = useState<string | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Închidem meniul mobil la schimbarea rutei
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
-      const checkAuthorization = () => {
-        const token = localStorage.getItem("token");
-        
-        if (token) {
-          try {
-            const decoded: any = jwtDecode(token);
-            const roleClaim = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || decoded.role || decoded.Role;
-            
-            // 2. Extragem username-ul și îl salvăm în state
-            const extractedUsername = decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] || decoded.nameid || decoded.sub;
-            if (extractedUsername) {
-              setUsername(extractedUsername);
-            }
+    const checkAuthorization = () => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        try {
+          const decoded: any = jwtDecode(token);
+          const roleClaim = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || decoded.role || decoded.Role;
+          const extractedUsername = decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] || decoded.nameid || decoded.sub;
+          
+          if (extractedUsername) setUsername(extractedUsername);
 
-            const roles = Array.isArray(roleClaim) ? roleClaim : [roleClaim];
-            const isAdmin = roles.some(r => r === "admin" || r === "Admin");
-  
-            setIsAuthorized(isAdmin);
-          } catch (error) {
-            console.error("Invalid token:", error);
-            setIsAuthorized(false);
-            setUsername(null);
-          }
-        } else {
+          const roles = Array.isArray(roleClaim) ? roleClaim : [roleClaim];
+          const isAdmin = roles.some(r => r === "admin" || r === "Admin");
+          setIsAuthorized(isAdmin);
+        } catch (error) {
           setIsAuthorized(false);
           setUsername(null);
         }
-      };
-  
-      checkAuthorization();
-    }, []);
+      }
+    };
+    checkAuthorization();
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    setUsername(null); // Curățăm username-ul la logout
+    setUsername(null);
     router.push("/login");
     router.refresh();
   };
 
   return (
-    <header className="sticky top-0 z-50 border-purple-100/50 bg-[#1b1f26] backdrop-blur-xl">
+    <header className="sticky top-0 z-50 border-b border-white/5 bg-[#1b1f26]/80 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
         
         {/* Brand */}
-        <Link
-          href="/"
-          className="group flex items-center gap-3 transition-opacity hover:opacity-90"
-        >
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 via-purple-600 to-pink-600 shadow-lg shadow-violet-500/30 transform group-hover:scale-105 group-hover:rotate-3 transition-all duration-300">
+        <Link href="/" className="group flex items-center gap-3 shrink-0">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 via-purple-600 to-pink-600 shadow-lg shadow-violet-500/30 transform group-hover:scale-110 transition-all duration-300">
             <Layers className="h-5 w-5 text-white" />
           </div>
+          <span className="text-xl font-black tracking-tighter text-white font-syne">
+            Zynth
+          </span>
         </Link>
 
-        {/* Nav links */}
-        <nav className="flex items-center gap-6">
-          {isAuthorized ? (
-            <div className="flex items-center gap-2">
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex items-center gap-2">
+          {isAuthorized && (
             <NavLink href="/admin" active={pathname === "/admin"}>
-              <BookOpen className="h-4 w-4" />
-                Admin Dashboard
+              Admin
             </NavLink>
-          </div>
-          ) : null}
+          )}
+          <NavLink href="/public-decks" active={pathname === "/public-decks"}>Public Decks</NavLink>
+          <NavLink href="/test" active={pathname === "/test"}>Tests</NavLink>
+          <NavLink href="/lab-asist" active={pathname === "/lab-asist"}>Assistant</NavLink>
+          
+          <div className="mx-2 h-5 w-px bg-white/10"></div>
 
-          <div className="flex items-center gap-2">
-            <NavLink href="/public-decks" active={pathname === "/public-decks"}>
-              <BookOpen className="h-4 w-4" />
-              Public Decks
-            </NavLink>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <NavLink href="/test" active={pathname === "/test"}>
-              <BookOpen className="h-4 w-4" />
-              Tests
-            </NavLink>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <NavLink href="/lab-asist" active={pathname === "/lab-asist"}>
-              <BookOpen className="h-4 w-4" />
-              Lab Assistant
-            </NavLink>
-          </div>
-
-          <div className="h-6 w-px bg-purple-100/60 hidden sm:block"></div>
-
-          {/* Authentication Logic */}
           {isLoggedIn ? (
-            // 3. Am grupat username-ul și butonul de logout
-            <div className="flex items-center gap-4">
-              
-              {/* Afișare Username */}
+            <div className="flex items-center gap-3">
               {username && (
                 <div className="flex items-center gap-2 text-gray-300 bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
-                  <User className="h-4 w-4 text-purple-400" />
-                  <span className="text-sm font-semibold tracking-wide">
-                    {username}
-                  </span>
+                  <User className="h-3.5 w-3.5 text-purple-400" />
+                  <span className="text-xs font-bold uppercase tracking-wider">{username}</span>
                 </div>
               )}
-
               <Button 
                 variant="ghost" 
-                className="h-10 px-4 rounded-xl gap-2 font-bold text-red-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+                className="h-9 px-3 text-red-400 hover:text-red-300 hover:bg-red-500/10"
                 onClick={handleLogout}
               >
                 <LogOut className="h-4 w-4" />
-                Log out
               </Button>
             </div>
           ) : (
-            <Button asChild className="h-10 px-6 rounded-xl gap-2 font-bold bg-gradient-to-r from-violet-600 to-pink-600 text-white shadow-lg shadow-purple-500/25 hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all duration-300 border-0">
-              <Link href="/login">
-                <LogIn className="h-4 w-4" />
-                Sign in
-              </Link>
+            <Button asChild className="h-9 px-5 bg-violet-600 hover:bg-violet-500 text-white border-0">
+              <Link href="/login">Sign in</Link>
             </Button>
           )}
         </nav>
+
+        {/* Mobile Menu Toggle */}
+        <button 
+          className="md:hidden p-2 text-white hover:bg-white/5 rounded-lg"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        >
+          {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </button>
       </div>
+
+      {/* Mobile Menu Overlay */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="md:hidden border-t border-white/5 bg-[#1b1f26] overflow-hidden"
+          >
+            <div className="flex flex-col gap-2 p-6">
+              {username && (
+                 <div className="flex items-center gap-2 text-purple-400 mb-4 px-4">
+                    <User className="h-4 w-4" />
+                    <span className="font-bold">{username}</span>
+                 </div>
+              )}
+              <NavLink href="/public-decks" active={pathname === "/public-decks"} mobile>Public Decks</NavLink>
+              <NavLink href="/test" active={pathname === "/test"} mobile>Tests</NavLink>
+              <NavLink href="/lab-asist" active={pathname === "/lab-asist"} mobile>Lab Assistant</NavLink>
+              {isAuthorized && (
+                <NavLink href="/admin" active={pathname === "/admin"} mobile>Admin Dashboard</NavLink>
+              )}
+              
+              <div className="pt-4 mt-2 border-t border-white/5">
+                {isLoggedIn ? (
+                  <Button 
+                    onClick={handleLogout}
+                    className="w-full justify-start gap-2 bg-red-500/10 text-red-500 hover:bg-red-500/20 border-0"
+                  >
+                    <LogOut className="h-4 w-4" /> Log out
+                  </Button>
+                ) : (
+                  <Button asChild className="w-full bg-violet-600 text-white">
+                    <Link href="/login">Sign in</Link>
+                  </Button>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 }
@@ -147,10 +160,12 @@ function NavLink({
   href,
   active,
   children,
+  mobile
 }: {
   href: string;
   active: boolean;
   children: React.ReactNode;
+  mobile?: boolean;
 }) {
   return (
     <Link
@@ -158,8 +173,9 @@ function NavLink({
       className={cn(
         "flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-all duration-300",
         active
-          ? "bg-violet-50 text-violet-700"
-          : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+          ? "bg-violet-600/20 text-violet-400"
+          : "text-gray-400 hover:text-white hover:bg-white/5",
+        mobile && "text-base py-3"
       )}
     >
       {children}

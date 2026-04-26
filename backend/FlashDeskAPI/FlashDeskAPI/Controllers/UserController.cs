@@ -1,10 +1,13 @@
-﻿using Application.DTOs.User.GetUserData;
+﻿using Application.DTOs.Deck.CreateDeck;
+using Application.DTOs.User.GetUserData;
 using Application.DTOs.User.LoginUser;
 using Application.DTOs.User.RegisterUser;
+using Application.DTOs.User.Streak.ModifyStreak;
 using Application.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace FlashDeskAPI.Controllers
 {
@@ -40,6 +43,17 @@ namespace FlashDeskAPI.Controllers
         public async Task<ActionResult<GetUserDataResponse>> GetUserDataAsync(string email)
         {
             var result = await userRepo.GetUserDataRepository(new GetUserDataDTO { Email = email });
+            return Ok(result);
+        }
+
+        [HttpPost("updateStreak")]
+        public async Task<IActionResult> UpdateStreak(ModifyStreakDTO modifyStreakDTO)
+        {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdString)) return Unauthorized();
+
+            modifyStreakDTO.UserId = Guid.Parse(userIdString);
+            var result = await userRepo.ModifyStreakRepository(modifyStreakDTO);
             return Ok(result);
         }
     }

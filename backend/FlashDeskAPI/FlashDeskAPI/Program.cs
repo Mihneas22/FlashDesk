@@ -1,7 +1,4 @@
-using DotNetEnv;
 using Infastructure.DepInject;
-
-Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 

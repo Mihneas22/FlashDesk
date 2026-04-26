@@ -1,6 +1,7 @@
 ﻿using Application.DTOs.User.GetUserData;
 using Application.DTOs.User.LoginUser;
 using Application.DTOs.User.RegisterUser;
+using Application.DTOs.User.Streak.ModifyStreak;
 using Application.Repository;
 using Domain.Models;
 using Infastructure.AppDbContext;
@@ -124,6 +125,71 @@ namespace Infastructure.Repository
                 return new GetUserDataResponse(false, "No user found");
             else
                 return new GetUserDataResponse(true, "User found!", user);
+        }
+
+        public async Task<ModifyStreakResponse> ModifyStreakRepository(ModifyStreakDTO modifyStreakDTO)
+        {
+            if (modifyStreakDTO == null)
+                return new ModifyStreakResponse(false, 0, "Invalid DTO");
+
+            var user = await dbContext.UserEntity
+                .Include(us => us.Streak)
+                .FirstOrDefaultAsync(us => us.UserId == modifyStreakDTO.UserId);
+
+            if (user == null)
+                return new ModifyStreakResponse(false, 0, "User not found");
+
+            DateTime today = DateTime.UtcNow.Date;
+
+            if (user.Streak == null)
+            {
+                user.Streak = new Streak
+                {
+                    UserId = user.UserId,
+                    CurrentStreak = 1,
+                    MaxStreak = 1,
+                    LastActivityDate = today
+                };
+            }
+            else
+            {
+                if (user.Streak.LastActivityDate.HasValue)
+                {
+                    DateTime lastActivity = user.Streak.LastActivityDate.Value.Date;
+                    int daysDifference = (today - lastActivity).Days;
+
+                    if (daysDifference == 1)
+                    {
+                        user.Streak.CurrentStreak = (user.Streak.CurrentStreak ?? 0) + 1;
+                        user.Streak.LastActivityDate = today;
+
+                        if (user.Streak.CurrentStreak > (user.Streak.MaxStreak ?? 0))
+                        {
+                            user.Streak.MaxStreak = user.Streak.CurrentStreak;
+                        }
+                    }
+                    else if (daysDifference > 1)
+                    {
+                        user.Streak.CurrentStreak = 1;
+                        user.Streak.LastActivityDate = today;
+                    }
+                }
+                else
+                {
+                    user.Streak.CurrentStreak = 1;
+                    user.Streak.LastActivityDate = today;
+                }
+            }
+
+            try
+            {
+                await dbContext.SaveChangesAsync();
+                return new ModifyStreakResponse(true, user.Streak.CurrentStreak ?? 1, "Streak updated successfully.");
+            }
+            catch (Exception ex)
+            {
+                return new ModifyStreakResponse(false, 0, $"Database error: {ex.Message}");
+            }
         }
     }
 }

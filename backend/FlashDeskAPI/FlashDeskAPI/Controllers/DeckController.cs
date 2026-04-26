@@ -57,6 +57,7 @@ namespace FlashDeskAPI.Controllers
         }
 
         [HttpGet("getDeckById/{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<GetDeckByIdResponse>> GetDeckByIdAsync(string id)
         {
             var result = await deckRepo.GetDeckByIdRepository(new GetDeckByIdDTO { DeckId = Guid.Parse(id) });

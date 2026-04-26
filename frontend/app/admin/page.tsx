@@ -288,7 +288,7 @@ export default function AdminDashboardPage() {
     try {
       if (activeTab === "decks") {
         const payload = { DeckId: id};
-        const res = await fetch(`${API_BASE_URL}/deck/deleteDeck`, {
+        const res = await fetch(`${API_BASE_URL}/deck/deleteDeck/${id}`, {
           method: "DELETE",
           headers: getAuthHeaders(),
           body: JSON.stringify(payload)

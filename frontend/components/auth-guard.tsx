@@ -10,13 +10,16 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const token = localStorage.getItem("token")
-    const publicPaths = ['/login', '/register']
+    
+    const exactPublicPaths = ['/login', '/register', '/', '/public-decks']
+    const isPublicPath = exactPublicPaths.includes(pathname) || pathname.startsWith('/deck/')
 
     if (!token) {
-      if (!publicPaths.includes(pathname)) {
-        router.push('/login')
+      if (isPublicPath) {
+        setAuthorized(true)
       } else {
         setAuthorized(true)
+        router.push('/login')
       }
     } else {
       try {
@@ -25,18 +28,37 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
         
         if (isExpired) {
           localStorage.removeItem("token")
-          router.push('/login')
+          if (isPublicPath) {
+            setAuthorized(true)
+          } else {
+            router.push('/login')
+          }
         } else {
           setAuthorized(true)
         }
-      } catch {
-        router.push('/login')
+      } catch (error) {
+        localStorage.removeItem("token")
+        if (isPublicPath) {
+          setAuthorized(true)
+        } else {
+          router.push('/login')
+        }
       }
     }
   }, [pathname, router])
 
-  if (!authorized && !['/login'].includes(pathname)) {
-    return <div className="h-screen flex items-center justify-center">Loading...</div>
+  const exactPublicPaths = ['/login', '/register', '/', '/public-decks']
+  const isPublicPath = pathname.startsWith('/deck/') || exactPublicPaths.includes(pathname)
+
+  if (!authorized && !isPublicPath) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-gray-950 text-white">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-gray-400 animate-pulse text-sm font-medium">Securing connection...</p>
+        </div>
+      </div>
+    )
   }
 
   return <>{children}</>

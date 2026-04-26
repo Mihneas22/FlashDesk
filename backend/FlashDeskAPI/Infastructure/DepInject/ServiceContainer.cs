@@ -14,6 +14,24 @@ namespace Infastructure.DepInject
     {
         public static IServiceCollection InfastructureService(this IServiceCollection services, IConfiguration configuration)
         {
+            string envPath = "";
+            string currentDir = AppDomain.CurrentDomain.BaseDirectory;
+
+            for (int i = 0; i < 5; i++)
+            {
+                string testPath = Path.Combine(currentDir, "keys.env");
+                if (File.Exists(testPath))
+                {
+                    envPath = testPath;
+                    break;
+                }
+                currentDir = Directory.GetParent(currentDir)?.FullName ?? currentDir;
+            }
+
+            if (!string.IsNullOrEmpty(envPath))
+            {
+                DotNetEnv.Env.Load(envPath);
+            }
             string connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
                 ?? throw new InvalidOperationException("DATABASE_URL nu este configurată!");
             services.AddDbContext<ApplicationDbContext>(options =>

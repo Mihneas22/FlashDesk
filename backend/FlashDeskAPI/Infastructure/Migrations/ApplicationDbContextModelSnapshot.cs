@@ -17,7 +17,7 @@ namespace Infastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.5")
+                .HasAnnotation("ProductVersion", "10.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -79,6 +79,32 @@ namespace Infastructure.Migrations
                     b.HasIndex("DeckUserId");
 
                     b.ToTable("DeckEntity");
+                });
+
+            modelBuilder.Entity("Domain.Models.Streak", b =>
+                {
+                    b.Property<Guid>("StreakId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("CurrentStreak")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("LastActivityDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("MaxStreak")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("StreakId");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("StreakEntity");
                 });
 
             modelBuilder.Entity("Domain.Models.Test", b =>
@@ -218,6 +244,17 @@ namespace Infastructure.Migrations
                     b.Navigation("DeckUser");
                 });
 
+            modelBuilder.Entity("Domain.Models.Streak", b =>
+                {
+                    b.HasOne("Domain.Models.User", "User")
+                        .WithOne("Streak")
+                        .HasForeignKey("Domain.Models.Streak", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Domain.Models.TestQuestion", b =>
                 {
                     b.HasOne("Domain.Models.Test", "Quest_Test")
@@ -262,6 +299,8 @@ namespace Infastructure.Migrations
 
             modelBuilder.Entity("Domain.Models.User", b =>
                 {
+                    b.Navigation("Streak");
+
                     b.Navigation("UserDecks");
 
                     b.Navigation("UserSubmissions");
