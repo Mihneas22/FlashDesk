@@ -6,7 +6,7 @@ import { ArrowLeft, Plus, PlayCircle, Pencil, Trash2, Sparkles, BookOpen, Layers
 import { Navbar } from "@/components/navbar";
 import { CardEditorModal } from "@/components/card-editor-modal";
 import { cn } from "@/lib/utils";
-import { Flashcard } from "@/lib/store";
+import { Flashcard, ViewConfig } from "@/lib/store";
 import { jwtDecode } from "jwt-decode";
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
@@ -127,7 +127,7 @@ export default function DeckPage({ params }: PageProps) {
     fetchDeckData();
   }, [id, fetchDeckData]);
 
-  async function handleAddCard(front: string, back: string, tips: string[]) {
+  async function handleAddCard(front: string, back: string, tips: string[], graphConfig?: ViewConfig | null) {
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(`http://localhost:5000/api/card/addCard`, {
@@ -136,7 +136,7 @@ export default function DeckPage({ params }: PageProps) {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ DeckId: id, Question: front, Answer: back, Tips: tips })
+        body: JSON.stringify({ DeckId: id, Question: front, Answer: back, Tips: tips, GraphConfig: graphConfig || null })
       });
       if (response.ok) {
         setAddOpen(false);
@@ -182,7 +182,7 @@ export default function DeckPage({ params }: PageProps) {
     }
   }
 
-  async function handleEditCard(front: string, back: string, tips: string[]) {
+  async function handleEditCard(front: string, back: string, tips: string[], graphConfig?: ViewConfig | null) {
     if (!editCard) return;
     const token = localStorage.getItem("token");
 
@@ -198,7 +198,8 @@ export default function DeckPage({ params }: PageProps) {
           DeckId: id, 
           Question: front, 
           Answer: back, 
-          Tips: tips 
+          Tips: tips,
+          GraphConfig: graphConfig || null 
         })
       });
 

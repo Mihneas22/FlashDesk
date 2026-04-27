@@ -1,10 +1,51 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { X, Delete, Plus, Sparkles, AlertCircle, CheckCircle } from "lucide-react";
+import { X, Delete, Plus, Sparkles, AlertCircle, CheckCircle, LineChart, Settings2, Trash2 } from "lucide-react";
 import 'katex/dist/katex.min.css';
 import { BlockMath } from 'react-katex';
 import { Button } from "@/components/ui/button";
+
+// --- Types ---
+export interface GraphFunction {
+  expr: string;
+  color?: string;
+  latexLabel?: string;
+}
+
+export interface GraphLine {
+  axis: string;
+  value: number;
+  color?: string;
+  latexLabel?: string;
+}
+
+export interface ShadedRegion {
+  between: { lowerExpr: string; upperExpr: string };
+  bounds: number[];
+  color?: string;
+}
+
+export interface GraphPoint {
+  coords: number[];
+  latexLabel?: string;
+  color?: string;
+}
+
+export interface ViewBoxConfig {
+  x: number[];
+  y: number[];
+}
+
+export interface ViewConfig {
+  mode: string;
+  viewBox: ViewBoxConfig;
+  functions: GraphFunction[];
+  lines: GraphLine[];
+  shadedRegion?: ShadedRegion | null;
+  points: GraphPoint[];
+}
+// -------------
 
 const MATH_KEYS = [
   { id: "frac", display: "a/b", code: "\\frac{}{}", cursorOffset: -3, title: "Fraction" },
@@ -25,6 +66,15 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: a
   const [back, setBack] = useState("");
   const [tips, setTips] = useState<string[]>([]);
   
+  // Graph State
+  const [enableGraph, setEnableGraph] = useState(false);
+  const [graphMode, setGraphMode] = useState("2d");
+  const [viewBoxX, setViewBoxX] = useState<[number, number]>([-10, 10]);
+  const [viewBoxY, setViewBoxY] = useState<[number, number]>([-10, 10]);
+  const [functions, setFunctions] = useState<GraphFunction[]>([]);
+  const [points, setPoints] = useState<GraphPoint[]>([]);
+  const [shadedRegion, setShadedRegion] = useState<ShadedRegion>(null!);
+
   const [toast, setToast] = useState({ show: false, message: "", type: "error" });
 
   const frontTextareaRef = useRef<HTMLTextAreaElement>(null);
@@ -40,9 +90,32 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: a
       setFront(initialCard?.front || "");
       setBack(initialCard?.back || "");
       setTips(initialCard?.tips || []); 
+      
+      // Load Graph Config if it exists
+      if (initialCard?.graphConfig) {
+        setEnableGraph(true);
+        setGraphMode(initialCard.graphConfig.mode || "2d");
+        setViewBoxX([initialCard.graphConfig.viewBox?.x[0] || -10, initialCard.graphConfig.viewBox?.x[1] || 10]);
+        setViewBoxY([initialCard.graphConfig.viewBox?.y[0] || -10, initialCard.graphConfig.viewBox?.y[1] || 10]);
+        setFunctions(initialCard.graphConfig.functions || []);
+        setPoints(initialCard.graphConfig.points || []);
+        setShadedRegion(initialCard.shadedRegion || null);
+      } else {
+        resetGraph();
+      }
+
       setToast({ show: false, message: "", type: "error" }); // Reset toast on open
     }
   }, [open, initialCard]);
+
+  const resetGraph = () => {
+    setEnableGraph(false);
+    setViewBoxX([-10, 10]);
+    setViewBoxY([-10, 10]);
+    setFunctions([]);
+    setPoints([]);
+    setShadedRegion(null!);
+  };
 
   if (!open) return null;
 
@@ -68,10 +141,8 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: a
     }, 0);
   };
 
-  const handleAddTip = () => {
-    setTips([...tips, ""]);
-  };
-
+  const handleAddTip = () => setTips([...tips, ""]);
+  
   const handleTipChange = (index: number, value: string) => {
     const newTips = [...tips];
     newTips[index] = value;
@@ -79,9 +150,12 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: a
   };
 
   const handleRemoveTip = (index: number) => {
-    const newTips = tips.filter((_, i) => i !== index);
-    setTips(newTips);
+    setTips(tips.filter((_, i) => i !== index));
   };
+
+  // Graph Handlers
+  const addFunction = () => setFunctions([...functions, { expr: "", color: "#8b5cf6", latexLabel: "" }]);
+  const addPoint = () => setPoints([...points, { coords: [0, 0], color: "#ec4899", latexLabel: "" }]);
 
   const handleSave = () => {
     if (!front.trim() || !back.trim()) {
@@ -90,11 +164,25 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: a
     }
 
     const filteredTips = tips.filter(tip => tip.trim() !== "");
-    onSave(front, back, filteredTips);
+    
+    let graphConfig: ViewConfig | null = null;
+    if (enableGraph) {
+      graphConfig = {
+        mode: graphMode,
+        viewBox: { x: viewBoxX, y: viewBoxY },
+        functions: functions.filter(f => f.expr.trim() !== ""),
+        lines: [], 
+        points: points,
+        shadedRegion: shadedRegion
+      };
+    }
+
+    onSave(front, back, filteredTips, graphConfig);
     
     setFront("");
     setBack("");
     setTips([]);
+    resetGraph();
   };
 
   const MathToolbar = ({ target }: { target: 'front' | 'back' }) => (
@@ -142,7 +230,7 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: a
         </div>
 
         {/* Scrollable Body */}
-        <div className="flex-1 p-6 sm:p-8 flex flex-col gap-8 overflow-y-auto bg-gray-50/30">
+        <div className="flex-1 p-6 sm:p-8 flex flex-col gap-8 overflow-y-auto bg-gray-50/30 custom-scrollbar">
           
           {/* --- FRONT EDITOR --- */}
           <div className="flex flex-col gap-2">
@@ -196,6 +284,122 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: a
                 </div>
               </div>
             )}
+          </div>
+
+          <div className="w-full border-t border-purple-100/60" />
+
+          {/* --- GRAPH CONFIG --- */}
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between ml-1 mb-1">
+              <label className="text-sm font-bold text-gray-700">Graph Visualization (Optional)</label>
+            </div>
+            <div className="rounded-2xl border border-purple-100 bg-white p-5 shadow-sm transition-all">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center text-violet-600">
+                    <LineChart className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-gray-900">Enable Graph</h3>
+                    <p className="text-xs text-gray-500">Add an interactive math graph to this card</p>
+                  </div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" className="sr-only peer" checked={enableGraph} onChange={() => setEnableGraph(!enableGraph)} />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-violet-500"></div>
+                </label>
+              </div>
+
+              {enableGraph && (
+                <div className="mt-6 pt-6 border-t border-purple-50 space-y-6 animate-fade-in-up">
+                  
+                  {/* ViewBox Config */}
+                  <div>
+                    <h4 className="text-xs font-bold text-gray-500 uppercase mb-3 flex items-center gap-1.5 tracking-wider">
+                      <Settings2 className="w-4 h-4" /> ViewBox Limits
+                    </h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      <input type="number" value={viewBoxX[0]} onChange={(e) => setViewBoxX([Number(e.target.value), viewBoxX[1]])} placeholder="Min X" className="rounded-xl border border-purple-100 bg-gray-50 p-2.5 text-gray-800 text-sm focus:ring-2 focus:ring-violet-400 focus:outline-none transition-all" />
+                      <input type="number" value={viewBoxX[1]} onChange={(e) => setViewBoxX([viewBoxX[0], Number(e.target.value)])} placeholder="Max X" className="rounded-xl border border-purple-100 bg-gray-50 p-2.5 text-gray-800 text-sm focus:ring-2 focus:ring-violet-400 focus:outline-none transition-all" />
+                      <input type="number" value={viewBoxY[0]} onChange={(e) => setViewBoxY([Number(e.target.value), viewBoxY[1]])} placeholder="Min Y" className="rounded-xl border border-purple-100 bg-gray-50 p-2.5 text-gray-800 text-sm focus:ring-2 focus:ring-violet-400 focus:outline-none transition-all" />
+                      <input type="number" value={viewBoxY[1]} onChange={(e) => setViewBoxY([viewBoxY[0], Number(e.target.value)])} placeholder="Max Y" className="rounded-xl border border-purple-100 bg-gray-50 p-2.5 text-gray-800 text-sm focus:ring-2 focus:ring-violet-400 focus:outline-none transition-all" />
+                    </div>
+                  </div>
+
+                  {/* Functions */}
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Functions</h4>
+                      <button onClick={addFunction} className="text-xs flex items-center gap-1 text-violet-600 bg-violet-50 hover:bg-violet-100 px-2.5 py-1 rounded-full font-bold transition-colors">
+                        <Plus className="w-3.5 h-3.5" /> Add Expr
+                      </button>
+                    </div>
+                    <div className="space-y-2">
+                      {functions.length === 0 && <p className="text-xs text-gray-400 italic">No functions added.</p>}
+                      {functions.map((fn, idx) => (
+                        <div key={idx} className="flex gap-2 items-center">
+                          <input value={fn.expr} onChange={(e) => { const newFns = [...functions]; newFns[idx].expr = e.target.value; setFunctions(newFns); }} placeholder="e.g. x^2" className="flex-1 rounded-xl border border-purple-100 bg-gray-50 p-2.5 text-gray-800 text-sm font-mono focus:ring-2 focus:ring-violet-400 focus:outline-none transition-all" />
+                          <input type="color" value={fn.color || "#8b5cf6"} onChange={(e) => { const newFns = [...functions]; newFns[idx].color = e.target.value; setFunctions(newFns); }} className="w-10 h-10 rounded-xl cursor-pointer bg-transparent border-0 shrink-0" />
+                          <button onClick={() => setFunctions(functions.filter((_, i) => i !== idx))} className="p-2 text-gray-400 hover:bg-red-50 hover:text-red-500 rounded-xl transition-colors shrink-0"><Trash2 className="w-4 h-4" /></button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Points */}
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Points</h4>
+                      <button onClick={addPoint} className="text-xs flex items-center gap-1 text-pink-600 bg-pink-50 hover:bg-pink-100 px-2.5 py-1 rounded-full font-bold transition-colors">
+                        <Plus className="w-3.5 h-3.5" /> Add Point
+                      </button>
+                    </div>
+                    <div className="space-y-2">
+                      {points.length === 0 && <p className="text-xs text-gray-400 italic">No points added.</p>}
+                      {points.map((pt, idx) => (
+                        <div key={idx} className="flex gap-2 items-center">
+                          <input type="number" value={pt.coords[0]} onChange={(e) => { const newPts = [...points]; newPts[idx].coords[0] = Number(e.target.value); setPoints(newPts); }} placeholder="X" className="w-20 rounded-xl border border-purple-100 bg-gray-50 p-2.5 text-gray-800 text-sm focus:ring-2 focus:ring-violet-400 focus:outline-none transition-all" />
+                          <input type="number" value={pt.coords[1]} onChange={(e) => { const newPts = [...points]; newPts[idx].coords[1] = Number(e.target.value); setPoints(newPts); }} placeholder="Y" className="w-20 rounded-xl border border-purple-100 bg-gray-50 p-2.5 text-gray-800 text-sm focus:ring-2 focus:ring-violet-400 focus:outline-none transition-all" />
+                          <input value={pt.latexLabel || ""} onChange={(e) => { const newPts = [...points]; newPts[idx].latexLabel = e.target.value; setPoints(newPts); }} placeholder="Label (LaTeX)" className="flex-1 rounded-xl border border-purple-100 bg-gray-50 p-2.5 text-gray-800 text-sm focus:ring-2 focus:ring-violet-400 focus:outline-none transition-all" />
+                          <button onClick={() => setPoints(points.filter((_, i) => i !== idx))} className="p-2 text-gray-400 hover:bg-red-50 hover:text-red-500 rounded-xl transition-colors shrink-0"><Trash2 className="w-4 h-4" /></button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Shaded Region */}
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Shaded Region (Integral Area)</h4>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-violet-50/50 rounded-xl border border-violet-100">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold text-violet-600 uppercase">Functions (Lower & Upper)</label>
+                          <input 
+                            placeholder="Lower: e.g. 0" 
+                            className="w-full rounded-lg border border-purple-100 p-2 text-sm"
+                            onChange={(e) => setShadedRegion(prev => ({...prev, between: {...prev.between, lowerExpr: e.target.value}}))}
+                          />
+                          <input 
+                            placeholder="Upper: e.g. x^2" 
+                            className="w-full rounded-lg border border-purple-100 p-2 text-sm"
+                            onChange={(e) => setShadedRegion(prev => ({...prev, between: {...prev.between, upperExpr: e.target.value}}))}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold text-violet-600 uppercase">Bounds (Start X & End X)</label>
+                          <div className="flex gap-2">
+                            <input type="number" placeholder="From" className="w-1/2 rounded-lg border border-purple-100 p-2 text-sm" />
+                            <input type="number" placeholder="To" className="w-1/2 rounded-lg border border-purple-100 p-2 text-sm" />
+                          </div>
+                          <input type="color" className="w-full h-8 rounded-lg cursor-pointer" defaultValue="#8b5cf6" />
+                        </div>
+                      </div>
+                    </div>
+
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="w-full border-t border-purple-100/60" />

@@ -1,22 +1,28 @@
 "use client";
 
-import { use, useState, useEffect, useCallback } from "react";
+import { use, useState, useEffect, useCallback, useRef, useMemo } from "react";
 import Link from "next/link";
-import { ArrowLeft, RotateCcw, Check, Loader2, ArrowRight, Trophy, Brain, Sparkles, AlertCircle, CheckCircle, X } from "lucide-react";
+import { 
+  ArrowLeft, RotateCcw, Check, ArrowRight, Trophy, 
+  Brain, Sparkles, AlertCircle, CheckCircle, X, 
+  LineChart as LineChartIcon, Activity, MousePointer2
+} from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { FlashcardView } from "@/components/flashcard-view";
 import { useStore } from "@/lib/store";
 import type { Flashcard } from "@/lib/store";
 
-// IMPORTURI PENTRU MATH RENDER
-import ReactMarkdown from 'react-markdown';
-import remarkMath from 'remark-math';
-import rehypeKatex from 'rehype-katex';
-import 'katex/dist/katex.min.css';
+// IMPORTURI PENTRU GRAFIC
+import { evaluate } from 'mathjs';
+import { 
+  XAxis, YAxis, CartesianGrid, ReferenceLine, 
+  ResponsiveContainer, Scatter, Line, ComposedChart, Tooltip, Cell
+} from 'recharts';
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
+
 
 export default function StudyPage({ params }: PageProps) {
   const { id } = use(params);
@@ -29,8 +35,7 @@ export default function StudyPage({ params }: PageProps) {
   
   const [currentIndex, setCurrentIndex] = useState(0);
   const [sessionDone, setSessionDone] = useState(false);
-
-  // Toast Notification State
+  const [showPlotter, setShowPlotter] = useState(false);
   const [toast, setToast] = useState({ show: false, message: "", type: "error" });
 
   const showToast = useCallback((message: string, type: "error" | "success" = "error") => {
@@ -71,11 +76,11 @@ export default function StudyPage({ params }: PageProps) {
           showToast(data.message || "Failed to load deck data.", "error");
         }
       } else {
-        console.error("Eroare de la server:", response.statusText);
+        console.error("Eroare server:", response.statusText);
         showToast("Failed to fetch deck from the server.", "error");
       }
     } catch (error) {
-      console.error("Failed to fetch deck:", error);
+      console.error("Fetch error:", error);
       showToast("Network error. Could not connect to the server.", "error");
     } finally {
       setLoading(false);
@@ -86,7 +91,36 @@ export default function StudyPage({ params }: PageProps) {
     fetchDeckData();
   }, [fetchDeckData]);
 
+  useEffect(() => {
+    setShowPlotter(false);
+  }, [currentIndex]);
+
   const deck = localDeck || decks.find(d => d.id === id);
+
+  // Funcția de extracție actualizată pentru a găsi ULTIMA formulă relevantă
+  const extractExpression = (text: any) => {
+    if (!text) return null;
+
+    // 1. Găsim TOATE blocurile de tip $...$ sau $$...$$
+    const matches = [...text.matchAll(/\$\$(.*?)\$\$|\$(.*?)\$/g)];
+    
+    if (matches.length > 0) {
+      // Luăm ULTIMUL bloc găsit (rezultatul final)
+      let lastMatch = matches[matches.length - 1][1] || matches[matches.length - 1][2];
+      return lastMatch.trim();
+    }
+
+    // 2. Funcție declarată explicit (ex: f(x) = ...)
+    const matchFx = text.match(/[fFgh]\([A-Za-z]\)\s*=\s*([^$]+)/i);
+    if (matchFx) return matchFx[1].trim();
+
+    // 3. Fallback pentru expresii scurte singure
+    if (text.length < 50 && !text.includes('?') && (text.match(/[xyz]/) || text.includes('\\'))) {
+      return text.trim();
+    }
+
+    return null;
+  };
 
   if (loading) {
     return (
@@ -102,68 +136,31 @@ export default function StudyPage({ params }: PageProps) {
 
   if (!deck) {
     return (
-      <div className="min-h-screen relative overflow-hidden bg-[#0a0a0a]">
-        <Navbar isLoggedIn={isLoggedIn} />
-        <div className="flex flex-col items-center justify-center pt-40 text-center px-6 animate-fade-in-up">
-          <div className="w-24 h-24 rounded-3xl bg-[#121317] border border-white/10 flex items-center justify-center mb-6 shadow-xl">
-            <Brain className="w-10 h-10 text-violet-500" />
-          </div>
-          <h2 className="text-3xl font-black text-white mb-2">Deck Not Found</h2>
-          <p className="text-gray-400 mb-8 max-w-md">We couldn't load the details for this study session.</p>
-          <Link 
-            href="/" 
-            className="px-8 py-3 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 text-white font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all flex items-center gap-2"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            Back to Decks
-          </Link>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0a] text-center px-6 animate-fade-in-up">
+        <div className="w-24 h-24 rounded-3xl bg-[#121317] border border-white/10 flex items-center justify-center mb-6 shadow-xl">
+          <Brain className="w-10 h-10 text-violet-500" />
         </div>
-        
-        {/* Global Toast Notification */}
-        {toast.show && (
-          <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-4 rounded-2xl shadow-2xl border backdrop-blur-md flex items-center gap-3 animate-fade-in-up transition-all ${
-            toast.type === "error" 
-              ? "bg-red-950/90 border-red-500/50 text-red-200" 
-              : "bg-green-950/90 border-green-500/50 text-green-200"
-          }`}>
-            {toast.type === "error" ? (
-              <AlertCircle className="w-5 h-5 text-red-400" />
-            ) : (
-              <CheckCircle className="w-5 h-5 text-green-400" />
-            )}
-            <p className="font-semibold text-sm mr-2">{toast.message}</p>
-            <button 
-              onClick={() => setToast(prev => ({ ...prev, show: false }))} 
-              className={`p-1 rounded-lg transition-colors ${
-                toast.type === "error" ? "hover:bg-red-900/50" : "hover:bg-green-900/50"
-              }`}
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        )}
+        <h2 className="text-3xl font-black text-white mb-2">Deck Not Found</h2>
+        <p className="text-gray-400 mb-8 max-w-md">We couldn't load the details for this study session.</p>
+        <Link href="/" className="px-8 py-3 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 text-white font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all flex items-center gap-2">
+          <ArrowLeft className="w-5 h-5" /> Back to Decks
+        </Link>
       </div>
     );
   }
 
   if (cards.length === 0) {
     return (
-      <div className="min-h-screen relative overflow-hidden bg-[#0a0a0a]">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0a] text-center px-6 animate-fade-in-up">
         <Navbar isLoggedIn={isLoggedIn} />
-        <div className="flex flex-col items-center justify-center pt-40 text-center px-6 animate-fade-in-up">
-          <div className="w-24 h-24 rounded-3xl bg-[#121317] border border-dashed border-white/20 flex items-center justify-center mb-6 shadow-sm">
-            <Sparkles className="w-10 h-10 text-violet-500" />
-          </div>
-          <h2 className="text-3xl font-black text-white mb-2">No cards to study</h2>
-          <p className="text-gray-400 mb-8 max-w-md">This deck is currently empty. Add some flashcards to start learning.</p>
-          <Link 
-            href={`/deck/${deck.id}`} 
-            className="px-8 py-3 rounded-xl bg-white/5 text-white font-bold shadow-sm border border-white/10 hover:bg-white/10 transition-all flex items-center gap-2 group"
-          >
-            Go to deck 
-            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-          </Link>
+        <div className="w-24 h-24 rounded-3xl bg-[#121317] border border-dashed border-white/20 flex items-center justify-center mb-6 shadow-sm">
+          <Sparkles className="w-10 h-10 text-violet-500" />
         </div>
+        <h2 className="text-3xl font-black text-white mb-2">No cards to study</h2>
+        <p className="text-gray-400 mb-8 max-w-md">This deck is currently empty. Add some flashcards to start learning.</p>
+        <Link href={`/deck/${deck.id}`} className="px-8 py-3 rounded-xl bg-white/5 text-white font-bold shadow-sm border border-white/10 hover:bg-white/10 transition-all flex items-center gap-2 group">
+          Go to deck <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+        </Link>
       </div>
     );
   }
@@ -171,6 +168,8 @@ export default function StudyPage({ params }: PageProps) {
   const totalCards = cards.length;
   const progress = ((currentIndex + 1) / totalCards) * 100;
   const currentCard = cards[currentIndex];
+
+  const possibleExpression = extractExpression(currentCard.front);
 
   function handleNext() {
     if (currentIndex + 1 >= totalCards) {
@@ -191,7 +190,6 @@ export default function StudyPage({ params }: PageProps) {
         <Navbar isLoggedIn={isLoggedIn} />
         <div className="flex flex-col items-center justify-center pt-32 px-4 animate-scale-in">
           <div className="bg-[#121317] rounded-3xl p-10 border border-white/10 shadow-2xl max-w-lg w-full text-center relative overflow-hidden">
-            {/* Decorative background elements inside the card */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/20 rounded-full filter blur-[50px]" />
             <div className="absolute bottom-0 left-0 w-32 h-32 bg-violet-500/20 rounded-full filter blur-[50px]" />
             
@@ -206,17 +204,10 @@ export default function StudyPage({ params }: PageProps) {
               </p>
 
               <div className="flex flex-col sm:flex-row w-full gap-4">
-                <button
-                  onClick={handleRestart}
-                  className="flex-1 flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-base font-bold text-white hover:bg-white/10 transition-all group active:scale-95"
-                >
-                  <RotateCcw className="h-5 w-5 group-hover:-rotate-180 transition-transform duration-500" />
-                  Study Again
+                <button onClick={handleRestart} className="flex-1 flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-base font-bold text-white hover:bg-white/10 transition-all group active:scale-95">
+                  <RotateCcw className="h-5 w-5 group-hover:-rotate-180 transition-transform duration-500" /> Study Again
                 </button>
-                <Link
-                  href={`/deck/${deck.id}`}
-                  className="flex-1 flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 px-6 py-4 text-base font-bold text-white shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all"
-                >
+                <Link href={`/deck/${deck.id}`} className="flex-1 flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 px-6 py-4 text-base font-bold text-white shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all">
                   Back to Deck
                 </Link>
               </div>
@@ -229,7 +220,6 @@ export default function StudyPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-[#0a0a0a]">
-      {/* Animated gradient background - Dark Mode Version */}
       <div className="fixed inset-0 -z-10 opacity-20 pointer-events-none">
         <div className="absolute top-0 -left-4 w-96 h-96 bg-violet-600 rounded-full mix-blend-screen filter blur-[100px] animate-blob" />
         <div className="absolute top-0 -right-4 w-96 h-96 bg-fuchsia-600 rounded-full mix-blend-screen filter blur-[100px] animate-blob animation-delay-2000" />
@@ -238,47 +228,47 @@ export default function StudyPage({ params }: PageProps) {
 
       <Navbar isLoggedIn={isLoggedIn} />
 
-      <main className="mx-auto max-w-3xl px-4 sm:px-6 py-8 sm:py-12 animate-fade-in">
+      <main className="mx-auto max-w-4xl px-4 sm:px-6 py-8 sm:py-12 animate-fade-in flex flex-col items-center">
         
-        {/* Header Setup */}
-        <div className="mb-8 bg-[#121317] rounded-2xl border border-white/10 shadow-lg px-5 py-4 flex items-center justify-between">
-          <Link
-            href={`/deck/${deck.id}`}
-            className="group flex items-center gap-3 text-sm font-bold text-gray-300 hover:text-white transition-colors"
-          >
+        <div className="w-full mb-8 bg-[#121317] rounded-2xl border border-white/10 shadow-lg px-5 py-4 flex items-center justify-between">
+          <Link href={`/deck/${deck.id}`} className="group flex items-center gap-3 text-sm font-bold text-gray-300 hover:text-white transition-colors">
             <div className="p-1.5 rounded-lg bg-white/5 shadow-sm border border-white/10 group-hover:border-violet-500/50 transition-colors">
               <ArrowLeft className="h-4 w-4" />
             </div>
             {deck.title}
           </Link>
           <div className="flex items-center gap-2">
-            <span className="text-sm font-black text-white tabular-nums">
-              {currentIndex + 1}
-            </span>
+            <span className="text-sm font-black text-white tabular-nums">{currentIndex + 1}</span>
             <span className="text-sm font-bold text-gray-600">/</span>
-            <span className="text-sm font-bold text-gray-500 tabular-nums">
-              {totalCards}
-            </span>
+            <span className="text-sm font-bold text-gray-500 tabular-nums">{totalCards}</span>
           </div>
         </div>
 
-        {/* Progress Bar */}
-        <div className="mb-10 h-3 w-full overflow-hidden rounded-full bg-white/5 border border-white/5 shadow-inner">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-violet-500 via-purple-500 to-pink-500 transition-all duration-500 ease-out relative"
-            style={{ width: `${progress}%` }}
-          >
+        <div className="w-full mb-10 h-3 overflow-hidden rounded-full bg-white/5 border border-white/5 shadow-inner">
+          <div className="h-full rounded-full bg-gradient-to-r from-violet-500 via-purple-500 to-pink-500 transition-all duration-500 ease-out relative" style={{ width: `${progress}%` }}>
             <div className="absolute top-0 right-0 bottom-0 w-4 bg-white/50 blur-[2px]" />
           </div>
         </div>
 
-        {/* Notă: Asigură-te că FlashcardView are și el un design adaptat temei dark */}
-        <div className="animate-slide-up" key={currentIndex}>
+        <div className="w-full animate-slide-up" key={currentIndex}>
           <FlashcardView card={currentCard} resetKey={currentCard.id} />
         </div>
 
-        {/* Action Button */}
-        <div className="mt-12 flex justify-center">
+        {!showPlotter && possibleExpression && (
+          <button 
+            onClick={() => setShowPlotter(true)}
+            className="mt-6 flex items-center gap-2 px-5 py-3 bg-violet-500/10 border border-violet-500/30 rounded-xl text-violet-400 hover:bg-violet-500/20 hover:border-violet-500/50 transition-all font-semibold text-sm shadow-xl shadow-violet-500/10"
+          >
+            <LineChartIcon size={20} />
+            Deschide Grafic Interactiv
+          </button>
+        )}
+
+        {showPlotter && possibleExpression && (
+          <></>
+        )}
+
+        <div className="mt-12 flex justify-center w-full">
           <button
             onClick={handleNext}
             className="group flex items-center gap-3 rounded-2xl bg-gradient-to-r from-violet-600 via-purple-600 to-pink-600 px-10 py-4 text-lg font-bold text-white shadow-xl hover:shadow-2xl hover:-translate-y-1 active:translate-y-0 transition-all"
@@ -293,25 +283,13 @@ export default function StudyPage({ params }: PageProps) {
         </div>
       </main>
 
-      {/* Global Toast Notification */}
       {toast.show && (
         <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-4 rounded-2xl shadow-2xl border backdrop-blur-md flex items-center gap-3 animate-fade-in-up transition-all ${
-          toast.type === "error" 
-            ? "bg-red-950/90 border-red-500/50 text-red-200" 
-            : "bg-green-950/90 border-green-500/50 text-green-200"
+          toast.type === "error" ? "bg-red-950/90 border-red-500/50 text-red-200" : "bg-green-950/90 border-green-500/50 text-green-200"
         }`}>
-          {toast.type === "error" ? (
-            <AlertCircle className="w-5 h-5 text-red-400" />
-          ) : (
-            <CheckCircle className="w-5 h-5 text-green-400" />
-          )}
+          {toast.type === "error" ? <AlertCircle className="w-5 h-5 text-red-400" /> : <CheckCircle className="w-5 h-5 text-green-400" />}
           <p className="font-semibold text-sm mr-2">{toast.message}</p>
-          <button 
-            onClick={() => setToast(prev => ({ ...prev, show: false }))} 
-            className={`p-1 rounded-lg transition-colors ${
-              toast.type === "error" ? "hover:bg-red-900/50" : "hover:bg-green-900/50"
-            }`}
-          >
+          <button onClick={() => setToast(prev => ({ ...prev, show: false }))} className={`p-1 rounded-lg transition-colors ${toast.type === "error" ? "hover:bg-red-900/50" : "hover:bg-green-900/50"}`}>
             <X className="w-4 h-4" />
           </button>
         </div>

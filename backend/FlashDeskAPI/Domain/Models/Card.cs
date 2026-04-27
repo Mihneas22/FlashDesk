@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Domain.Models.Graphs;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace Domain.Models
 {
@@ -19,6 +21,9 @@ namespace Domain.Models
         public Guid DeckId { get; set; }
 
         public Deck? CardDeck { get; set; }
+
+        [JsonPropertyName("viewConfig")]
+        public ViewConfig? ViewConfig { get; set; }
 
         public DateTime? CreatedAt { get; set; }
     }

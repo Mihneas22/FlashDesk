@@ -42,7 +42,8 @@ namespace Infastructure.Repository
                 DeckId = addCardDTO.DeckId,
                 Tips = addCardDTO.Tips,
                 CardDeck = deck,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                ViewConfig = addCardDTO.GraphConfig
             };
 
             if (deck.DeckCards == null)

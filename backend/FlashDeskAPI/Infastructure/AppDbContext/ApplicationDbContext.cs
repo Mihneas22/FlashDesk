@@ -1,8 +1,10 @@
 ﻿using Domain.Models;
+using Domain.Models.Graphs;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
 
 namespace Infastructure.AppDbContext
 {
@@ -53,6 +55,16 @@ namespace Infastructure.AppDbContext
                 .WithOne(s => s.User)
                 .HasForeignKey<Streak>(s => s.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Card>(entity =>
+            {
+                entity.Property(e => e.ViewConfig)
+                    .HasColumnType("jsonb")
+                    .HasConversion(
+                        v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
+                        v => JsonSerializer.Deserialize<ViewConfig>(v, (JsonSerializerOptions)null)
+                    );
+            });
         }
 
         public DbSet<User> UserEntity { get; set; }

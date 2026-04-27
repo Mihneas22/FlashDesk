@@ -7,6 +7,7 @@ export interface Flashcard {
   front: string;
   back: string;
   tips: string[];
+  graphConfig: string;
 }
 
 export interface Deck {
@@ -17,6 +18,45 @@ export interface Deck {
   cards: Flashcard[];
   status: boolean;
   color: string; // tailwind bg class for accent
+}
+
+export interface GraphFunction {
+  expr: string;
+  color?: string;
+  latexLabel?: string;
+}
+
+export interface GraphLine {
+  axis: string;
+  value: number;
+  color?: string;
+  latexLabel?: string;
+}
+
+export interface ShadedRegion {
+  between: { lowerExpr: string; upperExpr: string };
+  bounds: number[];
+  color?: string;
+}
+
+export interface GraphPoint {
+  coords: number[];
+  latexLabel?: string;
+  color?: string;
+}
+
+export interface ViewBoxConfig {
+  x: number[];
+  y: number[];
+}
+
+export interface ViewConfig {
+  mode: string;
+  viewBox: ViewBoxConfig;
+  functions: GraphFunction[];
+  lines: GraphLine[];
+  shadedRegion?: ShadedRegion | null;
+  points: GraphPoint[];
 }
 
 // A simple global-state approach using React state lifted to a context-like hook.

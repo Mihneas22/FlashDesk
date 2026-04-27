@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Domain.Models.Graphs;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
@@ -18,5 +19,7 @@ namespace Application.DTOs.Card.AddCard
 
         [Required]
         public List<string> Tips { get; set; } = new List<string>();
+
+        public ViewConfig? GraphConfig { get; set; }
     }
 }

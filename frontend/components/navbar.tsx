@@ -57,7 +57,7 @@ export function Navbar({ isLoggedIn }: { isLoggedIn?: boolean }) {
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
         
         {/* Brand */}
-        <Link href="/" className="group flex items-center gap-3 shrink-0">
+        <Link href="/dashboard" className="group flex items-center gap-3 shrink-0">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 via-purple-600 to-pink-600 shadow-lg shadow-violet-500/30 transform group-hover:scale-110 transition-all duration-300">
             <Layers className="h-5 w-5 text-white" />
           </div>

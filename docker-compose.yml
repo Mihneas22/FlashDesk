@@ -20,7 +20,7 @@ services:
     depends_on:
       - db
     env_file:
-      - keys.env
+      - ./backend/FlashDeskAPI/FlashDeskAPI/keys.env
     ports:
       - "5000:8080"
     networks:
