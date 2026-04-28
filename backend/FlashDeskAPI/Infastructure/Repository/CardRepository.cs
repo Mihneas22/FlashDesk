@@ -106,6 +106,7 @@ namespace Infastructure.Repository
             card.Question = editCardDTO.Question;
             card.Answer = editCardDTO.Answer;
             card.Tips = editCardDTO.Tips;
+            card.ViewConfig = editCardDTO.GraphConfig;
 
             await dbContext.SaveChangesAsync();
 

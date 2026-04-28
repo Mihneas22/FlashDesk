@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Domain.Models.Graphs;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
@@ -28,5 +29,7 @@ namespace Application.DTOs.Card.EditCard
 
         [JsonIgnore]
         public bool IsAdmin { get; set; }
+
+        public ViewConfig? GraphConfig { get; set; }
     }
 }

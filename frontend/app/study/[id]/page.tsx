@@ -1,28 +1,28 @@
 "use client";
 
-import { use, useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { use, useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Link from "next/link";
 import { 
   ArrowLeft, RotateCcw, Check, ArrowRight, Trophy, 
   Brain, Sparkles, AlertCircle, CheckCircle, X, 
-  LineChart as LineChartIcon, Activity, MousePointer2
+  LineChart as LineChartIcon, Activity,
+  ZoomIn, ZoomOut, Maximize
 } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { FlashcardView } from "@/components/flashcard-view";
 import { useStore } from "@/lib/store";
 import type { Flashcard } from "@/lib/store";
 
-// IMPORTURI PENTRU GRAFIC
+// CHART IMPORTS
 import { evaluate } from 'mathjs';
 import { 
-  XAxis, YAxis, CartesianGrid, ReferenceLine, 
-  ResponsiveContainer, Scatter, Line, ComposedChart, Tooltip, Cell
+  XAxis, YAxis, CartesianGrid, ReferenceLine, ReferenceDot,
+  ResponsiveContainer, Line, ComposedChart, Tooltip
 } from 'recharts';
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
-
 
 export default function StudyPage({ params }: PageProps) {
   const { id } = use(params);
@@ -30,13 +30,23 @@ export default function StudyPage({ params }: PageProps) {
   
   const [localDeck, setLocalDeck] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
-  const [cards, setCards] = useState<Flashcard[]>([]);
+  const [cards, setCards] = useState<any[]>([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   
   const [currentIndex, setCurrentIndex] = useState(0);
   const [sessionDone, setSessionDone] = useState(false);
   const [showPlotter, setShowPlotter] = useState(false);
   const [toast, setToast] = useState({ show: false, message: "", type: "error" });
+
+  // --- ZOOM & PAN STATE ---
+  const [domainX, setDomainX] = useState<[number, number]>([-10, 10]);
+  const [domainY, setDomainY] = useState<[number, number]>([-10, 10]);
+  
+  const chartContainerRef = useRef<HTMLDivElement>(null);
+  const [isPanning, setIsPanning] = useState(false);
+  
+  // Am inlocuit useState cu useRef pentru o actualizare sincrona, fara lag
+  const lastPanRef = useRef<{ x: number, y: number } | null>(null);
 
   const showToast = useCallback((message: string, type: "error" | "success" = "error") => {
     setToast({ show: true, message, type });
@@ -63,6 +73,7 @@ export default function StudyPage({ params }: PageProps) {
           front: c.question,
           back: c.answer,
           tips: c.tips || [],
+          viewConfig: c.viewConfig || null
         }));
         setCards(mappedCards);
 
@@ -76,7 +87,7 @@ export default function StudyPage({ params }: PageProps) {
           showToast(data.message || "Failed to load deck data.", "error");
         }
       } else {
-        console.error("Eroare server:", response.statusText);
+        console.error("Server error:", response.statusText);
         showToast("Failed to fetch deck from the server.", "error");
       }
     } catch (error) {
@@ -95,32 +106,116 @@ export default function StudyPage({ params }: PageProps) {
     setShowPlotter(false);
   }, [currentIndex]);
 
+  useEffect(() => {
+    if (showPlotter && cards[currentIndex]?.viewConfig) {
+      const vc = cards[currentIndex].viewConfig;
+      setDomainX(vc.viewBox?.x || [-10, 10]);
+      setDomainY(vc.viewBox?.y || [-10, 10]);
+    }
+  }, [showPlotter, currentIndex, cards]);
+
   const deck = localDeck || decks.find(d => d.id === id);
 
-  // Funcția de extracție actualizată pentru a găsi ULTIMA formulă relevantă
-  const extractExpression = (text: any) => {
-    if (!text) return null;
-
-    // 1. Găsim TOATE blocurile de tip $...$ sau $$...$$
-    const matches = [...text.matchAll(/\$\$(.*?)\$\$|\$(.*?)\$/g)];
-    
-    if (matches.length > 0) {
-      // Luăm ULTIMUL bloc găsit (rezultatul final)
-      let lastMatch = matches[matches.length - 1][1] || matches[matches.length - 1][2];
-      return lastMatch.trim();
-    }
-
-    // 2. Funcție declarată explicit (ex: f(x) = ...)
-    const matchFx = text.match(/[fFgh]\([A-Za-z]\)\s*=\s*([^$]+)/i);
-    if (matchFx) return matchFx[1].trim();
-
-    // 3. Fallback pentru expresii scurte singure
-    if (text.length < 50 && !text.includes('?') && (text.match(/[xyz]/) || text.includes('\\'))) {
-      return text.trim();
-    }
-
-    return null;
+  // --- ZOOM HANDLERS ---
+  const handleZoom = (delta: number) => {
+    setDomainX(prev => {
+      const newMin = prev[0] - delta;
+      const newMax = prev[1] + delta;
+      if (newMin >= newMax) return prev;
+      return [newMin, newMax];
+    });
+    setDomainY(prev => {
+      const newMin = prev[0] - delta;
+      const newMax = prev[1] + delta;
+      if (newMin >= newMax) return prev;
+      return [newMin, newMax];
+    });
   };
+
+  const handleResetZoom = () => {
+    const vc = cards[currentIndex]?.viewConfig;
+    if (vc) {
+      setDomainX(vc.viewBox?.x || [-10, 10]);
+      setDomainY(vc.viewBox?.y || [-10, 10]);
+    }
+  };
+
+  // --- PAN HANDLERS ---
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsPanning(true);
+    // Salvam pozitia initiala imediat in ref
+    lastPanRef.current = { x: e.clientX, y: e.clientY };
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!lastPanRef.current || !chartContainerRef.current) return;
+
+    const dx = e.clientX - lastPanRef.current.x;
+    const dy = e.clientY - lastPanRef.current.y;
+
+    const rect = chartContainerRef.current.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+
+    // Actualizam axa X calculand diferenta direct din state-ul garantat de React
+    setDomainX(prev => {
+      const spanX = prev[1] - prev[0]; // Scara ramane mereu constanta
+      const shiftX = (dx / width) * spanX;
+      return [prev[0] - shiftX, prev[1] - shiftX];
+    });
+
+    // Actualizam axa Y
+    setDomainY(prev => {
+      const spanY = prev[1] - prev[0]; // Scara ramane mereu constanta
+      const shiftY = (dy / height) * spanY;
+      return [prev[0] + shiftY, prev[1] + shiftY];
+    });
+    
+    // Actualizam referinta sincron pentru urmatorul eveniment de miscare
+    lastPanRef.current = { x: e.clientX, y: e.clientY };
+  };
+
+  const handleMouseUpOrLeave = () => {
+    setIsPanning(false);
+    lastPanRef.current = null;
+  };
+
+  const graphData = useMemo(() => {
+    const currentCard = cards[currentIndex];
+    if (!currentCard?.viewConfig) return null;
+
+    const vc = currentCard.viewConfig;
+    const [minX, maxX] = domainX;
+    const [minY, maxY] = domainY;
+    
+    const lineData = [];
+    const step = (maxX - minX) / 100; 
+    
+    for (let x = minX; x <= maxX; x += step) {
+        let point: any = { x: Number(x.toFixed(3)) };
+        
+        vc.functions?.forEach((f: any, i: number) => {
+            try {
+                const y = evaluate(f.expr, { x });
+                if (typeof y === 'number' && y >= minY - (maxY-minY) && y <= maxY + (maxY-minY)) {
+                    point[`f${i}`] = y;
+                } else {
+                    point[`f${i}`] = null;
+                }
+            } catch (e) {
+                point[`f${i}`] = null;
+            }
+        });
+        lineData.push(point);
+    }
+
+    return { 
+        lineData, 
+        functions: vc.functions || [],
+        points: vc.points || []
+    };
+  }, [cards, currentIndex, domainX, domainY]);
+
 
   if (loading) {
     return (
@@ -168,8 +263,8 @@ export default function StudyPage({ params }: PageProps) {
   const totalCards = cards.length;
   const progress = ((currentIndex + 1) / totalCards) * 100;
   const currentCard = cards[currentIndex];
-
-  const possibleExpression = extractExpression(currentCard.front);
+  
+  const hasViewConfig = !!currentCard?.viewConfig;
 
   function handleNext() {
     if (currentIndex + 1 >= totalCards) {
@@ -254,18 +349,121 @@ export default function StudyPage({ params }: PageProps) {
           <FlashcardView card={currentCard} resetKey={currentCard.id} />
         </div>
 
-        {!showPlotter && possibleExpression && (
+        {!showPlotter && hasViewConfig && (
           <button 
             onClick={() => setShowPlotter(true)}
             className="mt-6 flex items-center gap-2 px-5 py-3 bg-violet-500/10 border border-violet-500/30 rounded-xl text-violet-400 hover:bg-violet-500/20 hover:border-violet-500/50 transition-all font-semibold text-sm shadow-xl shadow-violet-500/10"
           >
             <LineChartIcon size={20} />
-            Deschide Grafic Interactiv
+            Open Interactive Graph
           </button>
         )}
 
-        {showPlotter && possibleExpression && (
-          <></>
+        {showPlotter && hasViewConfig && graphData && (
+          <div className="mt-6 w-full bg-[#121317] rounded-2xl border border-white/10 p-6 animate-slide-up shadow-xl">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-white font-bold flex items-center gap-2 text-lg">
+                <Activity className="w-5 h-5 text-violet-500" />
+                Interactive Graph
+              </h3>
+
+              <div className="flex items-center gap-2">
+                <div className="flex items-center bg-[#0a0a0a] rounded-lg border border-white/10 p-1 mr-2">
+                  <button onClick={() => handleZoom(-1)} className="p-1.5 text-gray-400 hover:text-white hover:bg-white/10 rounded-md transition-colors" title="Zoom In">
+                    <ZoomIn className="w-4 h-4" />
+                  </button>
+                  <div className="w-px h-4 bg-white/10 mx-1" />
+                  <button onClick={() => handleZoom(1)} className="p-1.5 text-gray-400 hover:text-white hover:bg-white/10 rounded-md transition-colors" title="Zoom Out">
+                    <ZoomOut className="w-4 h-4" />
+                  </button>
+                  <div className="w-px h-4 bg-white/10 mx-1" />
+                  <button onClick={handleResetZoom} className="p-1.5 text-gray-400 hover:text-white hover:bg-white/10 rounded-md transition-colors" title="Reset View">
+                    <Maximize className="w-4 h-4" />
+                  </button>
+                </div>
+                
+                <button 
+                  onClick={() => setShowPlotter(false)} 
+                  className="text-gray-400 hover:text-red-400 transition-colors bg-white/5 p-2 rounded-lg hover:bg-red-500/10"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            
+            <div 
+              ref={chartContainerRef}
+              className={`h-[400px] w-full bg-[#0a0a0a]/50 rounded-xl p-4 border border-white/5 relative select-none ${isPanning ? 'cursor-grabbing' : 'cursor-grab'}`}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUpOrLeave}
+              onMouseLeave={handleMouseUpOrLeave}
+            >
+              <ResponsiveContainer width="100%" height="100%" className="pointer-events-none">
+                <ComposedChart data={graphData.lineData} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff15" />
+                  
+                  <XAxis 
+                    dataKey="x" 
+                    type="number" 
+                    domain={domainX} 
+                    stroke="#ffffff40" 
+                    tick={{ fill: '#ffffff80', fontSize: 12 }} 
+                    allowDataOverflow={true} 
+                  />
+                  <YAxis 
+                    type="number" 
+                    domain={domainY} 
+                    stroke="#ffffff40" 
+                    tick={{ fill: '#ffffff80', fontSize: 12 }}
+                    allowDataOverflow={true} 
+                  />
+                  
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#121317', border: '1px solid #ffffff20', borderRadius: '8px', color: '#fff' }}
+                    labelStyle={{ color: '#a78bfa', fontWeight: 'bold', marginBottom: '4px' }}
+                    formatter={(value: any) => Number(value).toFixed(2)}
+                  />
+                  
+                  <ReferenceLine x={0} stroke="#ffffff40" strokeWidth={1} />
+                  <ReferenceLine y={0} stroke="#ffffff40" strokeWidth={1} />
+
+                  {graphData.functions.map((f: any, i: number) => (
+                    <Line 
+                      key={`line-${i}`}
+                      type="monotone" 
+                      dataKey={`f${i}`} 
+                      stroke={f.color || "#8b5cf6"} 
+                      strokeWidth={3}
+                      dot={false}
+                      name={f.latexLabel || f.expr}
+                      isAnimationActive={false}
+                    />
+                  ))}
+
+                  {graphData.points.map((p: any, i: number) => (
+                    <ReferenceDot 
+                      key={`point-${i}`}
+                      x={p.coords[0]} 
+                      y={p.coords[1]} 
+                      r={6}
+                      fill={p.color || "#ec4899"} 
+                      stroke="#121317"
+                      strokeWidth={2}
+                      label={{ 
+                        position: 'top', 
+                        value: p.latexLabel || `P${i+1}`, 
+                        fill: p.color || '#ec4899', 
+                        fontSize: 14, 
+                        fontWeight: 'bold',
+                        offset: 10
+                      }}
+                    />
+                  ))}
+                </ComposedChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         )}
 
         <div className="mt-12 flex justify-center w-full">
@@ -283,6 +481,7 @@ export default function StudyPage({ params }: PageProps) {
         </div>
       </main>
 
+      {/* TOAST SYSTEM */}
       {toast.show && (
         <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-4 rounded-2xl shadow-2xl border backdrop-blur-md flex items-center gap-3 animate-fade-in-up transition-all ${
           toast.type === "error" ? "bg-red-950/90 border-red-500/50 text-red-200" : "bg-green-950/90 border-green-500/50 text-green-200"

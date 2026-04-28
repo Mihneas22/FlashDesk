@@ -21,7 +21,7 @@ namespace Domain.Models.Graphs
         public List<GraphLine> Lines { get; set; }
 
         [JsonPropertyName("shadedRegion")]
-        public ShadedRegion ShadedRegion { get; set; }
+        public ShadedRegion? ShadedRegion { get; set; }
 
         [JsonPropertyName("points")]
         public List<GraphPoint> Points { get; set; }
@@ -46,6 +46,9 @@ namespace Domain.Models.Graphs
 
         [JsonPropertyName("latexLabel")]
         public string? LatexLabel { get; set; }
+
+        [JsonPropertyName("type")]
+        public string? Type { get; set; }
     }
 
     public class GraphLine

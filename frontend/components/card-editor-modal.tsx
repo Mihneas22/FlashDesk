@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { X, Delete, Plus, Sparkles, AlertCircle, CheckCircle, LineChart, Settings2, Trash2 } from "lucide-react";
+import { X, Delete, Plus, Sparkles, AlertCircle, LineChart, Settings2, Trash2, CheckCircle } from "lucide-react";
 import 'katex/dist/katex.min.css';
-import { BlockMath } from 'react-katex';
+import { BlockMath, InlineMath } from 'react-katex';
 import { Button } from "@/components/ui/button";
 
 // --- Types ---
@@ -11,6 +11,7 @@ export interface GraphFunction {
   expr: string;
   color?: string;
   latexLabel?: string;
+  type?: 'y' | 'x';
 }
 
 export interface GraphLine {
@@ -45,6 +46,14 @@ export interface ViewConfig {
   shadedRegion?: ShadedRegion | null;
   points: GraphPoint[];
 }
+
+export interface CardEditorModalProps {
+  open: boolean;
+  onClose: () => void;
+  onSave: (front: string, back: string, tips: string[], graphConfig: ViewConfig | null) => void;
+  initialCard?: any; // Consider typing this strictly based on your data model
+  title: string;
+}
 // -------------
 
 const MATH_KEYS = [
@@ -61,7 +70,41 @@ const MATH_KEYS = [
   { id: "theta", display: "θ", code: "\\theta ", cursorOffset: 0, title: "Theta" },
 ];
 
-export function CardEditorModal({ open, onClose, onSave, initialCard, title }: any) {
+// Moved outside to prevent unnecessary re-renders
+const MathToolbar = ({ 
+  target, 
+  onInsert, 
+  onClear 
+}: { 
+  target: 'front' | 'back', 
+  onInsert: (target: 'front' | 'back', code: string, offset: number) => void,
+  onClear: (target: 'front' | 'back') => void
+}) => (
+  <div className="rounded-t-xl border border-purple-100 border-b-0 bg-[#fcfcff] p-2 transition-colors">
+    <div className="flex flex-wrap gap-2">
+      {MATH_KEYS.map((key) => (
+        <button
+          key={key.id}
+          type="button"
+          title={key.title}
+          onClick={() => onInsert(target, key.code, key.cursorOffset)}
+          className="flex h-8 min-w-[36px] items-center justify-center rounded-lg bg-white px-2 text-sm font-serif border border-purple-100 text-gray-700 hover:border-violet-300 hover:bg-violet-50 hover:text-violet-600 transition-all active:scale-95 shadow-sm"
+        >
+          {key.display}
+        </button>
+      ))}
+      <div className="flex-1" />
+      <button 
+        onClick={() => onClear(target)}
+        className="flex h-8 px-3 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors text-xs font-bold gap-1.5"
+      >
+        <Delete className="h-3.5 w-3.5" /> Clear
+      </button>
+    </div>
+  </div>
+);
+
+export function CardEditorModal({ open, onClose, onSave, initialCard, title }: CardEditorModalProps) {
   const [front, setFront] = useState("");
   const [back, setBack] = useState("");
   const [tips, setTips] = useState<string[]>([]);
@@ -73,7 +116,7 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: a
   const [viewBoxY, setViewBoxY] = useState<[number, number]>([-10, 10]);
   const [functions, setFunctions] = useState<GraphFunction[]>([]);
   const [points, setPoints] = useState<GraphPoint[]>([]);
-  const [shadedRegion, setShadedRegion] = useState<ShadedRegion>(null!);
+  const [shadedRegion, setShadedRegion] = useState<ShadedRegion | null>(null);
 
   const [toast, setToast] = useState({ show: false, message: "", type: "error" });
 
@@ -99,7 +142,7 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: a
         setViewBoxY([initialCard.graphConfig.viewBox?.y[0] || -10, initialCard.graphConfig.viewBox?.y[1] || 10]);
         setFunctions(initialCard.graphConfig.functions || []);
         setPoints(initialCard.graphConfig.points || []);
-        setShadedRegion(initialCard.shadedRegion || null);
+        setShadedRegion(initialCard.graphConfig.shadedRegion || null);
       } else {
         resetGraph();
       }
@@ -114,7 +157,7 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: a
     setViewBoxY([-10, 10]);
     setFunctions([]);
     setPoints([]);
-    setShadedRegion(null!);
+    setShadedRegion(null);
   };
 
   if (!open) return null;
@@ -141,6 +184,11 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: a
     }, 0);
   };
 
+  const handleClear = (target: 'front' | 'back') => {
+    if (target === 'front') setFront("");
+    else setBack("");
+  }
+
   const handleAddTip = () => setTips([...tips, ""]);
   
   const handleTipChange = (index: number, value: string) => {
@@ -154,7 +202,7 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: a
   };
 
   // Graph Handlers
-  const addFunction = () => setFunctions([...functions, { expr: "", color: "#8b5cf6", latexLabel: "" }]);
+ const addFunction = () => setFunctions([...functions, { expr: "", type: "y", color: "#8b5cf6", latexLabel: "" }]);
   const addPoint = () => setPoints([...points, { coords: [0, 0], color: "#ec4899", latexLabel: "" }]);
 
   const handleSave = () => {
@@ -166,14 +214,24 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: a
     const filteredTips = tips.filter(tip => tip.trim() !== "");
     
     let graphConfig: ViewConfig | null = null;
+    
     if (enableGraph) {
+      let finalShadedRegion = null;
+      if (
+        shadedRegion && 
+        shadedRegion.between && 
+        (shadedRegion.between.lowerExpr?.trim() || shadedRegion.between.upperExpr?.trim())
+      ) {
+        finalShadedRegion = shadedRegion;
+      }
+
       graphConfig = {
         mode: graphMode,
         viewBox: { x: viewBoxX, y: viewBoxY },
         functions: functions.filter(f => f.expr.trim() !== ""),
         lines: [], 
         points: points,
-        shadedRegion: shadedRegion
+        shadedRegion: finalShadedRegion
       };
     }
 
@@ -185,35 +243,17 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: a
     resetGraph();
   };
 
-  const MathToolbar = ({ target }: { target: 'front' | 'back' }) => (
-    <div className="rounded-t-xl border border-purple-100 border-b-0 bg-[#fcfcff] p-2 transition-colors">
-      <div className="flex flex-wrap gap-2">
-        {MATH_KEYS.map((key) => (
-          <button
-            key={key.id}
-            type="button"
-            title={key.title}
-            onClick={() => insertMath(target, key.code, key.cursorOffset)}
-            className="flex h-8 min-w-[36px] items-center justify-center rounded-lg bg-white px-2 text-sm font-serif border border-purple-100 text-gray-700 hover:border-violet-300 hover:bg-violet-50 hover:text-violet-600 transition-all active:scale-95 shadow-sm"
-          >
-            {key.display}
-          </button>
-        ))}
-        <div className="flex-1" />
-        <button 
-          onClick={() => target === 'front' ? setFront("") : setBack("")}
-          className="flex h-8 px-3 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors text-xs font-bold gap-1.5"
-        >
-          <Delete className="h-3.5 w-3.5" /> Clear
-        </button>
-      </div>
-    </div>
-  );
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-gray-900/40 backdrop-blur-sm">
       <div className="relative w-full max-w-2xl rounded-3xl border border-white/50 bg-white shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-scale-in">
         
+        {/* Toast Notification UI */}
+        {toast.show && (
+          <div className={`absolute top-6 left-1/2 -translate-x-1/2 z-[60] px-4 py-2 rounded-full shadow-lg text-sm font-bold text-white transition-all animate-fade-in-up ${toast.type === "error" ? "bg-red-500" : "bg-emerald-500"}`}>
+            {toast.message}
+          </div>
+        )}
+
         {/* Header */}
         <div className="relative flex items-center justify-between border-b border-purple-100 px-6 py-5 bg-white/50 backdrop-blur-md">
           <Sparkles className="absolute top-5 right-14 h-5 w-5 text-purple-300 animate-pulse" />
@@ -236,13 +276,13 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: a
           <div className="flex flex-col gap-2">
             <label className="text-sm font-bold text-gray-700 ml-1">Front (Question - LaTeX - Keep formulas between $$)</label>
             <div className="shadow-sm rounded-xl">
-              <MathToolbar target="front" />
+              <MathToolbar target="front" onInsert={insertMath} onClear={handleClear} />
               <textarea
                 ref={frontTextareaRef}
                 value={front}
                 onChange={(e) => setFront(e.target.value)}
                 className="min-h-[100px] w-full rounded-b-xl border border-purple-100 bg-white px-4 py-3 text-gray-800 font-mono text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-violet-400 transition-all resize-y"
-                placeholder="Ex: \int_{0}^{\infty} e^{-x^2} dx"
+                placeholder="Ex: $\int_{0}^{\infty} e^{-x^2} dx$"
               />
             </div>
             {front.trim() && (
@@ -264,7 +304,7 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: a
           <div className="flex flex-col gap-2">
             <label className="text-sm font-bold text-gray-700 ml-1">Back (Answer - LaTeX - Keep formulas between $$)</label>
             <div className="shadow-sm rounded-xl">
-              <MathToolbar target="back" />
+              <MathToolbar target="back" onInsert={insertMath} onClear={handleClear} />
               <textarea
                 ref={backTextareaRef}
                 value={back}
@@ -327,20 +367,117 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: a
                   </div>
 
                   {/* Functions */}
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Functions</h4>
-                      <button onClick={addFunction} className="text-xs flex items-center gap-1 text-violet-600 bg-violet-50 hover:bg-violet-100 px-2.5 py-1 rounded-full font-bold transition-colors">
+                  <div className="bg-white rounded-2xl border border-purple-100 p-4 shadow-sm">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h4 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                          Math Functions
+                        </h4>
+                        <p className="text-[10px] font-medium text-gray-500 mt-0.5">Add formulas to plot on the graph</p>
+                      </div>
+                      <button 
+                        onClick={addFunction} 
+                        className="text-xs flex items-center gap-1.5 text-white bg-violet-500 hover:bg-violet-600 px-3 py-1.5 rounded-lg font-bold transition-all shadow-sm active:scale-95"
+                      >
                         <Plus className="w-3.5 h-3.5" /> Add Expr
                       </button>
                     </div>
-                    <div className="space-y-2">
-                      {functions.length === 0 && <p className="text-xs text-gray-400 italic">No functions added.</p>}
+
+                    <div className="space-y-3">
+                      {functions.length === 0 && (
+                        <div className="text-center py-6 border border-dashed border-gray-200 rounded-xl bg-gray-50/50">
+                          <p className="text-xs text-gray-400 font-medium">No functions added yet. Click 'Add Expr' to start.</p>
+                        </div>
+                      )}
+                      
                       {functions.map((fn, idx) => (
-                        <div key={idx} className="flex gap-2 items-center">
-                          <input value={fn.expr} onChange={(e) => { const newFns = [...functions]; newFns[idx].expr = e.target.value; setFunctions(newFns); }} placeholder="e.g. x^2" className="flex-1 rounded-xl border border-purple-100 bg-gray-50 p-2.5 text-gray-800 text-sm font-mono focus:ring-2 focus:ring-violet-400 focus:outline-none transition-all" />
-                          <input type="color" value={fn.color || "#8b5cf6"} onChange={(e) => { const newFns = [...functions]; newFns[idx].color = e.target.value; setFunctions(newFns); }} className="w-10 h-10 rounded-xl cursor-pointer bg-transparent border-0 shrink-0" />
-                          <button onClick={() => setFunctions(functions.filter((_, i) => i !== idx))} className="p-2 text-gray-400 hover:bg-red-50 hover:text-red-500 rounded-xl transition-colors shrink-0"><Trash2 className="w-4 h-4" /></button>
+                        <div key={idx} className="group relative flex flex-col gap-2 p-3 rounded-xl border border-purple-50 bg-gray-50/80 hover:border-violet-200 hover:bg-white transition-all shadow-sm">
+                          <div className="flex items-start gap-3">
+                            
+                            {/* Color Picker */}
+                            <div className="flex flex-col items-center gap-1 shrink-0 mt-1">
+                              <span className="text-[10px] font-black text-violet-400">f{idx + 1}</span>
+                              <div 
+                                className="relative w-6 h-6 rounded-full overflow-hidden border border-gray-200 shadow-inner cursor-pointer"
+                                style={{ backgroundColor: fn.color || "#8b5cf6" }}
+                              >
+                                <input 
+                                  type="color" 
+                                  value={fn.color || "#8b5cf6"} 
+                                  onChange={(e) => { 
+                                    const newFns = [...functions]; 
+                                    newFns[idx].color = e.target.value; 
+                                    setFunctions(newFns); 
+                                  }} 
+                                  className="absolute -top-2 -left-2 w-10 h-10 opacity-0 cursor-pointer" 
+                                />
+                              </div>
+                            </div>
+
+                            {/* Inputs */}
+                            <div className="flex-1 space-y-2">
+                              {/* Expression Input */}
+                              <div className="flex items-center gap-2 bg-white rounded-lg border border-purple-100 p-1 focus-within:border-violet-400 focus-within:ring-1 focus-within:ring-violet-400 transition-all shadow-sm">
+                                <select
+                                  value={fn.type || 'y'}
+                                  onChange={(e) => {
+                                    const newFns = [...functions];
+                                    newFns[idx].type = e.target.value as 'y' | 'x';
+                                    setFunctions(newFns);
+                                  }}
+                                  className="pl-2 bg-transparent font-mono text-sm text-violet-600 font-bold cursor-pointer focus:outline-none hover:text-violet-700 transition-colors"
+                                >
+                                  <option value="y">f(x)=</option>
+                                  <option value="x">x=</option>
+                                </select>
+                                <input 
+                                  value={fn.expr} 
+                                  onChange={(e) => { 
+                                    const newFns = [...functions]; 
+                                    newFns[idx].expr = e.target.value; 
+                                    setFunctions(newFns); 
+                                  }} 
+                                  placeholder={fn.type === 'x' ? "1" : "x^2 + 2x - 1"} 
+                                  className="flex-1 bg-transparent p-1.5 text-gray-800 text-sm font-mono focus:outline-none" 
+                                />
+                              </div>
+                              
+                              {/* Label Input */}
+                              <div className="flex flex-col gap-2 w-full">
+                                  <input 
+                                    value={fn.latexLabel || ""} 
+                                    onChange={(e) => { 
+                                      const newFns = [...functions]; 
+                                      newFns[idx].latexLabel = e.target.value; 
+                                      setFunctions(newFns); 
+                                    }} 
+                                    placeholder="Graph label (Ex: \int 2x \, dx)" 
+                                    className="w-full rounded-lg border border-purple-100 bg-white px-3 py-2 text-xs text-gray-600 focus:border-violet-400 focus:ring-1 focus:ring-violet-400 focus:outline-none transition-all shadow-sm" 
+                                  />
+                                  
+                                  {/* Live KaTeX Preview for Label */}
+                                  {fn.latexLabel && fn.latexLabel.trim() !== "" && (
+                                    <div className="flex items-center gap-2 rounded-lg bg-violet-50/50 p-2 border border-violet-100/50 animate-fade-in-up">
+                                      <span className="text-[10px] font-bold text-violet-400 uppercase tracking-wider shrink-0">
+                                        Preview:
+                                      </span>
+                                      <div className="text-gray-800 overflow-x-auto overflow-y-hidden text-sm flex items-center">
+                                        <InlineMath math={fn.latexLabel.replace(/\$/g, '')} />
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                            </div>
+
+                            {/* Delete Button */}
+                            <button 
+                              onClick={() => setFunctions(functions.filter((_, i) => i !== idx))} 
+                              className="p-2 text-gray-400 hover:bg-red-50 hover:text-red-500 rounded-lg transition-colors shrink-0 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100"
+                              title="Remove Function"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -373,27 +510,72 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: a
                         <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Shaded Region (Integral Area)</h4>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-violet-50/50 rounded-xl border border-violet-100">
+                        
+                        {/* Lower & Upper Expr */}
                         <div className="space-y-2">
                           <label className="text-[10px] font-bold text-violet-600 uppercase">Functions (Lower & Upper)</label>
                           <input 
                             placeholder="Lower: e.g. 0" 
+                            value={shadedRegion?.between?.lowerExpr || ""}
                             className="w-full rounded-lg border border-purple-100 p-2 text-sm"
-                            onChange={(e) => setShadedRegion(prev => ({...prev, between: {...prev.between, lowerExpr: e.target.value}}))}
+                            onChange={(e) => setShadedRegion(prev => ({
+                              ...prev, 
+                              between: { ...(prev?.between || { upperExpr: "" }), lowerExpr: e.target.value },
+                              bounds: prev?.bounds || [0, 0]
+                            }))}
                           />
                           <input 
                             placeholder="Upper: e.g. x^2" 
+                            value={shadedRegion?.between?.upperExpr || ""}
                             className="w-full rounded-lg border border-purple-100 p-2 text-sm"
-                            onChange={(e) => setShadedRegion(prev => ({...prev, between: {...prev.between, upperExpr: e.target.value}}))}
+                            onChange={(e) => setShadedRegion(prev => ({
+                              ...prev, 
+                              between: { ...(prev?.between || { lowerExpr: "" }), upperExpr: e.target.value },
+                              bounds: prev?.bounds || [0, 0]
+                            }))}
                           />
                         </div>
+
+                        {/* Bounds & Color */}
                         <div className="space-y-2">
                           <label className="text-[10px] font-bold text-violet-600 uppercase">Bounds (Start X & End X)</label>
                           <div className="flex gap-2">
-                            <input type="number" placeholder="From" className="w-1/2 rounded-lg border border-purple-100 p-2 text-sm" />
-                            <input type="number" placeholder="To" className="w-1/2 rounded-lg border border-purple-100 p-2 text-sm" />
+                            <input 
+                              type="number" 
+                              placeholder="From" 
+                              value={shadedRegion?.bounds?.[0] ?? ""}
+                              className="w-1/2 rounded-lg border border-purple-100 p-2 text-sm" 
+                              onChange={(e) => setShadedRegion(prev => ({
+                                ...prev,
+                                between: prev?.between || { lowerExpr: "", upperExpr: "" },
+                                bounds: [Number(e.target.value), prev?.bounds?.[1] || 0]
+                              }))}
+                            />
+                            <input 
+                              type="number" 
+                              placeholder="To" 
+                              value={shadedRegion?.bounds?.[1] ?? ""}
+                              className="w-1/2 rounded-lg border border-purple-100 p-2 text-sm" 
+                              onChange={(e) => setShadedRegion(prev => ({
+                                ...prev,
+                                between: prev?.between || { lowerExpr: "", upperExpr: "" },
+                                bounds: [prev?.bounds?.[0] || 0, Number(e.target.value)]
+                              }))}
+                            />
                           </div>
-                          <input type="color" className="w-full h-8 rounded-lg cursor-pointer" defaultValue="#8b5cf6" />
+                          <input 
+                            type="color" 
+                            value={shadedRegion?.color || "#8b5cf6"}
+                            className="w-full h-8 rounded-lg cursor-pointer" 
+                            onChange={(e) => setShadedRegion(prev => ({
+                              ...prev,
+                              between: prev?.between || { lowerExpr: "", upperExpr: "" },
+                              bounds: prev?.bounds || [0, 0],
+                              color: e.target.value
+                            }))}
+                          />
                         </div>
+
                       </div>
                     </div>
 
@@ -447,7 +629,7 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: a
               )}
             </div>
           </div>
-        </div>
+        </div> {/* <-- ADDED MISSING CLOSING TAG HERE */}
 
         {/* Footer */}
         <div className="flex items-center justify-end gap-3 border-t border-purple-100 px-6 py-5 bg-white">
