@@ -38,11 +38,15 @@ namespace FlashDeskAPI.Controllers
             return Ok(result);
         }
 
-        [HttpGet("getUser/{email}")]
-        [Authorize(Roles = "admin")]
-        public async Task<ActionResult<GetUserDataResponse>> GetUserDataAsync(string email)
+        [HttpGet("getuser")]
+        public async Task<ActionResult<GetUserDataResponse>> GetUserDataAsync()
         {
-            var result = await userRepo.GetUserDataRepository(new GetUserDataDTO { Email = email });
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (!Guid.TryParse(userIdString, out var userId))
+                return Unauthorized(new GetUserDataResponse(false, "Invalid token claims"));
+
+            var result = await userRepo.GetUserDataRepository(new GetUserDataDTO { UserId = userId });
             return Ok(result);
         }
 

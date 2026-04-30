@@ -18,6 +18,18 @@ namespace Domain.Models
 
         public int? Elo { get; set; }
 
+        public int? MasteredCards { get; set; }
+
+        public int? TotalCards { get; set; }
+
+        public int? CompletedDecks { get; set; }
+
+        public int? TotalDecks { get; set; }
+
+        public int? WeeklyGoalMet { get; set; }
+
+        public List<List<int>>? HeatmapData { get; set; }
+
         public Streak? Streak { get; set; }
 
         public ICollection<Deck>? UserDecks { get; set; }

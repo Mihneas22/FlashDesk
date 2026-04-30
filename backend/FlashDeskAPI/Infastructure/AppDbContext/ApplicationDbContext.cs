@@ -65,6 +65,21 @@ namespace Infastructure.AppDbContext
                         v => JsonSerializer.Deserialize<ViewConfig>(v, (JsonSerializerOptions)null)
                     );
             });
+
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.Property(e => e.HeatmapData)
+                    .HasConversion(
+                        v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
+                        v => JsonSerializer.Deserialize<List<List<int>>>(v, (JsonSerializerOptions)null)
+                             ?? new List<List<int>>()
+                    )
+                    .Metadata.SetValueComparer(new Microsoft.EntityFrameworkCore.ChangeTracking.ValueComparer<List<List<int>>>(
+                        (c1, c2) => JsonSerializer.Serialize(c1, (JsonSerializerOptions)null) == JsonSerializer.Serialize(c2, (JsonSerializerOptions)null),
+                        c => c == null ? 0 : JsonSerializer.Serialize(c, (JsonSerializerOptions)null).GetHashCode(),
+                        c => JsonSerializer.Deserialize<List<List<int>>>(JsonSerializer.Serialize(c, (JsonSerializerOptions)null), (JsonSerializerOptions)null)!
+                    ));
+            });
         }
 
         public DbSet<User> UserEntity { get; set; }

@@ -3,17 +3,16 @@
 import { use, useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Link from "next/link";
 import { 
-  ArrowLeft, RotateCcw, Check, ArrowRight, Trophy, 
+  ArrowLeft, RotateCcw, ArrowRight, Trophy, 
   Brain, Sparkles, AlertCircle, CheckCircle, X, 
   LineChart as LineChartIcon, Activity,
-  ZoomIn, ZoomOut, Maximize
+  ZoomIn, ZoomOut, Maximize, Smile, Meh, Frown
 } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { FlashcardView } from "@/components/flashcard-view";
 import { useStore } from "@/lib/store";
-import type { Flashcard } from "@/lib/store";
+import { jwtDecode } from "jwt-decode";
 
-// CHART IMPORTS
 import { evaluate } from 'mathjs';
 import { 
   XAxis, YAxis, CartesianGrid, ReferenceLine, ReferenceDot,
@@ -28,6 +27,9 @@ export default function StudyPage({ params }: PageProps) {
   const { id } = use(params);
   const { decks } = useStore();
   
+  const [mounted, setMounted] = useState(false);
+
+  const [userId, setUserID] = useState("");
   const [localDeck, setLocalDeck] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [cards, setCards] = useState<any[]>([]);
@@ -38,24 +40,50 @@ export default function StudyPage({ params }: PageProps) {
   const [showPlotter, setShowPlotter] = useState(false);
   const [toast, setToast] = useState({ show: false, message: "", type: "error" });
 
-  // --- ZOOM & PAN STATE ---
+  const [cardFeedback, setCardFeedback] = useState<{ cardId: string, difficulty: 'hard' | 'medium' | 'easy' }[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [domainX, setDomainX] = useState<[number, number]>([-10, 10]);
   const [domainY, setDomainY] = useState<[number, number]>([-10, 10]);
   
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const [isPanning, setIsPanning] = useState(false);
-  
-  // Am inlocuit useState cu useRef pentru o actualizare sincrona, fara lag
   const lastPanRef = useRef<{ x: number, y: number } | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const showToast = useCallback((message: string, type: "error" | "success" = "error") => {
     setToast({ show: true, message, type });
     setTimeout(() => setToast(prev => ({ ...prev, show: false })), 5000);
   }, []);
 
-  const fetchDeckData = useCallback(async () => {
+  useEffect(() => {
+    if (!mounted) return;
+
     const token = localStorage.getItem("token");
-    setIsLoggedIn(!!token);
+    if (token) {
+      try {
+        const decoded: any = jwtDecode(token);
+        const extractedId = decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] || decoded.sub || decoded.nameid;
+
+        if (extractedId) {
+          setIsLoggedIn(true);
+          setUserID(extractedId);
+        }
+      } catch (error) {
+        console.error("Token invalid:", error);
+        setIsLoggedIn(false);
+      }
+    } else {
+      setIsLoggedIn(false);
+    }
+  }, [mounted]);
+
+  const fetchDeckData = useCallback(async () => {
+    if (!mounted) return;
+    const token = localStorage.getItem("token");
 
     try {
       setLoading(true);
@@ -96,11 +124,13 @@ export default function StudyPage({ params }: PageProps) {
     } finally {
       setLoading(false);
     }
-  }, [id, showToast]);
+  }, [id, mounted, showToast]);
 
   useEffect(() => {
-    fetchDeckData();
-  }, [fetchDeckData]);
+    if (mounted) {
+      fetchDeckData();
+    }
+  }, [fetchDeckData, mounted]);
 
   useEffect(() => {
     setShowPlotter(false);
@@ -143,7 +173,6 @@ export default function StudyPage({ params }: PageProps) {
   // --- PAN HANDLERS ---
   const handleMouseDown = (e: React.MouseEvent) => {
     setIsPanning(true);
-    // Salvam pozitia initiala imediat in ref
     lastPanRef.current = { x: e.clientX, y: e.clientY };
   };
 
@@ -157,21 +186,18 @@ export default function StudyPage({ params }: PageProps) {
     const width = rect.width;
     const height = rect.height;
 
-    // Actualizam axa X calculand diferenta direct din state-ul garantat de React
     setDomainX(prev => {
-      const spanX = prev[1] - prev[0]; // Scara ramane mereu constanta
+      const spanX = prev[1] - prev[0];
       const shiftX = (dx / width) * spanX;
       return [prev[0] - shiftX, prev[1] - shiftX];
     });
 
-    // Actualizam axa Y
     setDomainY(prev => {
-      const spanY = prev[1] - prev[0]; // Scara ramane mereu constanta
+      const spanY = prev[1] - prev[0];
       const shiftY = (dy / height) * spanY;
       return [prev[0] + shiftY, prev[1] + shiftY];
     });
     
-    // Actualizam referinta sincron pentru urmatorul eveniment de miscare
     lastPanRef.current = { x: e.clientX, y: e.clientY };
   };
 
@@ -216,6 +242,62 @@ export default function StudyPage({ params }: PageProps) {
     };
   }, [cards, currentIndex, domainX, domainY]);
 
+  // 3. Stabilizăm submitSessionResults cu useCallback
+  const submitSessionResults = useCallback(async (finalFeedback: typeof cardFeedback) => {
+    setIsSubmitting(true);
+    const token = localStorage.getItem("token");
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/deck/deck-submission`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          deckId: id,
+          sessionResults: finalFeedback
+        })
+      });
+
+      if (!response.ok) {
+        console.error("Submission failed");
+        showToast("Session finished, but failed to save results online.", "error");
+      } else {
+        showToast("Session results saved successfully!", "success");
+      }
+    } catch (error) {
+      console.error("Network error during submission:", error);
+      showToast("Network error. Results couldn't be saved.", "error");
+    } finally {
+      setIsSubmitting(false);
+      setSessionDone(true);
+    }
+  }, [id, userId, showToast]);
+
+  const handleFeedback = async (difficulty: 'hard' | 'medium' | 'easy') => {
+    const currentCard = cards[currentIndex];
+    const newFeedback = { cardId: currentCard.id, difficulty };
+    const updatedFeedback = [...cardFeedback, newFeedback];
+    
+    setCardFeedback(updatedFeedback);
+
+    if (currentIndex + 1 >= cards.length) {
+      await submitSessionResults(updatedFeedback);
+    } else {
+      setCurrentIndex((i) => i + 1);
+    }
+  };
+
+  function handleRestart() {
+    setCurrentIndex(0);
+    setSessionDone(false);
+    setCardFeedback([]);
+  }
+
+  if (!mounted) {
+    return <div className="min-h-screen bg-[#0a0a0a]" />;
+  }
 
   if (loading) {
     return (
@@ -263,21 +345,7 @@ export default function StudyPage({ params }: PageProps) {
   const totalCards = cards.length;
   const progress = ((currentIndex + 1) / totalCards) * 100;
   const currentCard = cards[currentIndex];
-  
   const hasViewConfig = !!currentCard?.viewConfig;
-
-  function handleNext() {
-    if (currentIndex + 1 >= totalCards) {
-      setSessionDone(true);
-    } else {
-      setCurrentIndex((i) => i + 1);
-    }
-  }
-
-  function handleRestart() {
-    setCurrentIndex(0);
-    setSessionDone(false);
-  }
 
   if (sessionDone) {
     return (
@@ -466,18 +534,39 @@ export default function StudyPage({ params }: PageProps) {
           </div>
         )}
 
-        <div className="mt-12 flex justify-center w-full">
-          <button
-            onClick={handleNext}
-            className="group flex items-center gap-3 rounded-2xl bg-gradient-to-r from-violet-600 via-purple-600 to-pink-600 px-10 py-4 text-lg font-bold text-white shadow-xl hover:shadow-2xl hover:-translate-y-1 active:translate-y-0 transition-all"
-          >
-            {currentIndex + 1 === totalCards ? "Finish Session" : "Next Card"}
-            {currentIndex + 1 === totalCards ? (
-              <Check className="h-5 w-5 group-hover:scale-110 transition-transform" />
-            ) : (
-              <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-            )}
-          </button>
+        {/* FEEDBACK BUTTONS SECTION */}
+        <div className="mt-12 flex flex-col items-center w-full animate-slide-up">
+          <p className="text-gray-400 font-medium mb-4 text-sm tracking-wide uppercase">How did you find this card?</p>
+          <div className="flex flex-col sm:flex-row justify-center w-full max-w-lg gap-3">
+            
+            <button
+              onClick={() => handleFeedback('hard')}
+              disabled={isSubmitting}
+              className="flex-1 flex flex-col items-center gap-2 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-4 text-red-400 hover:bg-red-500/20 hover:border-red-500/40 hover:-translate-y-1 active:translate-y-0 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Frown className="h-6 w-6" />
+              <span className="font-bold">Hard</span>
+            </button>
+            
+            <button
+              onClick={() => handleFeedback('medium')}
+              disabled={isSubmitting}
+              className="flex-1 flex flex-col items-center gap-2 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-4 text-amber-400 hover:bg-amber-500/20 hover:border-amber-500/40 hover:-translate-y-1 active:translate-y-0 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Meh className="h-6 w-6" />
+              <span className="font-bold">Medium</span>
+            </button>
+
+            <button
+              onClick={() => handleFeedback('easy')}
+              disabled={isSubmitting}
+              className="flex-1 flex flex-col items-center gap-2 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-4 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-500/40 hover:-translate-y-1 active:translate-y-0 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Smile className="h-6 w-6" />
+              <span className="font-bold">Easy</span>
+            </button>
+            
+          </div>
         </div>
       </main>
 

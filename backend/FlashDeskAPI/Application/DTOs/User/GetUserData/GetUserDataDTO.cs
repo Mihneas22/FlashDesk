@@ -8,6 +8,6 @@ namespace Application.DTOs.User.GetUserData
     public class GetUserDataDTO
     {
         [Required]
-        public string Email { get; set; } = string.Empty;
+        public Guid UserId { get; set; } = Guid.Empty;
     }
 }

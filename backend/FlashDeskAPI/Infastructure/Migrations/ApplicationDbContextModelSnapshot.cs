@@ -204,6 +204,9 @@ namespace Infastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<int?>("CompletedDecks")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -213,14 +216,29 @@ namespace Infastructure.Migrations
                     b.Property<string>("Email")
                         .HasColumnType("text");
 
+                    b.Property<string>("HeatmapData")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("MasteredCards")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Password")
                         .HasColumnType("text");
 
                     b.PrimitiveCollection<string[]>("Roles")
                         .HasColumnType("text[]");
 
+                    b.Property<int?>("TotalCards")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("TotalDecks")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Username")
                         .HasColumnType("text");
+
+                    b.Property<int?>("WeeklyGoalMet")
+                        .HasColumnType("integer");
 
                     b.HasKey("UserId");
 

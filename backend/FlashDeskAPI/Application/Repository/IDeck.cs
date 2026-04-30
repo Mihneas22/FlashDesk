@@ -1,4 +1,5 @@
-﻿using Application.DTOs.Deck.CreateDeck;
+﻿using Application.DTOs.Deck.AddDeckSubmission;
+using Application.DTOs.Deck.CreateDeck;
 using Application.DTOs.Deck.DeleteDeck;
 using Application.DTOs.Deck.EditDeck;
 using Application.DTOs.Deck.GetAllDecks;
@@ -30,6 +31,8 @@ namespace Application.Repository
 
         Task<GetDeckByNameResponse> GetDeckByNameRepository(GetDeckByNameDTO getDeckByNameDTO);
 
+        Task<AddDeckSumbissionResponse> AddDeckSumbissionRepository(AddDeckSubmissionDTO addDeckSubmissionDTO);
+        
         //AI
         Task<string> GenerateFlashCardsPdf(byte[] pdfBytes);
     }

@@ -1,4 +1,5 @@
-﻿using Application.DTOs.Deck.CreateDeck;
+﻿using Application.DTOs.Deck.AddDeckSubmission;
+using Application.DTOs.Deck.CreateDeck;
 using Application.DTOs.Deck.DeleteDeck;
 using Application.DTOs.Deck.EditDeck;
 using Application.DTOs.Deck.GetAllDecks;
@@ -26,6 +27,76 @@ namespace Infastructure.Repository
         public DeckRepository(ApplicationDbContext dbContext)
         {
             this.dbContext = dbContext;
+        }
+
+        public async Task<AddDeckSumbissionResponse> AddDeckSumbissionRepository(AddDeckSubmissionDTO addDeckSubmissionDTO)
+        {
+            var user = await dbContext.UserEntity
+                .Include(u => u.Streak)
+                .FirstOrDefaultAsync(u => u.UserId == addDeckSubmissionDTO.UserId);
+
+            if (user == null) return new AddDeckSumbissionResponse(false, "User not found");
+
+            int cardsInSession = addDeckSubmissionDTO.SessionResults.Count;
+            int easyCards = addDeckSubmissionDTO.SessionResults.Count(r => r.Difficulty.ToString().ToLower() == "easy");
+
+            user.TotalCards = (user.TotalCards ?? 0) + cardsInSession;
+            user.MasteredCards = (user.MasteredCards ?? 0) + easyCards;
+            user.CompletedDecks = (user.CompletedDecks ?? 0) + 1;
+
+            UpdateUserHeatmap(user);
+            UpdateUserStreak(user);
+
+            try
+            {
+                await dbContext.SaveChangesAsync();
+                return new AddDeckSumbissionResponse(true, "Session saved and stats updated");
+            }
+            catch (Exception ex)
+            {
+                return new AddDeckSumbissionResponse(false, ex.Message);
+            }
+        }
+
+        private void UpdateUserHeatmap(User user)
+        {
+            if (user.HeatmapData == null) user.HeatmapData = new List<List<int>>();
+
+            var today = DateTime.UtcNow;
+            int dayOfWeek = (int)today.DayOfWeek;
+
+            if (user.HeatmapData.Count == 0)
+            {
+                for (int i = 0; i < 53; i++) user.HeatmapData.Add(new List<int>(new int[7]));
+            }
+
+            int weekIndex = today.DayOfYear / 7;
+            if (weekIndex >= 53) weekIndex = 52;
+
+            user.HeatmapData[weekIndex][dayOfWeek]++;
+        }
+
+        private void UpdateUserStreak(User user)
+        {
+            if (user.Streak == null)
+            {
+                user.Streak = new Streak { CurrentStreak = 1, LastActivityDate = DateTime.UtcNow };
+            }
+            else
+            {
+                var lastActive = user.Streak.LastActivityDate?.Date;
+                var today = DateTime.UtcNow.Date;
+
+                if (lastActive == today.AddDays(-1))
+                {
+                    user.Streak.CurrentStreak++;
+                }
+                else if (lastActive != today)
+                {
+                    user.Streak.CurrentStreak = 1;
+                }
+                user.Streak.LastActivityDate = DateTime.UtcNow;
+            }
         }
 
         public async Task<CreateDeckResponse> CreateDeckRepository(CreateDeckDTO createDeckDTO)
@@ -209,13 +280,15 @@ namespace Infastructure.Repository
             if (getDeckByNameDTO == null)
                 return new GetDeckByNameResponse(false, "Invalid DTO");
 
-            var deck = await dbContext.DeckEntity
+            var decks = await dbContext.DeckEntity
                 .AsNoTracking()
-                .FirstOrDefaultAsync(dc => dc.Title == getDeckByNameDTO.Name);
-            if(deck == null)
-                return new GetDeckByNameResponse(false, "Deck not found");
-            else
-                return new GetDeckByNameResponse(true, "Deck found",deck);
+                .Where(dc => dc.Title!.Contains(getDeckByNameDTO.Name))
+                .ToListAsync();
+
+            if (decks.Count == 0)
+                return new GetDeckByNameResponse(false, "No decks found");
+
+            return new GetDeckByNameResponse(true, $"Found {decks.Count} decks", decks);
         }
 
         public async Task<GetDecksResponse> GetDecksRepository(GetDecksDTO getDecksDTO)

@@ -517,7 +517,7 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: C
                           <input 
                             placeholder="Lower: e.g. 0" 
                             value={shadedRegion?.between?.lowerExpr || ""}
-                            className="w-full rounded-lg border border-purple-100 p-2 text-sm"
+                            className="w-full rounded-lg border border-purple-100 p-2 text-sm text-gray-400"
                             onChange={(e) => setShadedRegion(prev => ({
                               ...prev, 
                               between: { ...(prev?.between || { upperExpr: "" }), lowerExpr: e.target.value },
@@ -527,7 +527,7 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: C
                           <input 
                             placeholder="Upper: e.g. x^2" 
                             value={shadedRegion?.between?.upperExpr || ""}
-                            className="w-full rounded-lg border border-purple-100 p-2 text-sm"
+                            className="w-full rounded-lg border border-purple-100 p-2 text-sm text-gray-400"
                             onChange={(e) => setShadedRegion(prev => ({
                               ...prev, 
                               between: { ...(prev?.between || { lowerExpr: "" }), upperExpr: e.target.value },
@@ -544,7 +544,7 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: C
                               type="number" 
                               placeholder="From" 
                               value={shadedRegion?.bounds?.[0] ?? ""}
-                              className="w-1/2 rounded-lg border border-purple-100 p-2 text-sm" 
+                              className="w-1/2 rounded-lg border border-purple-100 p-2 text-sm text-gray-400" 
                               onChange={(e) => setShadedRegion(prev => ({
                                 ...prev,
                                 between: prev?.between || { lowerExpr: "", upperExpr: "" },
@@ -555,7 +555,7 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: C
                               type="number" 
                               placeholder="To" 
                               value={shadedRegion?.bounds?.[1] ?? ""}
-                              className="w-1/2 rounded-lg border border-purple-100 p-2 text-sm" 
+                              className="w-1/2 rounded-lg border border-purple-100 p-2 text-sm text-gray-400" 
                               onChange={(e) => setShadedRegion(prev => ({
                                 ...prev,
                                 between: prev?.between || { lowerExpr: "", upperExpr: "" },

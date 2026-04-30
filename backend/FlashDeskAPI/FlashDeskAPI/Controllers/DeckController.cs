@@ -1,4 +1,5 @@
-﻿using Application.DTOs.Deck.CreateDeck;
+﻿using Application.DTOs.Deck.AddDeckSubmission;
+using Application.DTOs.Deck.CreateDeck;
 using Application.DTOs.Deck.DeleteDeck;
 using Application.DTOs.Deck.EditDeck;
 using Application.DTOs.Deck.GetAllDecks;
@@ -103,7 +104,6 @@ namespace FlashDeskAPI.Controllers
         }
 
         [HttpGet("getDecksByName/{name}")]
-        [Authorize(Roles = "admin")]
         public async Task<ActionResult<GetDeckByNameResponse>> GetDeckByNameAsync(string name)
         {
             var result = await deckRepo.GetDeckByNameRepository(new GetDeckByNameDTO { Name = name });
@@ -130,6 +130,21 @@ namespace FlashDeskAPI.Controllers
             var flashcardsJson = await deckRepo.GenerateFlashCardsPdf(fileBytes);
 
             return Ok(flashcardsJson);
+        }
+
+        [HttpPost("deck-submission")]
+        public async Task<ActionResult<AddDeckSumbissionResponse>> AddDeckSumbissionAsync(AddDeckSubmissionDTO addDeckSubmissionDTO)
+        {
+            if (!ModelState.IsValid) 
+                return BadRequest(ModelState);
+
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdString)) return Unauthorized();
+
+            addDeckSubmissionDTO.UserId = Guid.Parse(userIdString);
+
+            var result = await deckRepo.AddDeckSumbissionRepository(addDeckSubmissionDTO);
+            return Ok();
         }
     }
 }

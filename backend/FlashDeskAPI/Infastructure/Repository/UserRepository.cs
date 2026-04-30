@@ -86,11 +86,21 @@ namespace Infastructure.Repository
             bool userExists = await dbContext.UserEntity!
                 .AnyAsync(u => u.Email == registerUserDTO.Email || u.Username == registerUserDTO.Username);
 
+            var emptyHeatmap = Enumerable.Range(0, 15)
+                .Select(_ => Enumerable.Repeat(0, 7).ToList())
+                .ToList();
+
             dbContext.UserEntity!.Add(new User
             {
                 Username = registerUserDTO.Username,
                 Email = registerUserDTO.Email,
                 Elo = 0,
+                MasteredCards = 0,
+                TotalCards = 0,
+                CompletedDecks = 0,
+                TotalDecks = 0,
+                WeeklyGoalMet = 0,
+                HeatmapData = emptyHeatmap,
                 Password = BCrypt.Net.BCrypt.HashPassword(registerUserDTO.Password),
                 UserDecks = new List<Deck>(),
                 Roles = new List<string> { "user" },
@@ -109,15 +119,23 @@ namespace Infastructure.Repository
 
             var user = await dbContext.UserEntity
                 .AsNoTracking()
-                .Where(us => us.Email == getUserDataDTO.Email)
-                .Select(us => new
+                .Where(us => us.UserId == getUserDataDTO.UserId)
+                .Select(us => new User
                 {
-                    us.UserId,
-                    us.Username,
-                    us.Email,
-                    us.Elo,
-                    us.Roles,
-                    us.CreatedAt
+                    UserId = us.UserId,
+                    Username = us.Username,
+                    Email = us.Email,
+                    Elo = us.Elo,
+                    MasteredCards = us.MasteredCards,
+                    TotalCards = us.TotalCards,
+                    CompletedDecks = us.CompletedDecks,
+                    TotalDecks = us.TotalDecks,
+                    WeeklyGoalMet = us.WeeklyGoalMet,
+                    HeatmapData = us.HeatmapData,
+                    Roles = us.Roles,
+                    CreatedAt = us.CreatedAt,
+                    Streak = us.Streak,
+                    UserDecks = us.UserDecks
                 })
                 .FirstOrDefaultAsync();
 

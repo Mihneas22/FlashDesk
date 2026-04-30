@@ -2,6 +2,35 @@
 
 import { useState, useCallback, useEffect } from "react";
 
+export interface User {
+  userId: string;
+  username: string | null;
+  email: string | null;
+  elo: number | null;
+  createdAt: string | null;
+  roles: string[] | null;
+  masteredCards: number | null;
+  totalCards: number | null;
+  completedDecks: number | null;
+  totalDecks: number | null;
+  weeklyGoalMet: number | null;
+  heatmapData: number[][] | null;
+  
+  streak?: Streak | null;
+  userDecks?: Deck[] | null;
+  userSubmissions?:  null;
+}
+
+export interface Streak {
+  streakId: string;
+  currentStreak: number;
+  maxStreak: number;
+  lastActivity: string;
+  lastActivityDate: string;
+  userId: string;
+  user: User;
+}
+
 export interface Flashcard {
   id: string;
   front: string;

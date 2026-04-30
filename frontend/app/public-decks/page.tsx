@@ -37,6 +37,40 @@ export default function PublicDecksPage() {
     setTimeout(() => setToast(prev => ({ ...prev, show: false })), 5000);
   }, []);
 
+  const fetchSearchDeck = useCallback(async () =>{
+      const query = search.trim();
+      try {
+        setLoading(true);
+        const res = await fetch(`http://localhost:5000/api/deck/getDecksByName/${encodeURIComponent(query)}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem("token")}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.flag) {
+          const rawData = data.deck ? [data.deck] : (data.decks || []);
+          
+          const mapped = rawData.map((d: any) => ({
+            ...d,
+            id: d.id || d.deckId,
+            cards: d.deckCards || d.cards || []
+          }));
+
+          setPublicDecks(mapped);
+        } else {
+          setPublicDecks([]);
+        }
+      } catch (error) {
+        console.error("Failed to fetch decks:", error);
+        showToast("Network error. Please check your connection.", "error");
+      } finally {
+        setLoading(false);
+      }
+  }, [search])
+
   const fetchPublicDecks = useCallback(async (filterText: string) => {
     const safeFilter = filterText === "All Topics" ? "all" : encodeURIComponent(filterText);
     
@@ -62,7 +96,7 @@ export default function PublicDecksPage() {
           setPublicDecks(mappedDecks); 
         }
       } else {
-        console.error("Eroare de la server:", response.statusText);
+        console.error(" from the server.:", response.statusText);
         setPublicDecks([]);
         showToast("Failed to load decks from the server.", "error");
       }
@@ -79,26 +113,27 @@ export default function PublicDecksPage() {
     const token = localStorage.getItem("token");
     if (token) {
       try {
-        const decoded: any = jwtDecode(token);
-        const extractedId = decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] || decoded.sub || decoded.nameid;
-
-        if (extractedId) {
-          setIsLoggedIn(true);
-        }
-      } catch (error) {
-        console.error("Token invalid:", error);
-        setIsLoggedIn(false);
-      }
-    } else {
-      setIsLoggedIn(false);
+        const decoded = jwtDecode(token);
+        if (decoded) setIsLoggedIn(true);
+      } catch (e) { setIsLoggedIn(false); }
     }
-    fetchPublicDecks(selectedTopic);
-  }, [fetchPublicDecks, selectedTopic]);
+  }, []);
 
-  const filtered = publicDecks.filter(
-    (d) => 
-      d.title?.toLowerCase().includes(search.toLowerCase()) || 
-      d.description?.toLowerCase().includes(search.toLowerCase())
+  useEffect(() => {
+    if (!search.trim()) {
+      fetchPublicDecks(selectedTopic);
+      return;
+    }
+
+    const delayDebounceFn = setTimeout(() => {
+      fetchSearchDeck();
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [search, selectedTopic, fetchSearchDeck, fetchPublicDecks]);
+
+  const displayDecks = search.trim() ? publicDecks : publicDecks.filter(d => 
+    selectedTopic === "All Topics" || d.topic === selectedTopic
   );
 
   const totalCards = publicDecks.reduce((acc, d) => acc + d.cards.length, 0);
@@ -195,9 +230,9 @@ export default function PublicDecksPage() {
             </div>
             <p className="mt-6 text-lg font-semibold text-gray-400">Loading public decks...</p>
           </div>
-        ) : filtered.length > 0 ? (
+        ) : displayDecks.length > 0 ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 animate-fade-in-up">
-            {filtered.map((deckList, index) => (
+            {displayDecks.map((deckList, index) => (
               <div
                 key={deckList.id}
                 style={{ animationDelay: `${index * 75}ms` }}
