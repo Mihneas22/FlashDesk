@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Domain.Models.Graphs;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
@@ -32,5 +33,8 @@ namespace Application.DTOs.Deck.CreateDeck
         public string Question { get; set; } = string.Empty;
         public string Answer { get; set; } = string.Empty;
         public List<string> Tips { get; set; } = new List<string>();
+
+        [JsonPropertyName("graphConfig")]
+        public ViewConfig? GraphConfig { get; set; }
     }
 }

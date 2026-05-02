@@ -50,7 +50,7 @@ export default function LoginPage() {
       if (data.flag) { 
         localStorage.setItem("token", data.token);
         showToast("Login successful!", "success");
-        router.push("/");
+        router.push("/dashboard");
         router.refresh();
       } else {
         setError(data.message);

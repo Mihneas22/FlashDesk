@@ -82,10 +82,12 @@ export function Navbar({ isLoggedIn }: { isLoggedIn?: boolean }) {
           {isLoggedIn ? (
             <div className="flex items-center gap-3">
               {username && (
-                <div className="flex items-center gap-2 text-gray-300 bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
-                  <User className="h-3.5 w-3.5 text-purple-400" />
-                  <span className="text-xs font-bold uppercase tracking-wider">{username}</span>
-                </div>
+                <NavLink href="/user" active={pathname === "/user"}>
+                  <div className="flex items-center gap-2 text-gray-300 bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
+                    <User className="h-3.5 w-3.5 text-purple-400" />
+                    <span className="text-xs font-bold uppercase tracking-wider">{username}</span>
+                  </div>
+                </NavLink>
               )}
               <Button 
                 variant="ghost" 

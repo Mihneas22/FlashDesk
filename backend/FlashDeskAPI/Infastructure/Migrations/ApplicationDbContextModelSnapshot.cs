@@ -204,9 +204,6 @@ namespace Infastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<int?>("CompletedDecks")
-                        .HasColumnType("integer");
-
                     b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -216,33 +213,112 @@ namespace Infastructure.Migrations
                     b.Property<string>("Email")
                         .HasColumnType("text");
 
-                    b.Property<string>("HeatmapData")
-                        .HasColumnType("text");
-
-                    b.Property<int?>("MasteredCards")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Password")
                         .HasColumnType("text");
 
                     b.PrimitiveCollection<string[]>("Roles")
                         .HasColumnType("text[]");
 
-                    b.Property<int?>("TotalCards")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("TotalDecks")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Username")
                         .HasColumnType("text");
-
-                    b.Property<int?>("WeeklyGoalMet")
-                        .HasColumnType("integer");
 
                     b.HasKey("UserId");
 
                     b.ToTable("UserEntity");
+                });
+
+            modelBuilder.Entity("Domain.Models.UserStats.CardReview", b =>
+                {
+                    b.Property<Guid>("CardReviewId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CardId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Rating")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("ReviewAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("TimeSpent")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("CardReviewId");
+
+                    b.HasIndex("CardId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("CardReviewEntity");
+                });
+
+            modelBuilder.Entity("Domain.Models.UserStats.DailyStats", b =>
+                {
+                    b.Property<Guid>("DailyStatsId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("CardsMastered")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("CardsReview")
+                        .HasColumnType("integer");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<int?>("MinSpent")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("DailyStatsId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("DailyStatsEntity");
+                });
+
+            modelBuilder.Entity("Domain.Models.UserStats.UserCardState", b =>
+                {
+                    b.Property<Guid>("UserCardStateId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CardId")
+                        .HasColumnType("uuid");
+
+                    b.Property<float?>("EaseFactor")
+                        .HasColumnType("real");
+
+                    b.Property<float?>("IntervalDays")
+                        .HasColumnType("real");
+
+                    b.Property<string>("MasteryLevel")
+                        .HasColumnType("text");
+
+                    b.Property<DateOnly?>("NextReview")
+                        .HasColumnType("date");
+
+                    b.Property<int>("ReviewCount")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("UserCardStateId");
+
+                    b.HasIndex("CardId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserCardStateEntity");
                 });
 
             modelBuilder.Entity("Domain.Models.Card", b =>
@@ -307,6 +383,62 @@ namespace Infastructure.Migrations
                     b.Navigation("Subm_User");
                 });
 
+            modelBuilder.Entity("Domain.Models.UserStats.CardReview", b =>
+                {
+                    b.HasOne("Domain.Models.Card", "Card")
+                        .WithMany("CardReviews")
+                        .HasForeignKey("CardId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Models.User", "User")
+                        .WithMany("UserCardReviews")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Card");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Domain.Models.UserStats.DailyStats", b =>
+                {
+                    b.HasOne("Domain.Models.User", "User")
+                        .WithMany("UserDailyStats")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Domain.Models.UserStats.UserCardState", b =>
+                {
+                    b.HasOne("Domain.Models.Card", "Card")
+                        .WithMany("UserCardStates")
+                        .HasForeignKey("CardId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Models.User", "User")
+                        .WithMany("UserCardStates")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Card");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Domain.Models.Card", b =>
+                {
+                    b.Navigation("CardReviews");
+
+                    b.Navigation("UserCardStates");
+                });
+
             modelBuilder.Entity("Domain.Models.Deck", b =>
                 {
                     b.Navigation("DeckCards");
@@ -322,6 +454,12 @@ namespace Infastructure.Migrations
             modelBuilder.Entity("Domain.Models.User", b =>
                 {
                     b.Navigation("Streak");
+
+                    b.Navigation("UserCardReviews");
+
+                    b.Navigation("UserCardStates");
+
+                    b.Navigation("UserDailyStats");
 
                     b.Navigation("UserDecks");
 

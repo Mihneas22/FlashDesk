@@ -9,16 +9,19 @@ export interface User {
   elo: number | null;
   createdAt: string | null;
   roles: string[] | null;
-  masteredCards: number | null;
-  totalCards: number | null;
-  completedDecks: number | null;
-  totalDecks: number | null;
-  weeklyGoalMet: number | null;
-  heatmapData: number[][] | null;
   
   streak?: Streak | null;
   userDecks?: Deck[] | null;
-  userSubmissions?:  null;
+  userSubmissions?: any[] | null;
+  userDailyStats?: DailyStats[] | null;
+}
+
+export interface DailyStats {
+  dailyStatsId?: string;
+  date: string;
+  cardsReview: number;
+  cardsMastered: number;
+  minSpent: number;
 }
 
 export interface Streak {

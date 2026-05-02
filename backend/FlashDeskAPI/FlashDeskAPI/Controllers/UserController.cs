@@ -1,8 +1,10 @@
 ﻿using Application.DTOs.Deck.CreateDeck;
 using Application.DTOs.User.GetUserData;
+using Application.DTOs.User.Heatmap;
 using Application.DTOs.User.LoginUser;
 using Application.DTOs.User.RegisterUser;
 using Application.DTOs.User.Streak.ModifyStreak;
+using Application.DTOs.User.UserStats;
 using Application.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -58,6 +60,28 @@ namespace FlashDeskAPI.Controllers
 
             modifyStreakDTO.UserId = Guid.Parse(userIdString);
             var result = await userRepo.ModifyStreakRepository(modifyStreakDTO);
+            return Ok(result);
+        }
+
+        [HttpGet("heatmap")]
+        public async Task<ActionResult<GetUserHeatmapResponse>> GetUserHeatmapAsync()
+        {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdString)) return Unauthorized();
+
+            var userId = Guid.Parse(userIdString);
+            var result = await userRepo.GetUserHeatmapAsync(new GetUserHeatmapDTO { UserId = userId });
+            return Ok(result);
+        }
+
+        [HttpGet("user-stats")]
+        public async Task<ActionResult<GetUserStatsResponse>> GetUserStatsAsync()
+        {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdString)) return Unauthorized();
+
+            var userId = Guid.Parse(userIdString);
+            var result = await userRepo.GetUserStatsAsync(new GetUserStatsDTO { UserId = userId });
             return Ok(result);
         }
     }

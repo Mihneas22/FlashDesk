@@ -40,7 +40,13 @@ export default function StudyPage({ params }: PageProps) {
   const [showPlotter, setShowPlotter] = useState(false);
   const [toast, setToast] = useState({ show: false, message: "", type: "error" });
 
-  const [cardFeedback, setCardFeedback] = useState<{ cardId: string, difficulty: 'hard' | 'medium' | 'easy' }[]>([]);
+  const [cardFeedback, setCardFeedback] = useState<{ 
+      cardId: string; 
+      rating: string; 
+      timeSpent: number; 
+      reviewAt: string;
+    }[]>([]);
+  const cardStartTimeRef = useRef<number>(Date.now())
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [domainX, setDomainX] = useState<[number, number]>([-10, 10]);
@@ -134,7 +140,8 @@ export default function StudyPage({ params }: PageProps) {
 
   useEffect(() => {
     setShowPlotter(false);
-  }, [currentIndex]);
+    cardStartTimeRef.current = Date.now();
+  }, [currentIndex])
 
   useEffect(() => {
     if (showPlotter && cards[currentIndex]?.viewConfig) {
@@ -256,7 +263,7 @@ export default function StudyPage({ params }: PageProps) {
         },
         body: JSON.stringify({
           deckId: id,
-          sessionResults: finalFeedback
+          reviews: finalFeedback
         })
       });
 
@@ -276,10 +283,19 @@ export default function StudyPage({ params }: PageProps) {
   }, [id, userId, showToast]);
 
   const handleFeedback = async (difficulty: 'hard' | 'medium' | 'easy') => {
-    const currentCard = cards[currentIndex];
-    const newFeedback = { cardId: currentCard.id, difficulty };
-    const updatedFeedback = [...cardFeedback, newFeedback];
+  const currentCard = cards[currentIndex];
+  
+  // Calculează timpul petrecut în secunde
+  const timeSpentInSeconds = Math.floor((Date.now() - cardStartTimeRef.current) / 1000);
+
+  const newFeedback = { 
+      cardId: currentCard.id, 
+      rating: difficulty, // Se mapează pe C# CardReview.Rating
+      timeSpent: timeSpentInSeconds, // Se mapează pe C# CardReview.TimeSpent
+      reviewAt: new Date().toISOString() // Se mapează pe C# CardReview.ReviewAt
+    };
     
+    const updatedFeedback = [...cardFeedback, newFeedback];
     setCardFeedback(updatedFeedback);
 
     if (currentIndex + 1 >= cards.length) {

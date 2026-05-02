@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import {
-  Flame, Trophy, Zap, BookOpen, Star, Target, TrendingUp,
-  Clock, Award, ChevronRight, BarChart2, Grid, Activity,
+  Trophy, Zap, BookOpen, Star, Target, TrendingUp,
+  Clock, Award, ChevronRight, Activity,
   CheckCircle, Brain, Layers, Calendar, Sparkles,
 } from "lucide-react";
 import { jwtDecode } from "jwt-decode";
 import { User } from '../../lib/store';
+import { StudyHeatmap } from "../../components/heatmap";
 
 // ─── MOCK DATA ────────────────────────────────────────────────────────────────
 const USER = {
@@ -70,30 +71,6 @@ const INSIGHTS = [
   { icon: <TrendingUp className="w-5 h-5" />,  label: "Weekly growth",   val: "+12%",              sub: "vs last week",             grad: "from-pink-500 to-rose-600",    delay: 240 },
 ];
 
-// ─── Heatmap data (15 weeks × 7 days) ────────────────────────────────────────
-const HEAT_LEVELS = [
-  "bg-gray-800/60",
-  "bg-violet-900/70",
-  "bg-violet-700/70",
-  "bg-violet-500/80",
-  "bg-violet-400 shadow-sm shadow-violet-400/40",
-];
-const MONTHS = ["Sep","Sep","Sep","Oct","Oct","Oct","Oct","Nov","Nov","Nov","Dec","Dec","Dec","Jan","Jan"];
-
-function buildHeatmap() {
-  return Array.from({ length: 15 }, (_, w) =>
-    Array.from({ length: 7 }, (_, d) => {
-      if (w >= 13) return 3 + Math.floor(Math.random() * 2); // recent = high
-      const r = Math.random();
-      if (r > 0.88) return 4;
-      if (r > 0.72) return 3;
-      if (r > 0.55) return 2;
-      if (r > 0.35) return 1;
-      return 0;
-    })
-  );
-}
-const HEATMAP = buildHeatmap();
 
 // ─── Hooks ───────────────────────────────────────────────────────────────────
 function useInView(threshold = 0.15) {
@@ -158,27 +135,6 @@ function Ring({ pct, size = 110, stroke = 9, color = "#8b5cf6" }: { pct: number;
   );
 }
 
-function WeekBar({ day, cards, minutes, maxCards, delay, visible }: {
-  day: string; cards: number; minutes: number; maxCards: number; delay: number; visible: boolean;
-}) {
-  const pct = (cards / maxCards) * 100;
-  return (
-    <div className="flex flex-col items-center gap-1.5 flex-1">
-      <span className="text-[10px] text-gray-500 font-bold">{cards}</span>
-      <div className="w-full flex-1 flex flex-col justify-end" style={{ minHeight: 80 }}>
-        <div
-          className="w-full rounded-t-lg bg-gradient-to-t from-violet-600 to-purple-400 relative group cursor-default transition-all duration-700 ease-out"
-          style={{ height: visible ? `${Math.max(pct, 4)}%` : "0%", transitionDelay: `${delay}ms` }}
-        >
-          <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 bg-gray-800 text-white text-[10px] font-bold px-2 py-1 rounded-md whitespace-nowrap pointer-events-none z-10 transition-opacity">
-            {minutes}min
-          </div>
-        </div>
-      </div>
-      <span className="text-[10px] text-gray-500 font-bold uppercase">{day}</span>
-    </div>
-  );
-}
 
 // ─── Section: Topic Mastery ───────────────────────────────────────────────────
 function TopicMastery() {
@@ -267,50 +223,58 @@ function InsightsStrip() {
 
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 export default function ProfilePage() {
+    interface UserStatsDto {
+        cardsMastered: number;
+        totalCards: number;
+        decksCompleted: number;
+        totalDecks: number;
+        daysStudiedThisWeek: number;
+        overallMasteryPct: number;
+    }
+
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [loading, setLoading] = useState(true);
     const [userId, setNewUserId] = useState("");
     const [user, setUser] = useState<User | null>(null);
+    const [stats, setStats] = useState<UserStatsDto | null>(null);
 
-    const calculateDaysJoined = (createdAtString: string) => {
-        if (!createdAtString) return 0;
-        
-        const createdDate = new Date(createdAtString);
-        const currentDate = new Date();
-        
-        const diffInMs = currentDate.getTime() - createdDate.getTime();
-        
-        const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
-        
-        return diffInDays;
-    };
+    const [loading, setLoading] = useState(true);
 
     const fetchUserAsync = useCallback(async () => {
         try {
-            setLoading(true);
-            const response = await fetch(`http://localhost:5000/api/user/getuser`, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem("token")}`,
-                    'Content-Type': 'application/json'
-                }
-            });
+          setLoading(true);
+          const token = localStorage.getItem("token");
+          const headers = {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+          };
 
-            if (response.ok) {
-                const data = await response.json();
-                
-                if (data.flag && data.user) {
-                    console.log("Date utilizator primite:", data.user);
-                    setUser(data.user as User);
-                } else {
-                    console.warn("The server responded successfully, but without data:", data.message);
-                    setUser(null);
-                }
-            }
-        } catch (error) {
-            console.error("Error fetching user:", error);
-        } finally {
-            setLoading(false);
-        }
+          const [userRes, statsRes] = await Promise.all([
+              fetch(`http://localhost:5000/api/user/getuser`, { headers }),
+              fetch(`http://localhost:5000/api/user/user-stats`, { headers }) 
+          ]);
+
+          if (userRes.ok) {
+              const userData = await userRes.json();
+              if (userData.flag && userData.user) {
+                  setUser(userData.user as User);
+              } else {
+                  setUser(null);
+              }
+          }
+
+          if (statsRes.ok) {
+              const statsData = await statsRes.json();
+              if (statsData.flag && statsData.data) {
+                  setStats(statsData.data as UserStatsDto);
+              } else {
+                  setStats(null);
+              }
+          }
+      } catch (error) {
+          console.error("Error fetching data:", error);
+      } finally {
+          setLoading(false);
+      }
     }, []);
 
     useEffect(() => {
@@ -338,22 +302,29 @@ export default function ProfilePage() {
         }
       }, [fetchUserAsync]);
 
-  const overallMastery = Math.round((USER.masteredCards / USER.totalCards) * 100);
-  const maxCards = Math.max(...WEEKLY.map((d) => d.cards));
-  const studyHours = Math.floor(USER.studyMinutesTotal / 60);
+  const currentStats = stats || {
+      cardsMastered: 0,
+      totalCards: 0,
+      decksCompleted: 0,
+      totalDecks: 0,
+      daysStudiedThisWeek: 0,
+      overallMasteryPct: 0
+  };
+  const overallMastery = currentStats.overallMasteryPct;
+  //const maxCards = Math.max(...WEEKLY.map((d) => d.cards));
+  //const studyHours = Math.floor(USER.studyMinutesTotal / 60);
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => { const t = setTimeout(() => setMounted(true), 80); return () => clearTimeout(t); }, []);
 
-  const { ref: heatRef, inView: heatIn } = useInView();
   const { ref: achRef,  inView: achIn  } = useInView();
   const { ref: actRef,  inView: actIn  } = useInView();
 
   const HERO_STATS = [
-    { icon: <Zap className="w-4 h-4 text-cyan-400" />,      label: "Cards Mastered",   val: USER.masteredCards, suffix: "" },
-    { icon: <Layers className="w-4 h-4 text-pink-400" />,   label: "Total Cards",      val: USER.totalCards,    suffix: "" },
-    { icon: <BookOpen className="w-4 h-4 text-violet-400" />,label:"Decks Completed",  val: USER.completedDecks,suffix: `/${USER.totalDecks}` },
-    { icon: <Activity className="w-4 h-4 text-emerald-400" />,label:"This Week",       val: USER.weeklyGoalMet, suffix: "/7 days" },
+      { icon: <Zap className="w-4 h-4 text-cyan-400" />,      label: "Cards Mastered",   val: currentStats.cardsMastered, suffix: "" },
+      { icon: <Layers className="w-4 h-4 text-pink-400" />,   label: "Total Cards",      val: currentStats.totalCards,    suffix: "" },
+      { icon: <BookOpen className="w-4 h-4 text-violet-400" />,label:"Decks Completed",  val: currentStats.decksCompleted,suffix: `/${currentStats.totalDecks}` },
+      { icon: <Activity className="w-4 h-4 text-emerald-400" />,label:"This Week",       val: currentStats.daysStudiedThisWeek, suffix: "/7 days" },
   ];
 
     if (loading || !user) {
@@ -449,96 +420,10 @@ export default function ProfilePage() {
         </div>
 
         {/* ── HEATMAP + WEEKLY BAR ────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-
-          {/* Heatmap */}
-          <div
-            ref={heatRef}
-            className={`lg:col-span-3 rounded-3xl border border-purple-500/20 bg-gray-900/40 backdrop-blur-md p-6 transition-all duration-700 ${heatIn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
-          >
-            <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-900/40">
-                  <Grid className="w-4 h-4 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-base font-black text-white">Study Heatmap</h2>
-                  <p className="text-[11px] text-gray-500">Last 15 weeks of activity</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-[10px] text-gray-600 font-semibold">Less</span>
-                {HEAT_LEVELS.map((c, i) => (
-                  <div key={i} className={`w-3 h-3 rounded-sm ${c}`} />
-                ))}
-                <span className="text-[10px] text-gray-600 font-semibold">More</span>
-              </div>
-            </div>
-
-            {/* Month labels */}
-            <div className="flex gap-1 mb-1">
-              {HEATMAP.map((_, w) => (
-                <div key={w} className="flex-1 text-[9px] text-gray-600 font-bold text-center">
-                  {w === 0 || MONTHS[w] !== MONTHS[w - 1] ? MONTHS[w] : ""}
-                </div>
-              ))}
-            </div>
-
-            {/* Grid */}
-            <div className="flex gap-1">
-              {HEATMAP.map((week, w) => (
-                <div key={w} className="flex flex-col gap-1 flex-1">
-                  {week.map((level, d) => (
-                    <div
-                      key={d}
-                      className={`w-full aspect-square rounded-sm transition-all duration-500 hover:scale-125 hover:z-10 cursor-default ${HEAT_LEVELS[level]}`}
-                      style={{ transitionDelay: heatIn ? `${(w * 7 + d) * 6}ms` : "0ms" }}
-                    />
-                  ))}
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-4 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-orange-500/10 border border-orange-500/20">
-              <Flame className="w-4 h-4 text-orange-400 animate-pulse flex-shrink-0" />
-              <span className="text-sm text-orange-300 font-semibold">
-                You're on a <strong className="text-orange-400">{USER.currentStreak}-day streak</strong> — best in the last 3 months!
-              </span>
-            </div>
-          </div>
-
-          {/* Weekly bars */}
-          <div
-            className={`lg:col-span-2 rounded-3xl border border-purple-500/20 bg-gray-900/40 backdrop-blur-md p-6 transition-all duration-700 delay-150 ${heatIn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
-          >
-            <div className="flex items-center gap-2 mb-6">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-900/40">
-                <BarChart2 className="w-4 h-4 text-white" />
-              </div>
-              <div>
-                <h2 className="text-base font-black text-white">This Week</h2>
-                <p className="text-[11px] text-gray-500">Cards reviewed per day</p>
-              </div>
-            </div>
-
-            <div className="flex items-end gap-2" style={{ height: 120 }}>
-              {WEEKLY.map((d, i) => (
-                <WeekBar key={d.day} {...d} maxCards={maxCards} delay={i * 60} visible={heatIn} />
-              ))}
-            </div>
-
-            <div className="mt-5 grid grid-cols-2 gap-3">
-              <div className="p-3 rounded-xl bg-gray-800/40 border border-gray-700/40">
-                <div className="text-lg font-black text-white">{WEEKLY.reduce((a, b) => a + b.cards, 0)}</div>
-                <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wide">Cards this week</div>
-              </div>
-              <div className="p-3 rounded-xl bg-gray-800/40 border border-gray-700/40">
-                <div className="text-lg font-black text-white">{WEEKLY.reduce((a, b) => a + b.minutes, 0)}m</div>
-                <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wide">Minutes studied</div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <StudyHeatmap
+          userId={userId}
+          currentStreak={user?.streak?.currentStreak ?? 0}
+        />
 
         {/* ── TOPIC MASTERY ───────────────────────────────────────────────── */}
         <TopicMastery />

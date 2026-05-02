@@ -9,28 +9,29 @@ namespace Application.DTOs.Deck.AddDeckSubmission
     public class AddDeckSubmissionDTO
     {
         [Required]
+        [JsonPropertyName("deckId")]
         public Guid DeckId { get; set; } = Guid.Empty;
 
         [JsonIgnore]
         public Guid UserId { get; set; } = Guid.Empty;
 
         [Required]
-        public List<CardFeedbackDto> SessionResults { get; set; } = new();
+        [JsonPropertyName("reviews")]
+        public List<CardReviewItemDTO> SessionResults { get; set; } = new List<CardReviewItemDTO>();
     }
 
-    public class CardFeedbackDto
+    public class CardReviewItemDTO
     {
-        public enum DifficultyLevel
-        {
-            Easy,
-            Medium,
-            Hard
-        }
+        [JsonPropertyName("cardId")]
+        public Guid CardId { get; set; }
 
-        [Required]
-        public Guid CardId { get; set; } = Guid.Empty;
+        [JsonPropertyName("rating")]
+        public string Difficulty { get; set; } = string.Empty;
 
-        [JsonConverter(typeof(JsonStringEnumConverter))]
-        public DifficultyLevel Difficulty { get; set; }
+        [JsonPropertyName("timeSpent")]
+        public int TimeSpent { get; set; }
+
+        [JsonPropertyName("reviewAt")]
+        public DateTime ReviewAt { get; set; }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Domain.Models.Graphs;
+using Domain.Models.UserStats;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -24,6 +25,10 @@ namespace Domain.Models
 
         [JsonPropertyName("viewConfig")]
         public ViewConfig? ViewConfig { get; set; }
+
+        public ICollection<CardReview>? CardReviews { get; set; }
+
+        public ICollection<UserCardState>? UserCardStates { get; set; }
 
         public DateTime? CreatedAt { get; set; }
     }

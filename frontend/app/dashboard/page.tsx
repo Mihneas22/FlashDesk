@@ -232,7 +232,8 @@ export default function DashboardPage() {
       cards: (generatedCards || []).map(card => ({
           question: card.question || "", 
           answer: card.answer || "",
-          tips: card.tips || []
+          tips: card.tips || [],
+          graphConfig: card.viewConfig || null 
       }))
     };
 

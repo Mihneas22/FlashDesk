@@ -6,6 +6,7 @@ using Application.DTOs.Deck.DeleteDeck;
 using Application.DTOs.Deck.EditDeck;
 using Application.Repository;
 using Domain.Models;
+using Domain.Models.UserStats;
 using Infastructure.AppDbContext;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -42,6 +43,8 @@ namespace Infastructure.Repository
                 DeckId = addCardDTO.DeckId,
                 Tips = addCardDTO.Tips,
                 CardDeck = deck,
+                CardReviews = new List<CardReview>(),
+                UserCardStates = new List<UserCardState>(),
                 CreatedAt = DateTime.UtcNow,
                 ViewConfig = addCardDTO.GraphConfig
             };
