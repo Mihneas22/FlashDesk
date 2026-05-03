@@ -91,6 +91,15 @@ export interface ViewConfig {
   points: GraphPoint[];
 }
 
+export interface MappedTopic {
+  name: string;
+  cards: number;
+  mastered: number;
+  pct: number;
+  color: string;
+  ringColor: string;
+}
+
 // A simple global-state approach using React state lifted to a context-like hook.
 // We store decks in module-level variable so it persists across component mounts
 // within the same browser session (no backend needed per spec).

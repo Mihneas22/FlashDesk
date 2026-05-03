@@ -3,91 +3,18 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import {
   Trophy, Zap, BookOpen, Star, Target, TrendingUp,
-  Clock, Award, ChevronRight, Activity,
-  CheckCircle, Brain, Layers, Calendar, Sparkles,
+  Clock, Award, Activity,
+  CheckCircle, Layers, Calendar, Sparkles, Edit2, X,
+  Settings, User as UserIcon, Mail, Key // <-- Iconițe noi
 } from "lucide-react";
 import { jwtDecode } from "jwt-decode";
 import { User } from '../../lib/store';
 import { StudyHeatmap } from "../../components/heatmap";
-
-// ─── MOCK DATA ────────────────────────────────────────────────────────────────
-const USER = {
-  name: "Ana Mihailescu",
-  university: "TU Delft — Electrical Engineering, 3rd year",
-  avatar: "AM",
-  joinedDaysAgo: 47,
-  currentStreak: 14,
-  longestStreak: 21,
-  totalCards: 1284,
-  masteredCards: 847,
-  totalDecks: 9,
-  completedDecks: 4,
-  studyMinutesTotal: 3120,
-  weeklyGoalMet: 5,
-};
-
-const TOPICS = [
-  { name: "Signals & Systems", cards: 340, mastered: 298, color: "from-violet-500 to-purple-600",  ringColor: "#8b5cf6", pct: 88 },
-  { name: "Linear Algebra",    cards: 210, mastered: 189, color: "from-fuchsia-500 to-pink-600",   ringColor: "#d946ef", pct: 90 },
-  { name: "Electrodynamics",   cards: 180, mastered: 122, color: "from-cyan-500 to-blue-600",      ringColor: "#06b6d4", pct: 68 },
-  { name: "Numerical Methods", cards: 160, mastered: 88,  color: "from-amber-500 to-orange-600",   ringColor: "#f59e0b", pct: 55 },
-  { name: "Data Structures",   cards: 130, mastered: 94,  color: "from-emerald-500 to-teal-600",   ringColor: "#10b981", pct: 72 },
-  { name: "Discrete Math",     cards: 110, mastered: 46,  color: "from-rose-500 to-red-600",       ringColor: "#f43f5e", pct: 42 },
-];
-
-const WEEKLY = [
-  { day: "Mon", cards: 32, minutes: 18 },
-  { day: "Tue", cards: 45, minutes: 26 },
-  { day: "Wed", cards: 12, minutes: 8  },
-  { day: "Thu", cards: 58, minutes: 34 },
-  { day: "Fri", cards: 41, minutes: 22 },
-  { day: "Sat", cards: 70, minutes: 42 },
-  { day: "Sun", cards: 29, minutes: 17 },
-];
-
-const ACHIEVEMENTS = [
-  { icon: "🔥", label: "14-Day Streak",  desc: "Study every day for 2 weeks",    unlocked: true  },
-  { icon: "🧮", label: "Formula Master", desc: "Master 500+ cards",              unlocked: true  },
-  { icon: "📚", label: "Deck Destroyer", desc: "Complete 4 full decks",          unlocked: true  },
-  { icon: "⚡", label: "Speed Learner",  desc: "Review 50 cards in one session", unlocked: true  },
-  { icon: "🏆", label: "Top 10%",        desc: "Rank in the top 10% this month", unlocked: false },
-  { icon: "🌙", label: "Night Owl",      desc: "Study after midnight 5 times",   unlocked: false },
-  { icon: "🤝", label: "Collaborator",   desc: "Share a deck with 3 people",     unlocked: false },
-  { icon: "💎", label: "Legendary",      desc: "Maintain a 30-day streak",       unlocked: false },
-];
-
-const ACTIVITY = [
-  { text: "Mastered Fourier Transform deck",      time: "2h ago",    icon: "✦", color: "text-violet-400" },
-  { text: "14-day streak milestone reached",      time: "Today",     icon: "🔥", color: "text-orange-400" },
-  { text: "Reviewed 58 cards in Electrodynamics", time: "Yesterday", icon: "⚡", color: "text-cyan-400"   },
-  { text: "Created new Numerical Methods deck",   time: "2d ago",    icon: "📚", color: "text-emerald-400" },
-  { text: "Shared Linear Algebra deck with group",time: "3d ago",    icon: "↗", color: "text-pink-400"   },
-];
-
-const INSIGHTS = [
-  { icon: <Star className="w-5 h-5" />,        label: "Favourite topic", val: "Signals & Systems", sub: "340 cards studied",       grad: "from-violet-500 to-purple-600", delay: 0   },
-  { icon: <Clock className="w-5 h-5" />,       label: "Avg. session",    val: "26 min",            sub: "Per study session",        grad: "from-cyan-500 to-blue-600",    delay: 80  },
-  { icon: <CheckCircle className="w-5 h-5" />, label: "Accuracy rate",   val: "84%",               sub: "Cards answered correctly", grad: "from-emerald-500 to-teal-600", delay: 160 },
-  { icon: <TrendingUp className="w-5 h-5" />,  label: "Weekly growth",   val: "+12%",              sub: "vs last week",             grad: "from-pink-500 to-rose-600",    delay: 240 },
-];
-
-
-// ─── Hooks ───────────────────────────────────────────────────────────────────
-function useInView(threshold = 0.15) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [inView, setInView] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setInView(true); obs.disconnect(); } },
-      { threshold }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [threshold]);
-  return { ref, inView };
-}
+import { Navbar } from "@/components/navbar";
+import { MappedTopic } from "../../lib/store";
+import { TopicMastery } from "@/components/topic-mastery";
+import { Ring } from "@/components/ui/ring";
+import { useInView } from "@/hooks/use-in-view";
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -108,119 +35,6 @@ function Counter({ value, suffix = "", duration = 1400 }: { value: number; suffi
   return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
 }
 
-function Ring({ pct, size = 110, stroke = 9, color = "#8b5cf6" }: { pct: number; size?: number; stroke?: number; color?: string }) {
-  const { ref, inView } = useInView();
-  const [p, setP] = useState(0);
-  const r = (size - stroke) / 2;
-  const circ = 2 * Math.PI * r;
-  useEffect(() => {
-    if (!inView) return;
-    let cur = 0;
-    const t = setInterval(() => { cur = Math.min(cur + 1.5, pct); setP(cur); if (cur >= pct) clearInterval(t); }, 12);
-    return () => clearInterval(t);
-  }, [inView, pct]);
-  return (
-    <div ref={ref} style={{ width: size, height: size }} className="relative flex-shrink-0">
-      <svg width={size} height={size} className="-rotate-90">
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(124,58,237,0.12)" strokeWidth={stroke} />
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={stroke}
-          strokeLinecap="round" strokeDasharray={circ}
-          strokeDashoffset={circ - (circ * p) / 100}
-          style={{ transition: "stroke-dashoffset 0.05s linear" }} />
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-base font-black text-white leading-none">{Math.round(p)}%</span>
-      </div>
-    </div>
-  );
-}
-
-
-// ─── Section: Topic Mastery ───────────────────────────────────────────────────
-function TopicMastery() {
-  const { ref, inView } = useInView();
-  return (
-    <div
-      ref={ref}
-      className={`rounded-3xl border border-purple-500/20 bg-gray-900/40 backdrop-blur-md p-6 transition-all duration-700 ${
-        inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-      }`}
-    >
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-pink-500 to-fuchsia-600 flex items-center justify-center shadow-lg shadow-pink-900/40">
-            <Brain className="w-4 h-4 text-white" />
-          </div>
-          <div>
-            <h2 className="text-base font-black text-white">Topic Mastery</h2>
-            <p className="text-[11px] text-gray-500">Breakdown by course</p>
-          </div>
-        </div>
-        <button className="flex items-center gap-1 text-xs text-gray-500 hover:text-violet-400 transition-colors font-semibold">
-          See all <ChevronRight className="w-3 h-3" />
-        </button>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {TOPICS.map((t, i) => (
-          <div
-            key={t.name}
-            className="group p-4 rounded-2xl bg-gray-800/30 border border-gray-700/30 hover:border-purple-500/30 hover:-translate-y-1 transition-all duration-300 cursor-default"
-            style={{ opacity: inView ? 1 : 0, transform: inView ? "translateY(0)" : "translateY(16px)", transitionDelay: `${i * 80}ms`, transition: "all 0.5s ease" }}
-          >
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex-1 min-w-0 pr-2">
-                <div className="text-sm font-bold text-white truncate">{t.name}</div>
-                <div className="text-[11px] text-gray-500 mt-0.5">{t.mastered}/{t.cards} mastered</div>
-              </div>
-              <Ring pct={t.pct} size={52} stroke={5} color={t.ringColor} />
-            </div>
-            <div className="h-1.5 rounded-full bg-gray-700/50 overflow-hidden">
-              <div
-                className={`h-full rounded-full bg-gradient-to-r ${t.color} transition-all duration-1000`}
-                style={{ width: inView ? `${t.pct}%` : "0%", transitionDelay: `${i * 80 + 300}ms` }}
-              />
-            </div>
-            <div className="mt-2 flex items-center justify-between">
-              <span className={`text-[10px] font-bold ${t.pct >= 75 ? "text-emerald-400" : t.pct >= 50 ? "text-amber-400" : "text-red-400"}`}>
-                {t.pct >= 75 ? "Strong ✓" : t.pct >= 50 ? "Developing" : "Needs work"}
-              </span>
-              <span className="text-[10px] text-gray-500 font-semibold">{t.pct}%</span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ─── Section: Insights Strip ──────────────────────────────────────────────────
-function InsightsStrip() {
-  const { ref, inView } = useInView();
-  return (
-    <div
-      ref={ref}
-      className={`grid grid-cols-2 sm:grid-cols-4 gap-4 transition-all duration-700 ${
-        inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-      }`}
-    >
-      {INSIGHTS.map((s) => (
-        <div
-          key={s.label}
-          className="rounded-2xl border border-gray-700/30 bg-gray-900/40 backdrop-blur-md p-5 hover:border-purple-500/30 hover:-translate-y-1 transition-all duration-300 group cursor-default"
-          style={{ transitionDelay: `${s.delay}ms` }}
-        >
-          <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${s.grad} flex items-center justify-center text-white shadow-lg mb-3 group-hover:scale-110 transition-transform`}>
-            {s.icon}
-          </div>
-          <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">{s.label}</div>
-          <div className="text-xl font-black text-white mb-0.5">{s.val}</div>
-          <div className="text-[11px] text-gray-600">{s.sub}</div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 export default function ProfilePage() {
     interface UserStatsDto {
@@ -238,6 +52,90 @@ export default function ProfilePage() {
     const [stats, setStats] = useState<UserStatsDto | null>(null);
 
     const [loading, setLoading] = useState(true);
+    const [topics, setTopics] = useState<MappedTopic[]>([]);
+
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState<'profile' | 'email' | 'password'>('profile');
+    const [isUpdating, setIsUpdating] = useState(false);
+
+
+    const [editUsername, setEditUsername] = useState("");
+    const [emailForm, setEmailForm] = useState({ newEmail: "", currentPassword: "" });
+    const [passwordForm, setPasswordForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
+    const [message, setMessage] = useState({ type: "", text: "" });
+    
+    const handleOpenSettings = () => {
+      setEditUsername(user?.username || "");
+      setActiveTab('profile');
+      setMessage({ type: "", text: "" });
+      setIsSettingsOpen(true);
+    };
+
+  const handleUpdateUsername = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editUsername.trim()) return;
+    try {
+      setIsUpdating(true);
+      const token = localStorage.getItem("token");
+      const res = await fetch(`http://localhost:5000/api/user/update-username`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: editUsername })
+      });
+
+      if (res.ok) {
+        setUser(prev => prev ? { ...prev, username: editUsername } : null);
+        setMessage({ type: "success", text: "Username updated successfully!" });
+      } else throw new Error("Failed");
+    } catch {
+      setMessage({ type: "error", text: "Could not update username." });
+    } finally { setIsUpdating(false); }
+  };
+
+  const handleUpdateEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!emailForm.newEmail || !emailForm.currentPassword) return;
+    try {
+      setIsUpdating(true);
+      const token = localStorage.getItem("token");
+      const res = await fetch(`http://localhost:5000/api/user/update-email`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newEmail: emailForm.newEmail, password: emailForm.currentPassword })
+      });
+
+      if (res.ok) {
+        setMessage({ type: "success", text: "Email updated successfully! Check your inbox." });
+        setEmailForm({ newEmail: "", currentPassword: "" });
+      } else throw new Error("Failed");
+    } catch {
+      setMessage({ type: "error", text: "Invalid password or email already in use." });
+    } finally { setIsUpdating(false); }
+  };
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setMessage({ type: "error", text: "New passwords do not match." });
+      return;
+    }
+    try {
+      setIsUpdating(true);
+      const token = localStorage.getItem("token");
+      const res = await fetch(`http://localhost:5000/api/user/update-password`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currPassword: passwordForm.currentPassword, newPassword: passwordForm.newPassword })
+      });
+
+      if (res.ok) {
+        setMessage({ type: "success", text: "Password changed successfully!" });
+        setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      } else throw new Error("Failed");
+    } catch {
+      setMessage({ type: "error", text: "Could not change password. Check current password." });
+    } finally { setIsUpdating(false); }
+  };
 
     const fetchUserAsync = useCallback(async () => {
         try {
@@ -248,9 +146,10 @@ export default function ProfilePage() {
               'Content-Type': 'application/json'
           };
 
-          const [userRes, statsRes] = await Promise.all([
+          const [userRes, statsRes, masteryRes] = await Promise.all([
               fetch(`http://localhost:5000/api/user/getuser`, { headers }),
-              fetch(`http://localhost:5000/api/user/user-stats`, { headers }) 
+              fetch(`http://localhost:5000/api/user/user-stats`, { headers }),
+              fetch(`http://localhost:5000/api/user/user-mastery`, { headers }) 
           ]);
 
           if (userRes.ok) {
@@ -270,6 +169,33 @@ export default function ProfilePage() {
                   setStats(null);
               }
           }
+          if (masteryRes.ok) {
+                const masteryData = await masteryRes.json();
+                if (masteryData.flag && masteryData.data) {
+                    const colorPalette = [
+                        { color: "from-violet-500 to-purple-600", ringColor: "#8b5cf6" },
+                        { color: "from-fuchsia-500 to-pink-600", ringColor: "#d946ef" },
+                        { color: "from-cyan-500 to-blue-600", ringColor: "#06b6d4" },
+                        { color: "from-amber-500 to-orange-600", ringColor: "#f59e0b" },
+                        { color: "from-emerald-500 to-teal-600", ringColor: "#10b981" },
+                        { color: "from-rose-500 to-red-600", ringColor: "#f43f5e" },
+                    ];
+
+                    const mappedTopics = masteryData.data.map((item: any, index: number) => {
+                        const palette = colorPalette[index % colorPalette.length];
+                        return {
+                            name: item.topic,
+                            cards: item.totalCards,
+                            mastered: item.masteredCards,
+                            pct: item.masteryPct,
+                            color: palette.color,
+                            ringColor: palette.ringColor
+                        };
+                    });
+                    
+                    setTopics(mappedTopics);
+                }
+            }  
       } catch (error) {
           console.error("Error fetching data:", error);
       } finally {
@@ -311,14 +237,9 @@ export default function ProfilePage() {
       overallMasteryPct: 0
   };
   const overallMastery = currentStats.overallMasteryPct;
-  //const maxCards = Math.max(...WEEKLY.map((d) => d.cards));
-  //const studyHours = Math.floor(USER.studyMinutesTotal / 60);
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => { const t = setTimeout(() => setMounted(true), 80); return () => clearTimeout(t); }, []);
-
-  const { ref: achRef,  inView: achIn  } = useInView();
-  const { ref: actRef,  inView: actIn  } = useInView();
 
   const HERO_STATS = [
       { icon: <Zap className="w-4 h-4 text-cyan-400" />,      label: "Cards Mastered",   val: currentStats.cardsMastered, suffix: "" },
@@ -348,6 +269,8 @@ export default function ProfilePage() {
         <div className="absolute -bottom-8 left-20 w-96 h-96 bg-violet-600 rounded-full mix-blend-screen filter blur-3xl animate-blob animation-delay-4000" />
       </div>
 
+      <Navbar isLoggedIn={isLoggedIn} />
+
       <main className="mx-auto max-w-7xl px-4 sm:px-6 py-12 space-y-6">
 
         {/* ── HERO ───────────────────────────────────────────────────────── */}
@@ -362,7 +285,7 @@ export default function ProfilePage() {
             {/* Avatar */}
             <div className="relative flex-shrink-0">
               <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-2xl shadow-purple-900/60 text-3xl font-black text-white">
-                {USER.avatar}
+                {user.username?.charAt(0)}
               </div>
               <div className="absolute -bottom-2 -right-2 flex items-center gap-1 bg-orange-500 text-white text-[11px] font-black px-2 py-0.5 rounded-full shadow-lg shadow-orange-900/50 border-2 border-gray-950">
                 🔥 {user?.streak?.currentStreak}
@@ -371,15 +294,21 @@ export default function ProfilePage() {
 
             {/* Info */}
             <div className="flex-1 min-w-0">
-              <div className="flex flex-wrap items-center gap-2 mb-1">
+              <div className="flex flex-wrap items-center gap-3 mb-1">
                 <h1 className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-violet-400 via-purple-300 to-pink-400 bg-clip-text text-transparent">
                   {user?.username}
                 </h1>
                 <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-500/15 border border-violet-500/30 text-violet-300 text-xs font-bold">
                   <Sparkles className="w-3 h-3" /> Core
                 </span>
+                <button 
+                  onClick={handleOpenSettings}
+                  className="ml-2 p-2 rounded-xl bg-gray-800/60 border border-gray-700/50 text-gray-400 hover:text-white hover:bg-violet-500/20 hover:border-violet-500/30 transition-all shadow-sm"
+                  title="Account Settings"
+                >
+                  <Settings className="w-4 h-4" />
+                </button>
               </div>
-              <p className="text-gray-400 text-sm mb-4">{USER.university}</p>
               <div className="flex flex-wrap gap-2">
                 {[
                   { icon: <Calendar className="w-3 h-3 text-purple-400" />, text: `Member for ${Math.floor((new Date().getTime() - new Date(user?.createdAt!).getTime()) / (1000 * 60 * 60 * 24))} days` },
@@ -426,123 +355,128 @@ export default function ProfilePage() {
         />
 
         {/* ── TOPIC MASTERY ───────────────────────────────────────────────── */}
-        <TopicMastery />
+        <TopicMastery topics={topics} />
 
-        {/* ── ACHIEVEMENTS + RECENT ACTIVITY ─────────────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-
-          {/* Achievements */}
-          <div
-            ref={achRef}
-            className={`lg:col-span-3 rounded-3xl border border-purple-500/20 bg-gray-900/40 backdrop-blur-md p-6 transition-all duration-700 ${achIn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
-          >
-            <div className="flex items-center gap-2 mb-6">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-900/40">
-                <Award className="w-4 h-4 text-white" />
+        {/* ── SETTINGS MODAL ────────────────────────────────────────────── */}
+        {isSettingsOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-950/80 backdrop-blur-sm transition-opacity">
+            <div className="w-full max-w-lg bg-gray-900 border border-gray-700/50 rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+              
+              {/* Modal Header */}
+              <div className="flex items-center justify-between px-6 py-5 border-b border-gray-800">
+                <h3 className="text-xl font-black text-white flex items-center gap-2">
+                  <Settings className="w-5 h-5 text-violet-400" /> Account Settings
+                </h3>
+                <button onClick={() => setIsSettingsOpen(false)} className="p-1 text-gray-400 hover:text-white transition-colors bg-gray-800/50 rounded-lg">
+                  <X className="w-5 h-5" />
+                </button>
               </div>
-              <div>
-                <h2 className="text-base font-black text-white">Achievements</h2>
-                <p className="text-[11px] text-gray-500">
-                  {ACHIEVEMENTS.filter((a) => a.unlocked).length} of {ACHIEVEMENTS.length} unlocked
-                </p>
+              
+              {/* Tabs */}
+              <div className="flex px-6 pt-4 gap-4 border-b border-gray-800 overflow-x-auto no-scrollbar">
+                {[
+                  { id: 'profile', icon: UserIcon, label: 'Profile' },
+                  { id: 'email', icon: Mail, label: 'Email' },
+                  { id: 'password', icon: Key, label: 'Security' }
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => { setActiveTab(tab.id as any); setMessage({type:"", text:""}); }}
+                    className={`flex items-center gap-2 pb-3 px-1 border-b-2 font-semibold text-sm transition-all whitespace-nowrap ${
+                      activeTab === tab.id 
+                        ? "border-violet-500 text-violet-400" 
+                        : "border-transparent text-gray-500 hover:text-gray-300"
+                    }`}
+                  >
+                    <tab.icon className="w-4 h-4" /> {tab.label}
+                  </button>
+                ))}
               </div>
-            </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {ACHIEVEMENTS.map((a, i) => (
-                <div
-                  key={a.label}
-                  className={`flex flex-col items-center text-center p-3 rounded-2xl border transition-all duration-500 group ${
-                    a.unlocked
-                      ? "bg-gray-800/40 border-gray-700/50 hover:border-violet-500/40 hover:scale-105 cursor-default"
-                      : "bg-gray-900/30 border-gray-800/30"
-                  }`}
-                  style={{
-                    opacity: achIn ? (a.unlocked ? 1 : 0.38) : 0,
-                    transform: achIn ? "translateY(0)" : "translateY(20px)",
-                    filter: a.unlocked ? "none" : "grayscale(1)",
-                    transitionDelay: `${i * 60}ms`,
-                    transition: "all 0.5s ease",
-                  }}
-                >
-                  <div className={`text-3xl mb-2 transition-transform duration-300 ${a.unlocked ? "group-hover:scale-125 group-hover:rotate-12" : ""}`}>
-                    {a.icon}
+              {/* Modal Body */}
+              <div className="p-6 overflow-y-auto">
+                {/* Afișare mesaje */}
+                {message.text && (
+                  <div className={`mb-6 p-3 rounded-xl text-sm font-semibold border ${message.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}>
+                    {message.text}
                   </div>
-                  <div className="text-xs font-black text-white leading-tight mb-1">{a.label}</div>
-                  <div className="text-[10px] text-gray-500 leading-tight mb-2">{a.desc}</div>
-                  {a.unlocked ? (
-                    <div className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[9px] font-bold text-emerald-400 uppercase tracking-wider">
-                      Unlocked
+                )}
+
+                {/* TAB: PROFILE */}
+                {activeTab === 'profile' && (
+                  <form onSubmit={handleUpdateUsername} className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Display Name</label>
+                      <input 
+                        type="text" value={editUsername} onChange={(e) => setEditUsername(e.target.value)} required
+                        className="w-full px-4 py-3 bg-gray-950 border border-gray-800 rounded-xl text-white focus:border-violet-500 focus:ring-1 focus:ring-violet-500 outline-none transition-all"
+                      />
                     </div>
-                  ) : (
-                    <div className="px-2 py-0.5 rounded-full bg-gray-700/30 border border-gray-700/20 text-[9px] font-bold text-gray-600 uppercase tracking-wider">
-                      Locked
+                    <button type="submit" disabled={isUpdating} className="w-full py-3 rounded-xl text-sm font-bold text-white bg-violet-600 hover:bg-violet-500 disabled:opacity-50 transition-all">
+                      {isUpdating ? "Saving..." : "Update Profile"}
+                    </button>
+                  </form>
+                )}
+
+                {/* TAB: EMAIL */}
+                {activeTab === 'email' && (
+                  <form onSubmit={handleUpdateEmail} className="space-y-4">
+                    <p className="text-xs text-gray-500 mb-4">To change your email address, you must confirm with your current password.</p>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">New Email Address</label>
+                      <input 
+                        type="email" value={emailForm.newEmail} onChange={(e) => setEmailForm({...emailForm, newEmail: e.target.value})} required
+                        className="w-full px-4 py-3 bg-gray-950 border border-gray-800 rounded-xl text-white focus:border-violet-500 outline-none transition-all"
+                      />
                     </div>
-                  )}
-                </div>
-              ))}
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Current Password</label>
+                      <input 
+                        type="password" value={emailForm.currentPassword} onChange={(e) => setEmailForm({...emailForm, currentPassword: e.target.value})} required
+                        className="w-full px-4 py-3 bg-gray-950 border border-gray-800 rounded-xl text-white focus:border-violet-500 outline-none transition-all"
+                      />
+                    </div>
+                    <button type="submit" disabled={isUpdating} className="w-full py-3 rounded-xl text-sm font-bold text-white bg-violet-600 hover:bg-violet-500 disabled:opacity-50 transition-all">
+                      {isUpdating ? "Updating..." : "Update Email"}
+                    </button>
+                  </form>
+                )}
+
+                {/* TAB: PASSWORD */}
+                {activeTab === 'password' && (
+                  <form onSubmit={handleUpdatePassword} className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Current Password</label>
+                      <input 
+                        type="password" value={passwordForm.currentPassword} onChange={(e) => setPasswordForm({...passwordForm, currentPassword: e.target.value})} required
+                        className="w-full px-4 py-3 bg-gray-950 border border-gray-800 rounded-xl text-white focus:border-violet-500 outline-none transition-all"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">New Password</label>
+                        <input 
+                          type="password" value={passwordForm.newPassword} onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})} required minLength={6}
+                          className="w-full px-4 py-3 bg-gray-950 border border-gray-800 rounded-xl text-white focus:border-violet-500 outline-none transition-all"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Confirm New</label>
+                        <input 
+                          type="password" value={passwordForm.confirmPassword} onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})} required minLength={6}
+                          className="w-full px-4 py-3 bg-gray-950 border border-gray-800 rounded-xl text-white focus:border-violet-500 outline-none transition-all"
+                        />
+                      </div>
+                    </div>
+                    <button type="submit" disabled={isUpdating} className="w-full py-3 mt-2 rounded-xl text-sm font-bold text-white bg-red-600/90 hover:bg-red-500 disabled:opacity-50 transition-all shadow-lg shadow-red-900/20">
+                      {isUpdating ? "Saving..." : "Change Password"}
+                    </button>
+                  </form>
+                )}
+              </div>
             </div>
           </div>
-
-          {/* Recent Activity */}
-          <div
-            ref={actRef}
-            className={`lg:col-span-2 rounded-3xl border border-purple-500/20 bg-gray-900/40 backdrop-blur-md p-6 transition-all duration-700 delay-150 ${actIn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
-          >
-            <div className="flex items-center gap-2 mb-5">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-teal-900/40">
-                <TrendingUp className="w-4 h-4 text-white" />
-              </div>
-              <div>
-                <h2 className="text-base font-black text-white">Recent Activity</h2>
-                <p className="text-[11px] text-gray-500">Your latest actions</p>
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              {ACTIVITY.map((a, i) => (
-                <div
-                  key={i}
-                  className="flex items-start gap-3 p-3 rounded-xl hover:bg-gray-800/30 transition-all duration-300 group cursor-default"
-                  style={{
-                    opacity: actIn ? 1 : 0,
-                    transform: actIn ? "translateX(0)" : "translateX(-16px)",
-                    transitionDelay: `${i * 80}ms`,
-                    transition: "all 0.5s ease",
-                  }}
-                >
-                  <div className="flex-shrink-0 w-8 h-8 rounded-xl bg-gray-800/60 border border-gray-700/40 flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
-                    {a.icon}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-semibold leading-snug ${a.color}`}>{a.text}</p>
-                    <p className="text-[11px] text-gray-600 mt-0.5">{a.time}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Exam countdown */}
-            <div className="mt-5 p-4 rounded-2xl bg-violet-950/40 border border-violet-500/20">
-              <div className="flex items-center gap-2 mb-1.5">
-                <Target className="w-4 h-4 text-violet-400" />
-                <span className="text-xs font-black text-violet-300 uppercase tracking-wide">Next Exam</span>
-              </div>
-              <div className="flex items-baseline gap-1 mb-0.5">
-                <span className="text-3xl font-black text-white">18</span>
-                <span className="text-sm text-gray-400 font-semibold">days left</span>
-              </div>
-              <p className="text-[11px] text-gray-500 mb-3">Signals &amp; Systems · Jan 28</p>
-              <div className="h-1.5 rounded-full bg-gray-800/60 overflow-hidden">
-                <div className="h-full rounded-full bg-gradient-to-r from-violet-500 to-purple-500 w-3/4" />
-              </div>
-              <p className="text-[10px] text-violet-400 font-semibold mt-2">Review 22 cards today to stay on track</p>
-            </div>
-          </div>
-        </div>
-
-        {/* ── INSIGHTS STRIP ──────────────────────────────────────────────── */}
-        <InsightsStrip />
+        )}
 
       </main>
 

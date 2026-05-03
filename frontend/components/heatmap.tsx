@@ -310,7 +310,7 @@ export function StudyHeatmap({ userId, currentStreak = 0 }: StudyHeatmapProps) {
             {currentStreak > 0 ? (
               <span className="text-sm text-orange-300 font-semibold">
                 You are on a streak of{" "}
-                <strong className="text-orange-400">{currentStreak} {currentStreak === 1 ? "zi" : "zile"}</strong>
+                <strong className="text-orange-400">{currentStreak} {currentStreak === 1 ? "day" : "days"}</strong>
                 {" "}— keep it up!
               </span>
             ) : (

@@ -4,6 +4,11 @@ using Application.DTOs.User.Heatmap;
 using Application.DTOs.User.LoginUser;
 using Application.DTOs.User.RegisterUser;
 using Application.DTOs.User.Streak.ModifyStreak;
+using Application.DTOs.User.TopicMastery;
+using Application.DTOs.User.UserProfile;
+using Application.DTOs.User.UserProfile.Email;
+using Application.DTOs.User.UserProfile.Password;
+using Application.DTOs.User.UserProfile.Username;
 using Application.DTOs.User.UserStats;
 using Application.Repository;
 using Microsoft.AspNetCore.Authorization;
@@ -82,6 +87,50 @@ namespace FlashDeskAPI.Controllers
 
             var userId = Guid.Parse(userIdString);
             var result = await userRepo.GetUserStatsAsync(new GetUserStatsDTO { UserId = userId });
+            return Ok(result);
+        }
+
+        [HttpGet("user-mastery")]
+        public async Task<ActionResult<GetTopicMasteryResponse>> GetUserMasteryAsync()
+        {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdString)) return Unauthorized();
+
+            var userId = Guid.Parse(userIdString);
+            var result = await userRepo.GetUserTopicMasterAsync(new GetTopicMasteryDTO { UserId = userId });
+            return Ok(result);
+        }
+
+        [HttpPut("update-username")]
+        public async Task<ActionResult<UpdateUserProfileResponse>> UpdateUsernameAsync(UsernameDTO usernameDTO)
+        {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdString)) return Unauthorized();
+
+            usernameDTO.UserId = Guid.Parse(userIdString);
+            var result = await userRepo.UpdateUsernameRepository(usernameDTO);
+            return Ok(result);
+        }
+
+        [HttpPut("update-email")]
+        public async Task<ActionResult<UpdateUserProfileResponse>> UpdateEmailAsync(EmailDTO emailDTO)
+        {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdString)) return Unauthorized();
+
+            emailDTO.UserId = Guid.Parse(userIdString);
+            var result = await userRepo.UpdateEmailRepository(emailDTO);
+            return Ok(result);
+        }
+
+        [HttpPut("update-password")]
+        public async Task<ActionResult<UpdateUserProfileResponse>> UpdatePasswordAsync(PasswordDTO passwordDTO)
+        {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdString)) return Unauthorized();
+
+            passwordDTO.UserId = Guid.Parse(userIdString);
+            var result = await userRepo.UpdatePasswordRepository(passwordDTO);
             return Ok(result);
         }
     }

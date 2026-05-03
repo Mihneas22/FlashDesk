@@ -427,10 +427,22 @@ namespace Infastructure.Repository
             if (getDeckByNameDTO == null)
                 return new GetDeckByNameResponse(false, "Invalid DTO");
 
-            var decks = await dbContext.DeckEntity
+            var decks = new List<Deck>();
+
+            if(getDeckByNameDTO.Status == false)
+            {
+                decks = await dbContext.DeckEntity
                 .AsNoTracking()
                 .Where(dc => dc.Title!.Contains(getDeckByNameDTO.Name))
                 .ToListAsync();
+            }
+            else
+            {
+                decks = await dbContext.DeckEntity
+                .AsNoTracking()
+                .Where(dc => dc.Title!.Contains(getDeckByNameDTO.Name) && dc.Status == true)
+                .ToListAsync();
+            }
 
             if (decks.Count == 0)
                 return new GetDeckByNameResponse(false, "No decks found");

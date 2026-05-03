@@ -9,5 +9,8 @@ namespace Application.DTOs.Deck.GetDeckByName
     {
         [Required]
         public string Name { get; set; } = string.Empty;
+
+        [Required]
+        public bool Status { get; set; } = false;
     }
 }

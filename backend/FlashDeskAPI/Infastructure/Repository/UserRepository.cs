@@ -3,6 +3,11 @@ using Application.DTOs.User.Heatmap;
 using Application.DTOs.User.LoginUser;
 using Application.DTOs.User.RegisterUser;
 using Application.DTOs.User.Streak.ModifyStreak;
+using Application.DTOs.User.TopicMastery;
+using Application.DTOs.User.UserProfile;
+using Application.DTOs.User.UserProfile.Email;
+using Application.DTOs.User.UserProfile.Password;
+using Application.DTOs.User.UserProfile.Username;
 using Application.DTOs.User.UserStats;
 using Application.Repository;
 using Domain.Models;
@@ -17,6 +22,7 @@ using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Infastructure.Repository
 {
@@ -266,6 +272,131 @@ namespace Infastructure.Repository
                 DaysStudiedThisWeek = daysStudiedThisWeek,
                 OverallMasteryPct = overallMasteryPct
             });
+        }
+
+        public async Task<GetTopicMasteryResponse> GetUserTopicMasterAsync(GetTopicMasteryDTO getTopicMasteryDTO)
+        {
+            var statsPerTopic = await dbContext.UserCardStateEntity
+            .Where(ucs => ucs.UserId == getTopicMasteryDTO.UserId && ucs.Card != null && ucs.Card.CardDeck != null && ucs.Card.CardDeck.Topic != null)
+            .GroupBy(ucs => ucs.Card!.CardDeck!.Topic)
+            .Select(g => new
+            {
+                Topic = g.Key,
+                TotalCards = g.Count(),
+                MasteredCards = g.Count(ucs => ucs.MasteryLevel == "Mastered")
+            })
+            .ToListAsync();
+
+            var lastStudiedDates = await dbContext.CardReviewEntity
+                .Where(cr => cr.UserId == getTopicMasteryDTO.UserId && cr.Card != null && cr.Card.CardDeck != null && cr.Card.CardDeck.Topic != null)
+                .GroupBy(cr => cr.Card!.CardDeck!.Topic)
+                .Select(g => new
+                {
+                    Topic = g.Key,
+                    LastStudiedAt = g.Max(cr => cr.ReviewAt)
+                })
+                .ToDictionaryAsync(x => x.Topic!, x => x.LastStudiedAt);
+            var result = statsPerTopic.Select(stat =>
+            {
+                float masteryPct = 0f;
+                if (stat.TotalCards > 0)
+                {
+                    masteryPct = (float)Math.Round(((float)stat.MasteredCards / stat.TotalCards) * 100, 1);
+                }
+
+                return new TopicMasteryData
+                {
+                    Topic = stat.Topic!,
+                    TotalCards = stat.TotalCards,
+                    MasteredCards = stat.MasteredCards,
+                    MasteryPct = masteryPct,
+                    LastStudiedAt = lastStudiedDates.GetValueOrDefault(stat.Topic!)
+                };
+            }).ToList();
+
+            return new GetTopicMasteryResponse(true,"Success", result);
+        }
+
+        public async Task<UpdateUserProfileResponse> UpdateUsernameRepository(UsernameDTO usernameDTO)
+        {
+            var user = await dbContext.UserEntity.FirstOrDefaultAsync(u => u.UserId == usernameDTO.UserId);
+
+            if (user == null)
+            {
+                return new UpdateUserProfileResponse(false, "User not found.");
+            }
+
+            var usernameExists = await dbContext.UserEntity
+                .AnyAsync(u => u.Username!.ToLower() == usernameDTO.Username.ToLower() && u.UserId != usernameDTO.UserId);
+
+            if (usernameExists)
+            {
+                return new UpdateUserProfileResponse(false, "This username is already taken.");
+            }
+
+            user.Username = usernameDTO.Username;
+
+            await dbContext.SaveChangesAsync();
+
+            return new UpdateUserProfileResponse(true, "Username has been updated successfully.");
+        }
+
+        public async Task<UpdateUserProfileResponse> UpdateEmailRepository(EmailDTO emailDTO)
+        {
+            string emailPattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
+
+            if (string.IsNullOrWhiteSpace(emailDTO.NewEmail) || !Regex.IsMatch(emailDTO.NewEmail, emailPattern))
+            {
+                return new UpdateUserProfileResponse(false, "The provided email format is invalid.");
+            }
+
+            var user = await dbContext.UserEntity.FirstOrDefaultAsync(u => u.UserId == emailDTO.UserId);
+            if (user == null)
+                return new UpdateUserProfileResponse(false, "User not found.");
+
+            bool isPasswordValid = BCrypt.Net.BCrypt.Verify(emailDTO.Password, user.Password);
+            if (!isPasswordValid)
+            {
+                return new UpdateUserProfileResponse(false, "The current password is incorrect.");
+            }
+
+            var emailExists = await dbContext.UserEntity
+                .AnyAsync(u => u.Email!.ToLower() == emailDTO.NewEmail.ToLower() && u.UserId != emailDTO.UserId);
+
+            if (emailExists)
+                return new UpdateUserProfileResponse(false, "This email is already associated with another account.");
+
+            user.Email = emailDTO.NewEmail;
+            await dbContext.SaveChangesAsync();
+
+            return new UpdateUserProfileResponse(true, "Email has been updated successfully.");
+        }
+
+        public async Task<UpdateUserProfileResponse> UpdatePasswordRepository(PasswordDTO passwordDTO)
+        {
+            if (string.IsNullOrWhiteSpace(passwordDTO.NewPassword) ||
+                passwordDTO.NewPassword.Length < 8 ||
+                !passwordDTO.NewPassword.Any(char.IsUpper) ||
+                !passwordDTO.NewPassword.Any(char.IsDigit))
+            {
+                return new UpdateUserProfileResponse(false, "Password must be at least 8 characters long, contain at least one uppercase letter and one number.");
+            }
+
+            var user = await dbContext.UserEntity.FirstOrDefaultAsync(u => u.UserId == passwordDTO.UserId);
+
+            if (user == null)
+                return new UpdateUserProfileResponse(false, "User not found.");
+
+            bool isPasswordValid = BCrypt.Net.BCrypt.Verify(passwordDTO.CurrPassword, user.Password);
+            if (!isPasswordValid)
+            {
+                return new UpdateUserProfileResponse(false, "The current password is incorrect.");
+            }
+            user.Password = BCrypt.Net.BCrypt.HashPassword(passwordDTO.NewPassword);
+
+            await dbContext.SaveChangesAsync();
+
+            return new UpdateUserProfileResponse(true, "Password changed successfully.");
         }
     }
 }
