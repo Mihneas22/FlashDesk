@@ -92,6 +92,7 @@ namespace FlashDeskAPI.Controllers
             return Ok(result);
         }
 
+        [Authorize(Policy = "RequirePremium")]
         [HttpGet("user-mastery")]
         public async Task<ActionResult<GetTopicMasteryResponse>> GetUserMasteryAsync()
         {

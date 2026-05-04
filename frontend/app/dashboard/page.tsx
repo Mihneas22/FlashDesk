@@ -224,7 +224,9 @@ export default function DashboardPage() {
         setGeneratedCards(cardsArray);
         setGenerationSuccess(true);
         showToast("Flashcards generated successfully!", "success");
-      } else {
+      } else if (response.status === 429){
+        showToast("You have reached your AI usage limit! Upgrade to a higher plan to generate more flashcards.", "error");
+      }else {
         console.error("Error generating cards:", await response.text());
         showToast("Failed to generate cards from the PDF.", "error");
       }

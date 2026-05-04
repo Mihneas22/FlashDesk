@@ -29,6 +29,8 @@ app.UseCors("AllowNextJS");
 
 app.UseHttpsRedirection();
 
+app.UseRateLimiter();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
