@@ -2,11 +2,16 @@
 using Infastructure.AppDbContext;
 using Infastructure.Repository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using Stripe;
+using System.Security.Claims;
 using System.Text;
+using System.Threading.RateLimiting;
 
 namespace Infastructure.DepInject
 {
@@ -20,7 +25,7 @@ namespace Infastructure.DepInject
             for (int i = 0; i < 5; i++)
             {
                 string testPath = Path.Combine(currentDir, "keys.env");
-                if (File.Exists(testPath))
+                if (System.IO.File.Exists(testPath))
                 {
                     envPath = testPath;
                     break;
@@ -32,6 +37,10 @@ namespace Infastructure.DepInject
             {
                 DotNetEnv.Env.Load(envPath);
             }
+
+            var stripeApiKey = Environment.GetEnvironmentVariable("STRIPE_API_KEY") 
+                ?? throw new InvalidOperationException("STRIPE_API_KEY nu este configurată!");
+            StripeConfiguration.ApiKey = stripeApiKey;
             string connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
                 ?? throw new InvalidOperationException("DATABASE_URL nu este configurată!");
             services.AddDbContext<ApplicationDbContext>(options =>
@@ -57,6 +66,42 @@ namespace Infastructure.DepInject
                     IssuerSigningKey = new SymmetricSecurityKey
                         (Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!))
                 };
+            });
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("RequirePremium", policy =>
+                    policy.RequireClaim("SubscriptionPlan", "Core", "Pro")
+                );
+            });
+
+            services.AddRateLimiter(options =>
+            {
+                options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+                options.AddPolicy("CreateDeckAI_Access", context =>
+                {
+                    var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anonymous";
+                    var userPlan = context.User.FindFirstValue(ClaimTypes.Role) ?? "Free";
+
+                    int permitLimit = userPlan switch
+                    {
+                        "Core" => 5,
+                        _ => 1
+                    };
+
+                    if (userPlan is "Pro")
+                    {
+                        return RateLimitPartition.GetNoLimiter(userId);
+                    }
+
+                    return RateLimitPartition.GetFixedWindowLimiter(userId, _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = permitLimit,
+                        Window = TimeSpan.FromDays(1),
+                        AutoReplenishment = true
+                    });
+                });
             });
 
             services.AddScoped<ICard, CardRepository>();

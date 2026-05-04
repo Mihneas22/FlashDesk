@@ -75,7 +75,7 @@ export function Navbar({ isLoggedIn }: { isLoggedIn?: boolean }) {
           )}
           <NavLink href="/public-decks" active={pathname === "/public-decks"}>Public Decks</NavLink>
           <NavLink href="/test" active={pathname === "/test"}>Tests</NavLink>
-          <NavLink href="/lab-asist" active={pathname === "/lab-asist"}>Assistant</NavLink>
+          <NavLink href="/pricing" active={pathname === "/pricing"}>Pricing</NavLink>
           
           <div className="mx-2 h-5 w-px bg-white/10"></div>
 

@@ -33,6 +33,8 @@ namespace Domain.Models
 
         public ICollection<string>? Roles { get; set; }
 
+        public string? Plan { get; set; }
+
         public DateTime? CreatedAt { get; set; }
     }
 }

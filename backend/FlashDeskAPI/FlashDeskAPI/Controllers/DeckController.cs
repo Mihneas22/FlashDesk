@@ -12,6 +12,7 @@ using Domain.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
 
 namespace FlashDeskAPI.Controllers
@@ -111,6 +112,7 @@ namespace FlashDeskAPI.Controllers
         }
 
         [HttpPost("generateFlashcards")]
+        [EnableRateLimiting("CreateDeckAI_Access")]
         public async Task<ActionResult<string>> GenerateFlashcardsWithPdfAsync(IFormFile pdfFile)
         {
             if (pdfFile == null || pdfFile.Length == 0)

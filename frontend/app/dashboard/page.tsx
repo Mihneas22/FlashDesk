@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import { Plus, Search, Loader2, Sparkles, BookOpen, Trophy, Zap, FileText, CheckCircle, AlertCircle, X, Flame } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { DeckCard } from "@/components/deck-card";
-import { useStore } from "@/lib/store";
 import { jwtDecode } from "jwt-decode";
 
 const TOPICS = [
@@ -29,7 +28,7 @@ const STATUS = [
 ];
 
 export default function DashboardPage() {
-  const { decks, setDecks } = useStore();
+  const [decks, setDecks] = useState<any[]>([]);
   
   const [search, setSearch] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -47,7 +46,6 @@ export default function DashboardPage() {
   const [generatedCards, setGeneratedCards] = useState<any[]>([]);
   const [generationSuccess, setGenerationSuccess] = useState(false);
 
-  // STREAK STATE
   const [streakDays, setStreakDays] = useState(0);
 
   const [toast, setToast] = useState({ show: false, message: "", type: "error" });
@@ -96,19 +94,17 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, [setDecks, showToast]);
+  }, [showToast]);
 
-  // Funcția care apelează backend-ul pentru a actualiza și prelua streak-ul
   const updateUserStreak = useCallback(async () => {
     try {
-      // Ajustează adresa dacă controller-ul tău se numește altfel (ex: /api/user/updateStreak)
       const response = await fetch(`http://localhost:5000/api/user/updateStreak`, {
         method: "POST",
         headers: {
           'Authorization': `Bearer ${localStorage.getItem("token")}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({}) // Trimitem un body gol; backend-ul ia UserId din Token
+        body: JSON.stringify({})
       });
 
       if (response.ok) {
@@ -135,7 +131,7 @@ export default function DashboardPage() {
           setIsLoggedIn(true);
           setNewUserId(extractedId);
           fetchDecks();
-          updateUserStreak(); // Apelăm streak-ul ca acțiune de "check-in" în aplicație
+          updateUserStreak();
         } else {
           setLoading(false);
         }
@@ -149,6 +145,25 @@ export default function DashboardPage() {
       setLoading(false);
     }
   }, [fetchDecks, updateUserStreak]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    
+    if (params.get("success") === "true") {
+      showToast("Payment was successful! Your account has been updated. Please login again!", "success");
+      window.history.replaceState(null, '', window.location.pathname);
+      
+        setTimeout(() => {
+          localStorage.removeItem("token");
+          window.location.href = "/login";
+      }, 3000); 
+    }
+
+    if (params.get("canceled") === "true") {
+      showToast("The payment was canceled.", "error");
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+  }, [showToast]);
 
   const filtered = decks.filter(
     (d) =>
@@ -319,7 +334,7 @@ export default function DashboardPage() {
               {/* STREAK UI - The psychological retention engine */}
               <button 
                   onClick={() => {
-                    updateUserStreak(); // Re-verifică streak-ul la server
+                    updateUserStreak();
                     showToast(`Your current streak is ${streakDays} days! Keep it up! 🔥`, "success");
                   }}
                   className={`flex items-center gap-3 px-5 py-3 rounded-2xl bg-gray-900/80 backdrop-blur-md border transition-all duration-500 relative overflow-hidden group active:scale-95
@@ -429,7 +444,14 @@ export default function DashboardPage() {
                 style={{ animationDelay: `${index * 75}ms` }}
                 className="animate-slide-up"
               >
-                <DeckCard deck={deckList} usId={userId}/>
+                <DeckCard 
+                  deck={deckList} 
+                  usId={userId} 
+                  onDeckDeleted={(deletedId) => {
+                    setDecks(prevDecks => prevDecks.filter(d => d.id !== deletedId));
+                  }}
+                  onDeckUpdated={() => fetchDecks()} 
+                />
               </div>
             ))}
           </div>

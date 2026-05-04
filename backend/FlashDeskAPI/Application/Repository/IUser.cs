@@ -3,6 +3,7 @@ using Application.DTOs.User.Heatmap;
 using Application.DTOs.User.LoginUser;
 using Application.DTOs.User.RegisterUser;
 using Application.DTOs.User.Streak.ModifyStreak;
+using Application.DTOs.User.Stripe.AddWebhook;
 using Application.DTOs.User.TopicMastery;
 using Application.DTOs.User.UserProfile;
 using Application.DTOs.User.UserProfile.Email;
@@ -35,5 +36,8 @@ namespace Application.Repository
         Task<UpdateUserProfileResponse> UpdateUsernameRepository(UsernameDTO usernameDTO);
         Task<UpdateUserProfileResponse> UpdatePasswordRepository(PasswordDTO passwordDTO);
         Task<UpdateUserProfileResponse> UpdateEmailRepository(EmailDTO emailDTO);
+
+        //Stripe
+        Task<AddStripeWebhookResponse> AddStripeWebhookRepository(AddStripeWebhookDTO addStripeWebhookDTO);
     }
 }

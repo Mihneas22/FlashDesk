@@ -9,6 +9,7 @@ export interface User {
   elo: number | null;
   createdAt: string | null;
   roles: string[] | null;
+  plan: string[] | null;
   
   streak?: Streak | null;
   userDecks?: Deck[] | null;

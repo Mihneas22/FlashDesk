@@ -68,6 +68,7 @@ namespace FlashDeskAPI.Controllers
             return Ok(result);
         }
 
+        [Authorize(Policy = "RequirePremium")]
         [HttpGet("heatmap")]
         public async Task<ActionResult<GetUserHeatmapResponse>> GetUserHeatmapAsync()
         {
@@ -79,6 +80,7 @@ namespace FlashDeskAPI.Controllers
             return Ok(result);
         }
 
+        [Authorize(Policy = "RequirePremium")]
         [HttpGet("user-stats")]
         public async Task<ActionResult<GetUserStatsResponse>> GetUserStatsAsync()
         {

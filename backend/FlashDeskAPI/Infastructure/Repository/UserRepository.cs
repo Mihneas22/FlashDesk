@@ -3,6 +3,7 @@ using Application.DTOs.User.Heatmap;
 using Application.DTOs.User.LoginUser;
 using Application.DTOs.User.RegisterUser;
 using Application.DTOs.User.Streak.ModifyStreak;
+using Application.DTOs.User.Stripe.AddWebhook;
 using Application.DTOs.User.TopicMastery;
 using Application.DTOs.User.UserProfile;
 using Application.DTOs.User.UserProfile.Email;
@@ -12,10 +13,17 @@ using Application.DTOs.User.UserStats;
 using Application.Repository;
 using Domain.Models;
 using Domain.Models.UserStats;
+using Humanizer;
 using Infastructure.AppDbContext;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using Stripe;
+using Stripe.Checkout;
+using Stripe.V2.Core;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -23,6 +31,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Text.RegularExpressions;
+using static System.Collections.Specialized.BitVector32;
 
 namespace Infastructure.Repository
 {
@@ -46,7 +55,8 @@ namespace Infastructure.Repository
             {
                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
                 new Claim(ClaimTypes.Name, user.Username!),
-                new Claim(ClaimTypes.Email, user.Email!)
+                new Claim(ClaimTypes.Email, user.Email!),
+                new Claim("SubscriptionPlan", user.Plan ?? "Free")
             };
 
             if (user.Roles != null && user.Roles.Any())
@@ -110,6 +120,7 @@ namespace Infastructure.Repository
                 UserCardStates = new List<UserCardState>(),
                 UserDecks = new List<Deck>(),
                 Roles = new List<string> { "user" },
+                Plan = "Free",
                 CreatedAt = DateTime.UtcNow
             });
 
@@ -138,6 +149,7 @@ namespace Infastructure.Repository
                     UserCardStates = us.UserCardStates,
                     CreatedAt = us.CreatedAt,
                     Streak = us.Streak,
+                    Plan = us.Plan,
                     UserDecks = us.UserDecks
                 })
                 .FirstOrDefaultAsync();
@@ -397,6 +409,63 @@ namespace Infastructure.Repository
             await dbContext.SaveChangesAsync();
 
             return new UpdateUserProfileResponse(true, "Password changed successfully.");
+        }
+
+        public async Task<AddStripeWebhookResponse> AddStripeWebhookRepository(AddStripeWebhookDTO addStripeWebhookDTO)
+        {
+            var endpointSecret = Environment.GetEnvironmentVariable("STRIPE_ENDPOINT_SECRET")
+                ?? throw new InvalidOperationException("STRIPE_ENDPOINT_SECRET nu este configurată!");
+
+            try
+            {
+                var stripeEvent = EventUtility.ConstructEvent(
+                    addStripeWebhookDTO.JsonBody,
+                    addStripeWebhookDTO.StripeSignature,
+                    endpointSecret,
+                    throwOnApiVersionMismatch: false
+                );
+
+                if (stripeEvent.Type == "checkout.session.completed")
+                {
+                    var session = stripeEvent.Data.Object as Session;
+
+                    if (session == null)
+                        return new AddStripeWebhookResponse(false, "The Stripe session is invalid or null.");
+
+                    var userId = session.ClientReferenceId;
+
+                    if (string.IsNullOrEmpty(userId))
+                        return new AddStripeWebhookResponse(false, "ClientReferenceId is missing from the session.");
+
+                    var user = await dbContext.UserEntity.FindAsync(Guid.Parse(userId));
+
+                    if (user != null)
+                    {
+                        string purchasedPlan = "Pro";
+
+                        if (session.Metadata != null && session.Metadata.ContainsKey("PlanName"))
+                        {
+                            purchasedPlan = session.Metadata["PlanName"];
+                        }
+
+                        user.Plan = purchasedPlan;
+                        await dbContext.SaveChangesAsync();
+
+                        return new AddStripeWebhookResponse(true, $"User plan has been updated to {purchasedPlan}.");
+                    }
+                    else
+                        return new AddStripeWebhookResponse(false, "The user was not found in the database.");
+                }
+                return new AddStripeWebhookResponse(true, "Stripe event intentionally ignored (not CheckoutSessionCompleted).");
+            }
+            catch (StripeException e)
+            {
+                return new AddStripeWebhookResponse(false, $"Stripe validation error: {e.Message}");
+            }
+            catch (Exception e)
+            {
+                return new AddStripeWebhookResponse(false, $"Internal error: {e.Message}");
+            }
         }
     }
 }

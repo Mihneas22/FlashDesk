@@ -50,6 +50,7 @@ export default function ProfilePage() {
     const [userId, setNewUserId] = useState("");
     const [user, setUser] = useState<User | null>(null);
     const [stats, setStats] = useState<UserStatsDto | null>(null);
+    const [hasPremiumAccess, setHasPremiumAccess] = useState(true);
 
     const [loading, setLoading] = useState(true);
     const [topics, setTopics] = useState<MappedTopic[]>([]);
@@ -161,41 +162,47 @@ export default function ProfilePage() {
               }
           }
 
-          if (statsRes.ok) {
-              const statsData = await statsRes.json();
-              if (statsData.flag && statsData.data) {
-                  setStats(statsData.data as UserStatsDto);
-              } else {
-                  setStats(null);
+          if (statsRes.status === 403 || masteryRes.status === 403 || statsRes.status === 401)
+              setHasPremiumAccess(false);
+          else
+          {
+              setHasPremiumAccess(true);
+              if (statsRes.ok) {
+                  const statsData = await statsRes.json();
+                  if (statsData.flag && statsData.data) {
+                      setStats(statsData.data as UserStatsDto);
+                  } else {
+                      setStats(null);
+                  }
+              }
+              if (masteryRes.ok) {
+                    const masteryData = await masteryRes.json();
+                    if (masteryData.flag && masteryData.data) {
+                        const colorPalette = [
+                            { color: "from-violet-500 to-purple-600", ringColor: "#8b5cf6" },
+                            { color: "from-fuchsia-500 to-pink-600", ringColor: "#d946ef" },
+                            { color: "from-cyan-500 to-blue-600", ringColor: "#06b6d4" },
+                            { color: "from-amber-500 to-orange-600", ringColor: "#f59e0b" },
+                            { color: "from-emerald-500 to-teal-600", ringColor: "#10b981" },
+                            { color: "from-rose-500 to-red-600", ringColor: "#f43f5e" },
+                        ];
+
+                        const mappedTopics = masteryData.data.map((item: any, index: number) => {
+                            const palette = colorPalette[index % colorPalette.length];
+                            return {
+                                name: item.topic,
+                                cards: item.totalCards,
+                                mastered: item.masteredCards,
+                                pct: item.masteryPct,
+                                color: palette.color,
+                                ringColor: palette.ringColor
+                          };
+                      });
+                    setTopics(mappedTopics);
+                  }
               }
           }
-          if (masteryRes.ok) {
-                const masteryData = await masteryRes.json();
-                if (masteryData.flag && masteryData.data) {
-                    const colorPalette = [
-                        { color: "from-violet-500 to-purple-600", ringColor: "#8b5cf6" },
-                        { color: "from-fuchsia-500 to-pink-600", ringColor: "#d946ef" },
-                        { color: "from-cyan-500 to-blue-600", ringColor: "#06b6d4" },
-                        { color: "from-amber-500 to-orange-600", ringColor: "#f59e0b" },
-                        { color: "from-emerald-500 to-teal-600", ringColor: "#10b981" },
-                        { color: "from-rose-500 to-red-600", ringColor: "#f43f5e" },
-                    ];
-
-                    const mappedTopics = masteryData.data.map((item: any, index: number) => {
-                        const palette = colorPalette[index % colorPalette.length];
-                        return {
-                            name: item.topic,
-                            cards: item.totalCards,
-                            mastered: item.masteredCards,
-                            pct: item.masteryPct,
-                            color: palette.color,
-                            ringColor: palette.ringColor
-                        };
-                    });
-                    
-                    setTopics(mappedTopics);
-                }
-            }  
+          
       } catch (error) {
           console.error("Error fetching data:", error);
       } finally {
@@ -299,7 +306,7 @@ export default function ProfilePage() {
                   {user?.username}
                 </h1>
                 <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-500/15 border border-violet-500/30 text-violet-300 text-xs font-bold">
-                  <Sparkles className="w-3 h-3" /> Core
+                  <Sparkles className="w-3 h-3" /> {user?.plan}
                 </span>
                 <button 
                   onClick={handleOpenSettings}
@@ -348,14 +355,35 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* ── HEATMAP + WEEKLY BAR ────────────────────────────────────────── */}
-        <StudyHeatmap
-          userId={userId}
-          currentStreak={user?.streak?.currentStreak ?? 0}
-        />
-
-        {/* ── TOPIC MASTERY ───────────────────────────────────────────────── */}
-        <TopicMastery topics={topics} />
+        {hasPremiumAccess ? (
+          <>
+            <StudyHeatmap
+              userId={userId}
+              currentStreak={user?.streak?.currentStreak ?? 0}
+            />
+            <TopicMastery topics={topics} />
+          </>
+        ) : (
+          <div className="relative rounded-3xl overflow-hidden border border-gray-800/60 bg-gray-900/40 backdrop-blur-md p-8 sm:p-12 flex flex-col items-center justify-center text-center">
+             <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-transparent to-transparent z-0 pointer-events-none" />
+             
+             <div className="relative z-10 max-w-md mx-auto space-y-4">
+                <div className="w-16 h-16 mx-auto rounded-2xl bg-gray-800 flex items-center justify-center border border-gray-700/50">
+                  <span className="text-2xl">🔒</span>
+                </div>
+                <h3 className="text-xl font-bold text-white">Unlock Advanced Analytics</h3>
+                <p className="text-gray-400 text-sm">
+                  Upgrade to Core or Pro to see your study heatmap, topic mastery breakdowns, and detailed learning statistics.
+                </p>
+                <button 
+                  onClick={() => window.location.href = '/pricing'} 
+                  className="mt-4 px-6 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-semibold text-sm transition-all shadow-lg shadow-violet-500/25"
+                >
+                  Upgrade Now
+                </button>
+             </div>
+          </div>
+        )}
 
         {/* ── SETTINGS MODAL ────────────────────────────────────────────── */}
         {isSettingsOpen && (

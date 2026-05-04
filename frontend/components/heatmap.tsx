@@ -22,11 +22,31 @@ interface StudyHeatmapProps {
 }
 
 const HEAT_STYLES = [
-  { bg: "bg-gray-800/50",                              border: "border-gray-700/30",   label: "0 cards"   },
-  { bg: "bg-violet-900/80",                            border: "border-violet-800/50", label: "1-9 cards" },
-  { bg: "bg-violet-700/80",                            border: "border-violet-600/50", label: "10-24"     },
-  { bg: "bg-violet-500/90",                            border: "border-violet-400/50", label: "25-49"     },
-  { bg: "bg-violet-400 shadow-sm shadow-violet-400/50",border: "border-violet-300/60", label: "50+"       },
+  { 
+    bg: "bg-[#120e28]", 
+    border: "border-gray-800/30", 
+    label: "0 cards" 
+  },
+  { 
+    bg: "bg-[#120d29]", 
+    border: "border-[#25154c]/30", 
+    label: "1-9 cards" 
+  },
+  { 
+    bg: "bg-[#25154c]", 
+    border: "border-[#3e2078]/40", 
+    label: "10-24" 
+  },
+  { 
+    bg: "bg-[#3e2078]", 
+    border: "border-[#3e2078]/70", 
+    label: "25-49" 
+  },
+  { 
+    bg: "bg-[#24988e] shadow-sm shadow-[#24988e]/40", 
+    border: "border-[#24988e]/80", 
+    label: "50+" 
+  },
 ];
 
 function getLevel(cards: number): number {

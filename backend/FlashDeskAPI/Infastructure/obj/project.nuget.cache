@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "97V3VyxfsUM=",
+  "dgSpecHash": "0VdfBnLWHVw=",
   "success": true,
   "projectFilePath": "C:\\Users\\Mihnea\\Proiecte\\FlashDesk\\backend\\FlashDeskAPI\\Infastructure\\Infastructure.csproj",
   "expectedPackageFiles": [
@@ -58,6 +58,7 @@
     "C:\\Users\\Mihnea\\.nuget\\packages\\npgsql\\10.0.2\\npgsql.10.0.2.nupkg.sha512",
     "C:\\Users\\Mihnea\\.nuget\\packages\\npgsql.entityframeworkcore.postgresql\\10.0.1\\npgsql.entityframeworkcore.postgresql.10.0.1.nupkg.sha512",
     "C:\\Users\\Mihnea\\.nuget\\packages\\sprache\\2.3.1\\sprache.2.3.1.nupkg.sha512",
+    "C:\\Users\\Mihnea\\.nuget\\packages\\stripe.net\\51.1.0\\stripe.net.51.1.0.nupkg.sha512",
     "C:\\Users\\Mihnea\\.nuget\\packages\\system.codedom\\6.0.0\\system.codedom.6.0.0.nupkg.sha512",
     "C:\\Users\\Mihnea\\.nuget\\packages\\system.composition\\9.0.0\\system.composition.9.0.0.nupkg.sha512",
     "C:\\Users\\Mihnea\\.nuget\\packages\\system.composition.attributedmodel\\9.0.0\\system.composition.attributedmodel.9.0.0.nupkg.sha512",
@@ -65,7 +66,10 @@
     "C:\\Users\\Mihnea\\.nuget\\packages\\system.composition.hosting\\9.0.0\\system.composition.hosting.9.0.0.nupkg.sha512",
     "C:\\Users\\Mihnea\\.nuget\\packages\\system.composition.runtime\\9.0.0\\system.composition.runtime.9.0.0.nupkg.sha512",
     "C:\\Users\\Mihnea\\.nuget\\packages\\system.composition.typedparts\\9.0.0\\system.composition.typedparts.9.0.0.nupkg.sha512",
-    "C:\\Users\\Mihnea\\.nuget\\packages\\system.identitymodel.tokens.jwt\\8.0.1\\system.identitymodel.tokens.jwt.8.0.1.nupkg.sha512"
+    "C:\\Users\\Mihnea\\.nuget\\packages\\system.configuration.configurationmanager\\9.0.0\\system.configuration.configurationmanager.9.0.0.nupkg.sha512",
+    "C:\\Users\\Mihnea\\.nuget\\packages\\system.diagnostics.eventlog\\9.0.0\\system.diagnostics.eventlog.9.0.0.nupkg.sha512",
+    "C:\\Users\\Mihnea\\.nuget\\packages\\system.identitymodel.tokens.jwt\\8.0.1\\system.identitymodel.tokens.jwt.8.0.1.nupkg.sha512",
+    "C:\\Users\\Mihnea\\.nuget\\packages\\system.security.cryptography.protecteddata\\9.0.0\\system.security.cryptography.protecteddata.9.0.0.nupkg.sha512"
   ],
   "logs": []
 }

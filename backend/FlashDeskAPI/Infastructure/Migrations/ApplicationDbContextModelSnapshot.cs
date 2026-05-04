@@ -216,6 +216,9 @@ namespace Infastructure.Migrations
                     b.Property<string>("Password")
                         .HasColumnType("text");
 
+                    b.Property<string>("Plan")
+                        .HasColumnType("text");
+
                     b.PrimitiveCollection<string[]>("Roles")
                         .HasColumnType("text[]");
 

@@ -36,6 +36,17 @@ services:
       - api
     networks:
       - app-network
+  
+  stripe-cli:
+    image: stripe/stripe-cli:latest
+    container_name: stripe_cli
+    depends_on:
+      - api
+    env_file:
+      - ./backend/FlashDeskAPI/FlashDeskAPI/keys.env
+    command: listen --forward-to http://api:8080/api/stripe/webhook
+    networks:
+      - app-network
 
 networks:
   app-network:
