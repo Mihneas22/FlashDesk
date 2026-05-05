@@ -13,6 +13,19 @@ services:
       - db-data:/var/lib/postgresql/data
     networks:
       - app-network
+
+  ocr-api:
+    build:
+      context: ./ocr-service
+      dockerfile: Dockerfile
+    container_name: latex_ocr
+    restart: always
+    ports:
+      - "5005:5000"
+    volumes:
+      - ocr-model-data:/root/.cache/torch
+    networks:
+      - app-network
   api:
     build:
       context: ./backend/FlashDeskAPI
@@ -54,3 +67,4 @@ networks:
 
 volumes:
   db-data:
+  ocr-model-data:

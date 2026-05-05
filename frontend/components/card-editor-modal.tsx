@@ -123,6 +123,22 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: C
   const frontTextareaRef = useRef<HTMLTextAreaElement>(null);
   const backTextareaRef = useRef<HTMLTextAreaElement>(null);
 
+  const [frontImage, setFrontImage] = useState<string | null>(null);
+  const [backImage, setBackImage] = useState(null);
+  const handleRemoveImage = () => {
+    if (frontImage) {
+      URL.revokeObjectURL(frontImage);
+      setFrontImage(null);
+    }
+  };
+
+  const handleRemoveBackImage = () => {
+    if (backImage) {
+      URL.revokeObjectURL(backImage);
+      setBackImage(null);
+    }
+  };
+
   const showToast = useCallback((message: string, type: "error" | "success" = "error") => {
     setToast({ show: true, message, type });
     setTimeout(() => setToast(prev => ({ ...prev, show: false })), 5000);
@@ -146,6 +162,7 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: C
       } else {
         resetGraph();
       }
+      setFrontImage(null);
 
       setToast({ show: false, message: "", type: "error" }); // Reset toast on open
     }
@@ -161,6 +178,58 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: C
   };
 
   if (!open) return null;
+
+  async function uploadAndOcr(file: File): Promise<string | null> {
+  const token = localStorage.getItem("token");
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    const response = await fetch("http://localhost:5000/api/card/extract-latex", {
+      method: "POST",
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: formData,
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return data.formula;
+    }
+  } catch (error) {
+    console.error("OCR Error:", error);
+  }
+  return null;
+}
+
+  const handlePaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>, target: string) => {
+    const items = e.clipboardData.items;
+    
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf("image") !== -1) {
+        e.preventDefault();
+        
+        const file = items[i].getAsFile();
+        if (file) {
+          const imageUrl = URL.createObjectURL(file);
+          setFrontImage(imageUrl);
+
+          const latex = await uploadAndOcr(file);
+          if (latex) {
+            if (target === 'front') {
+              setFront(prev => prev + (prev.trim() ? "\n" : "") + `$$${latex}$$`);
+            } else if (target === 'back') {
+              setBack(prev => prev + (prev.trim() ? "\n" : "") + `$$${latex}$$`);
+            }
+          } else {
+            showToast("Could not extract formula from image.", "error");
+          }
+        }
+        break;
+      }
+    }
+  };
 
   const insertMath = (target: 'front' | 'back', code: string, cursorOffset: number) => {
     const textarea = target === 'front' ? frontTextareaRef.current : backTextareaRef.current;
@@ -240,6 +309,7 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: C
     setFront("");
     setBack("");
     setTips([]);
+    setFrontImage(null);
     resetGraph();
   };
 
@@ -271,7 +341,6 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: C
 
         {/* Scrollable Body */}
         <div className="flex-1 p-6 sm:p-8 flex flex-col gap-8 overflow-y-auto bg-gray-50/30 custom-scrollbar">
-          
           {/* --- FRONT EDITOR --- */}
           <div className="flex flex-col gap-2">
             <label className="text-sm font-bold text-gray-700 ml-1">Front (Question - LaTeX - Keep formulas between $$)</label>
@@ -281,9 +350,30 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: C
                 ref={frontTextareaRef}
                 value={front}
                 onChange={(e) => setFront(e.target.value)}
+                onPaste={(e) => handlePaste(e, 'front')}
                 className="min-h-[100px] w-full rounded-b-xl border border-purple-100 bg-white px-4 py-3 text-gray-800 font-mono text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-violet-400 transition-all resize-y"
-                placeholder="Ex: $\int_{0}^{\infty} e^{-x^2} dx$"
+                placeholder="Ex: $\int_{0}^{\infty} e^{-x^2} dx$ (You can also click on an image here)"
               />
+              {frontImage && (
+                <div className="p-4 border-t border-purple-50 bg-gray-50 rounded-b-xl flex flex-col gap-2 animate-fade-in-up">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      Attached image
+                    </span>
+                    <button 
+                      onClick={handleRemoveImage}
+                      className="text-xs text-red-500 hover:text-red-700 font-bold px-2 py-1 bg-red-50 hover:bg-red-100 rounded-md transition-colors"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                  <img 
+                    src={frontImage} 
+                    alt="Pasted formula" 
+                    className="max-h-40 object-contain rounded border border-gray-200 shadow-sm"
+                  />
+                </div>
+              )}
             </div>
             {front.trim() && (
               <div className="mt-3 rounded-2xl border border-violet-100 bg-violet-50/50 p-4 shadow-inner animate-fade-in-up">
@@ -309,9 +399,30 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: C
                 ref={backTextareaRef}
                 value={back}
                 onChange={(e) => setBack(e.target.value)}
+                onPaste={(e) => handlePaste(e, 'back')}
                 className="min-h-[100px] w-full rounded-b-xl border border-purple-100 bg-white px-4 py-3 text-gray-800 font-mono text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all resize-y"
                 placeholder="The answer or step-by-step solution..."
               />
+              {backImage && (
+                <div className="p-4 border-t border-purple-50 bg-gray-50 rounded-b-xl flex flex-col gap-2 animate-fade-in-up">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      Attached image
+                    </span>
+                    <button 
+                      onClick={handleRemoveBackImage}
+                      className="text-xs text-red-500 hover:text-red-700 font-bold px-2 py-1 bg-red-50 hover:bg-red-100 rounded-md transition-colors"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                  <img 
+                    src={backImage} 
+                    alt="Pasted formula back" 
+                    className="max-h-40 object-contain rounded border border-gray-200 shadow-sm"
+                  />
+                </div>
+              )}
             </div>
             {back.trim() && (
               <div className="mt-3 rounded-2xl border border-emerald-100 bg-emerald-50/50 p-4 shadow-inner animate-fade-in-up">

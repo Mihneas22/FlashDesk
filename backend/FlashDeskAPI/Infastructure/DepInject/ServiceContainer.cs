@@ -82,18 +82,14 @@ namespace Infastructure.DepInject
                 options.AddPolicy("CreateDeckAI_Access", context =>
                 {
                     var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anonymous";
-                    var userPlan = context.User.FindFirstValue(ClaimTypes.Role) ?? "Free";
+                    var userPlan = context.User.FindFirstValue("SubscriptionPlan") ?? "Free";
 
-                    int permitLimit = userPlan switch
-                    {
-                        "Core" => 5,
-                        _ => 1
-                    };
-
-                    if (userPlan is "Pro")
+                    if (userPlan.Equals("Pro", StringComparison.OrdinalIgnoreCase))
                     {
                         return RateLimitPartition.GetNoLimiter(userId);
                     }
+
+                    int permitLimit = userPlan.Equals("Core", StringComparison.OrdinalIgnoreCase) ? 5 : 1;
 
                     return RateLimitPartition.GetFixedWindowLimiter(userId, _ => new FixedWindowRateLimiterOptions
                     {
@@ -109,6 +105,9 @@ namespace Infastructure.DepInject
             services.AddScoped<IDeck, DeckRepository>();
             services.AddScoped<ITest, TestRepository>();
             services.AddScoped<IQuestion, QuestionRepository>();
+            services.AddHttpClient<IOcr, OcrRepository>(client => {
+                client.Timeout = TimeSpan.FromSeconds(30);
+            });
 
             return services;
         }

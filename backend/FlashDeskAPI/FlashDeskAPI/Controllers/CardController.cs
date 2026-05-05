@@ -17,10 +17,12 @@ namespace FlashDeskAPI.Controllers
     public class CardController : ControllerBase
     {
         private readonly ICard cardRepository;
+        private readonly IOcr _ocrService;
 
-        public CardController(ICard cardRepository)
+        public CardController(ICard cardRepository, IOcr ocrService)
         {
             this.cardRepository = cardRepository;
+            this._ocrService = ocrService;
         }
 
         [HttpPost("addCard")]
@@ -72,6 +74,28 @@ namespace FlashDeskAPI.Controllers
 
             var result = await cardRepository.EditCardRepository(editCardDTO);
             return Ok(result);
+        }
+
+        [HttpPost("extract-latex")]
+        [Authorize]
+        public async Task<IActionResult> ExtractLatex(IFormFile file)
+        {
+            if (file == null || file.Length == 0) return BadRequest("Image not found.");
+
+            try
+            {
+                using var ms = new MemoryStream();
+                await file.CopyToAsync(ms);
+                var fileBytes = ms.ToArray();
+
+                string latexResult = await _ocrService.RecognizeLatexAsync(fileBytes);
+
+                return Ok(new { formula = latexResult });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error when processing OCR", details = ex.Message });
+            }
         }
     }
 }
