@@ -5,25 +5,12 @@ services:
     restart: always
     environment:
       POSTGRES_USER: mihneas22
-      POSTGRES_PASSWORD: 12345
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: flashdesk_db
     ports:
       - "5432:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
-    networks:
-      - app-network
-
-  ocr-api:
-    build:
-      context: ./ocr-service
-      dockerfile: Dockerfile
-    container_name: latex_ocr
-    restart: always
-    ports:
-      - "5005:5000"
-    volumes:
-      - ocr-model-data:/root/.cache/torch
     networks:
       - app-network
   api:
