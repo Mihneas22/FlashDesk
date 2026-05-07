@@ -27,7 +27,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("AllowNextJS");
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
