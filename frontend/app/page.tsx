@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import './index.css';
+import { Navbar } from "@/components/navbar";
 
 const MATH_SYMBOLS_LIST = [
   '∫', '∑', '∂', '∇', 'λ', 'ω', 'μ', 'σ', 'π', 'Φ',
@@ -140,25 +141,7 @@ export default function App() {
       </div>
 
       {/* ═══════════ NAV ═══════════ */}
-      <nav style={{
-        padding: isScrolled ? '12px 60px' : '20px 60px',
-        background: isScrolled ? 'rgba(4,4,15,0.9)' : 'rgba(4,4,15,0.6)'
-      }}>
-        <div className="nav-logo">Zynth</div>
-        <div className="nav-links" style={{ display: isMobileMenuOpen ? 'flex' : '' }}>
-          <a href="#features">Features</a>
-          <a href="#how">How it works</a>
-          <a href="#pricing">Pricing</a>
-          <a href="#contact">Contact</a>
-        </div>
-        <a href="#pricing" className="nav-cta">Start Free →</a>
-        <button 
-          className="hamburger" 
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        >
-          {isMobileMenuOpen ? '✕' : '☰'}
-        </button>
-      </nav>
+      <Navbar isLoggedIn={false} />
 
       {/* ═══════════ HERO ═══════════ */}
       <section className="hero">
