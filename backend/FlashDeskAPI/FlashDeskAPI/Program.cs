@@ -12,7 +12,7 @@ builder.Services.InfastructureService(builder.Configuration);
 
 builder.Services.AddCors(options => {
     options.AddPolicy("AllowNextJS",
-        policy => policy.WithOrigins("http://localhost:8080")
+        policy => policy.WithOrigins("https://learnqhub.com")
                         .AllowAnyMethod()
                         .AllowAnyHeader());
 });
