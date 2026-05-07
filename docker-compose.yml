@@ -7,6 +7,11 @@ services:
       POSTGRES_USER: mihneas22
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: flashdesk_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mihneas22 -d flashdesk_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     ports:
       - "5432:5432"
     volumes:
@@ -18,7 +23,8 @@ services:
       context: ./backend/FlashDeskAPI
       dockerfile: Dockerfile
     depends_on:
-      - db
+      db: 
+        condition: service_healthy
     env_file:
       - ./backend/FlashDeskAPI/FlashDeskAPI/keys.env
     ports:
