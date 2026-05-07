@@ -59,10 +59,14 @@ export function Navbar({ isLoggedIn }: { isLoggedIn?: boolean }) {
         {/* Brand */}
         <Link href="/dashboard" className="group flex items-center gap-3 shrink-0">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 via-purple-600 to-pink-600 shadow-lg shadow-violet-500/30 transform group-hover:scale-110 transition-all duration-300">
-            <Layers className="h-5 w-5 text-white" />
+            <img 
+                src="./public/favicon.svg"
+                alt="Logo"
+                className="h-6 w-6 object-contain" // Ajustează mărimea aici (h-6/w-6 e puțin mai mare decât h-5)
+              />
           </div>
           <span className="text-xl font-black tracking-tighter text-white font-syne">
-            Zynth
+            LearnQHub
           </span>
         </Link>
 
