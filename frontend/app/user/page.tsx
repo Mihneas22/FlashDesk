@@ -78,7 +78,7 @@ export default function ProfilePage() {
     try {
       setIsUpdating(true);
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:5000/api/user/update-username`, {
+      const res = await fetch(`https://learnqhub.com/api/api/user/update-username`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: editUsername })
@@ -99,7 +99,7 @@ export default function ProfilePage() {
     try {
       setIsUpdating(true);
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:5000/api/user/update-email`, {
+      const res = await fetch(`https://learnqhub.com/api/user/update-email`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ newEmail: emailForm.newEmail, password: emailForm.currentPassword })
@@ -123,7 +123,7 @@ export default function ProfilePage() {
     try {
       setIsUpdating(true);
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:5000/api/user/update-password`, {
+      const res = await fetch(`https://learnqhub.com/api/user/update-password`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ currPassword: passwordForm.currentPassword, newPassword: passwordForm.newPassword })
@@ -148,9 +148,9 @@ export default function ProfilePage() {
           };
 
           const [userRes, statsRes, masteryRes] = await Promise.all([
-              fetch(`http://localhost:5000/api/user/getuser`, { headers }),
-              fetch(`http://localhost:5000/api/user/user-stats`, { headers }),
-              fetch(`http://localhost:5000/api/user/user-mastery`, { headers }) 
+              fetch(`https://learnqhub.com/api/user/getuser`, { headers }),
+              fetch(`https://learnqhub.com/api/user/user-stats`, { headers }),
+              fetch(`https://learnqhub.com/api/user/user-mastery`, { headers }) 
           ]);
 
           if (userRes.ok) {

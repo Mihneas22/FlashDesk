@@ -56,7 +56,7 @@ export default function ActiveTestPage({ params }: { params: Promise<{ id: strin
     const fetchQuestions = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(`http://localhost:5000/api/question/getQuestionsByTest/${id}`, {
+        const response = await fetch(`https://learnqhub.com/api/question/getQuestionsByTest/${id}`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem("token")}`,
             'Content-Type': 'application/json'

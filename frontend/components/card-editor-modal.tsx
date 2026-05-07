@@ -185,7 +185,7 @@ export function CardEditorModal({ open, onClose, onSave, initialCard, title }: C
   formData.append("file", file);
 
   try {
-    const response = await fetch("http://localhost:5000/api/card/extract-latex", {
+    const response = await fetch("https://learnqhub.com/api/card/extract-latex", {
       method: "POST",
       headers: {
         'Authorization': `Bearer ${token}`

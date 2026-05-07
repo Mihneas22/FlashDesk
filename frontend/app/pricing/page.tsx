@@ -91,7 +91,7 @@ export default function PricingPage() {
       setLoadingPlan(planName);
       const token = localStorage.getItem("token");
 
-      const response = await fetch("http://localhost:5000/api/stripe/create-checkout-session", {
+      const response = await fetch("https://learnqhub.com/api/stripe/create-checkout-session", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

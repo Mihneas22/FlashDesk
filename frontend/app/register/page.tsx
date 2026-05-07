@@ -55,7 +55,7 @@ export default function RegisterPage() {
     }
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://learnqhub.com";
       
       const response = await fetch(`${apiUrl}/api/User/register`, {
         method: "POST",

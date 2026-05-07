@@ -41,7 +41,7 @@ export default function PublicDecksPage() {
       const query = search.trim();
       try {
         setLoading(true);
-        const res = await fetch(`http://localhost:5000/api/deck/getDecksByName/${encodeURIComponent(query)}`, {
+        const res = await fetch(`https://learnqhub.com/api/deck/getDecksByName/${encodeURIComponent(query)}`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem("token")}`,
             'Content-Type': 'application/json'
@@ -76,7 +76,7 @@ export default function PublicDecksPage() {
     
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5000/api/deck/getPublicDecks/${safeFilter}`, {
+      const response = await fetch(`https://learnqhub.com/api/deck/getPublicDecks/${safeFilter}`, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem("token")}`

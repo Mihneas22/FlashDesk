@@ -93,7 +93,7 @@ export default function StudyPage({ params }: PageProps) {
 
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5000/api/card/getDeckCards/${id}`, {
+      const response = await fetch(`https://learnqhub.com/api/card/getDeckCards/${id}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -255,7 +255,7 @@ export default function StudyPage({ params }: PageProps) {
     const token = localStorage.getItem("token");
 
     try {
-      const response = await fetch(`http://localhost:5000/api/deck/deck-submission`, {
+      const response = await fetch(`https://learnqhub.com/api/deck/deck-submission`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

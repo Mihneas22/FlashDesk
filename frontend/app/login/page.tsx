@@ -32,7 +32,7 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://learnqhub.com";
       
       const response = await fetch(`${apiUrl}/api/user/login`, {
         method: "POST",

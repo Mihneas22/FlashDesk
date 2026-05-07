@@ -52,7 +52,7 @@ export default function DeckPage({ params }: PageProps) {
     const token = localStorage.getItem("token");
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5000/api/deck/getDeckById/${id}`, {
+      const response = await fetch(`https://learnqhub.com/api/deck/getDeckById/${id}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -130,7 +130,7 @@ export default function DeckPage({ params }: PageProps) {
   async function handleAddCard(front: string, back: string, tips: string[], graphConfig?: ViewConfig | null) {
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(`http://localhost:5000/api/card/addCard`, {
+      const response = await fetch(`https://learnqhub.com/api/card/addCard`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -156,7 +156,7 @@ export default function DeckPage({ params }: PageProps) {
     const token = localStorage.getItem("token");
     
     try {
-      const response = await fetch(`http://localhost:5000/api/card/deleteCard`, {
+      const response = await fetch(`https://learnqhub.com/api/card/deleteCard`, {
         method: 'DELETE',
         headers: { 
           'Content-Type': 'application/json',
@@ -187,7 +187,7 @@ export default function DeckPage({ params }: PageProps) {
     const token = localStorage.getItem("token");
 
     try {
-      const response = await fetch(`http://localhost:5000/api/card/editCard`, {
+      const response = await fetch(`https://learnqhub.com/api/card/editCard`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',

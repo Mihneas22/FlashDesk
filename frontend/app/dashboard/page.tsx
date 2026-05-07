@@ -58,7 +58,7 @@ export default function DashboardPage() {
   const fetchDecks = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5000/api/deck/getDecksByUser`, {
+      const response = await fetch(`https://learnqhub.com/api/deck/getDecksByUser`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem("token")}`,
           'Content-Type': 'application/json'
@@ -98,7 +98,7 @@ export default function DashboardPage() {
 
   const updateUserStreak = useCallback(async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/user/updateStreak`, {
+      const response = await fetch(`https://learnqhub.com/api/user/updateStreak`, {
         method: "POST",
         headers: {
           'Authorization': `Bearer ${localStorage.getItem("token")}`,
@@ -189,7 +189,7 @@ export default function DashboardPage() {
       const formData = new FormData();
       formData.append("pdfFile", pdfFile);
 
-      const response = await fetch("http://localhost:5000/api/deck/generateFlashcards", {
+      const response = await fetch("https://learnqhub.com/api/deck/generateFlashcards", {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${localStorage.getItem("token")}`,
@@ -255,7 +255,7 @@ export default function DashboardPage() {
     };
 
     try {
-      const response = await fetch("http://localhost:5000/api/deck/addDeck", {
+      const response = await fetch("https://learnqhub.com/api/deck/addDeck", {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${localStorage.getItem("token")}`,

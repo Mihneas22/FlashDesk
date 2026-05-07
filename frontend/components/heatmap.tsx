@@ -198,7 +198,7 @@ export function StudyHeatmap({ userId, currentStreak = 0 }: StudyHeatmapProps) {
     if (!userId) return;
     try {
       setLoading(true);
-      const res = await fetch(`http://localhost:5000/api/user/heatmap`, {
+      const res = await fetch(`https://learnqhub.com/api/user/heatmap`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
 

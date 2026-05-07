@@ -61,7 +61,7 @@ export default function TestsListPage() {
       setIsLoading(true);
       try {
         const encodedFilter = encodeURIComponent(filter);
-        const response = await fetch(`http://localhost:5000/api/test/getTestsFilter/${encodedFilter}`, {
+        const response = await fetch(`https://learnqhub.com/api/test/getTestsFilter/${encodedFilter}`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem("token")}`,
             'Content-Type': 'application/json'

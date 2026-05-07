@@ -93,7 +93,7 @@ export function DeckCard({ usId, deck, onDeckDeleted, onDeckUpdated }: DeckCardP
     setIsLoading(true);
 
     try {
-      const response = await fetch(`http://localhost:5000/api/deck/deleteDeck/${deck.id}`, {
+      const response = await fetch(`https://learnqhub.com/api/deck/deleteDeck/${deck.id}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -155,7 +155,7 @@ export function DeckCard({ usId, deck, onDeckDeleted, onDeckUpdated }: DeckCardP
     };
 
     try {
-      const response = await fetch(`http://localhost:5000/api/deck/editDeck`, {
+      const response = await fetch(`https://learnqhub.com/api/deck/editDeck`, {
         method: "PUT",
         headers: { 
           "Content-Type": "application/json",
