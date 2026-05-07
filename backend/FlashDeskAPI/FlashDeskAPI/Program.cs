@@ -10,13 +10,6 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 builder.Services.AddOpenApi();
 builder.Services.InfastructureService(builder.Configuration);
 
-
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    db.Database.Migrate();
-}
-
 builder.Services.AddCors(options => {
     options.AddPolicy("AllowNextJS",
         policy => policy.WithOrigins("https://learnqhub.com", "https://www.learnqhub.com")
@@ -25,6 +18,21 @@ builder.Services.AddCors(options => {
 });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try 
+    {
+        var db = services.GetRequiredService<ApplicationDbContext>();
+        db.Database.Migrate();
+        Console.WriteLine("Migrările au fost aplicate cu succes!");
+    }
+    catch (Exception ex) 
+    {
+        Console.WriteLine($"Eroare la migrare: {ex.Message}");
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
