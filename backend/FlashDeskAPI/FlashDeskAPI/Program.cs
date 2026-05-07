@@ -1,4 +1,5 @@
 using Infastructure.DepInject;
+using Infastructure.AppDbContext;
 
 var builder = WebApplication.CreateBuilder(args);
 
