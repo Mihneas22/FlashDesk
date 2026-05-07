@@ -10,6 +10,13 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 builder.Services.AddOpenApi();
 builder.Services.InfastructureService(builder.Configuration);
 
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    db.Database.Migrate();
+}
+
 builder.Services.AddCors(options => {
     options.AddPolicy("AllowNextJS",
         policy => policy.WithOrigins("https://learnqhub.com", "https://www.learnqhub.com")
