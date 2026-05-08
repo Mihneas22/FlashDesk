@@ -3,6 +3,7 @@ import { Inter, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import 'katex/dist/katex.min.css'
 import { AuthGuard } from '@/components/auth-guard'
+import { CookieBanner } from '@/components/cookie-banner'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono' })
@@ -24,6 +25,8 @@ export default function RootLayout({
         <AuthGuard>
           {children}
         </AuthGuard>
+
+        <CookieBanner />
       </body>
     </html>
   )
