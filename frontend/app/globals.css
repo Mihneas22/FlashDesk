@@ -4,7 +4,6 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* FormulaCards — always dark */
   --background: oklch(0.13 0.005 260);
   --foreground: oklch(0.94 0 0);
   --card: oklch(0.17 0.006 260);

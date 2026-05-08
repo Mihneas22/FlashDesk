@@ -41,7 +41,7 @@ export default function PrivacyPolicyPage() {
             </h1>
             <p className="text-gray-400 max-w-2xl text-sm sm:text-base font-medium">
               We are committed to protecting your personal data and your right to privacy. 
-              This policy explains how we collect, use, and store your information when you use FormulaCards.
+              This policy explains how we collect, use, and store your information when you use LearnQHub.
             </p>
           </div>
         </div>
@@ -134,8 +134,8 @@ export default function PrivacyPolicyPage() {
             <p className="text-gray-300">
               If you have any questions about this privacy policy or wish to exercise your data protection rights, please contact us at:
             </p>
-            <a href="mailto:contact@formulacards.com" className="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-xl bg-gray-800/60 border border-gray-700/50 text-violet-300 hover:text-white hover:bg-violet-500/20 hover:border-violet-500/30 transition-all font-medium">
-              contact@formulacards.com
+            <a href="mailto:contact@learnqhub.com" className="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-xl bg-gray-800/60 border border-gray-700/50 text-violet-300 hover:text-white hover:bg-violet-500/20 hover:border-violet-500/30 transition-all font-medium">
+              contact@learnqhub.com
             </a>
           </SectionCard>
 

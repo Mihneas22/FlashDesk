@@ -104,7 +104,7 @@ export default function RegisterPage() {
             <Layers className="h-6 w-6 text-white" />
           </div>
           <span className="text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-violet-600 to-purple-600 tracking-tight">
-            FormulaCards
+            LearnQHub
           </span>
         </Link>
 

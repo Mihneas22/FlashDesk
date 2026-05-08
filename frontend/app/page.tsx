@@ -247,7 +247,7 @@ export default function App() {
       <section className="features-section" id="features">
         <div className="container">
           <div className="section-head">
-            <p className="section-eyebrow">Why Zynth</p>
+            <p className="section-eyebrow">Why LearnQHub</p>
             <h2 className="section-title">Everything Anki can't do.<br /><span className="g-violet">Built for engineers.</span></h2>
             <p className="section-sub">Every feature is designed around the specific way engineering students learn — and forget.</p>
           </div>
@@ -510,7 +510,7 @@ export default function App() {
             border: '1px solid rgba(124,58,237,0.12)'
           }}>
             <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
-              Quizlet charges <strong style={{ color: 'var(--text)' }}>€7.99/mo</strong> and has no engineering content. Anki is free but has terrible mobile UX and no LaTeX support. Zynth Core at <strong style={{ color: 'var(--violet-l)' }}>€4.99/mo</strong> is cheaper, better, and purpose-built for your degree.
+              Quizlet charges <strong style={{ color: 'var(--text)' }}>€7.99/mo</strong> and has no engineering content. Anki is free but has terrible mobile UX and no LaTeX support. LearnQHub Core at <strong style={{ color: 'var(--violet-l)' }}>€4.99/mo</strong> is cheaper, better, and purpose-built for your degree.
             </p>
           </div>
         </div>
@@ -532,7 +532,7 @@ export default function App() {
                 <div className="ci-icon">✉</div>
                 <div>
                   <div className="ci-label">Email</div>
-                  <div className="ci-val">hello@Zynth.app</div>
+                  <div className="ci-val">hello@learnqhub.app</div>
                 </div>
               </div>
 
@@ -638,7 +638,7 @@ export default function App() {
 
       {/* ═══════════ FOOTER ═══════════ */}
       <footer>
-        <div className="footer-logo">Zynth</div>
+        <div className="footer-logo">LearnQHub</div>
         <div className="footer-links">
           <a href="#features">Features</a>
           <a href="#pricing">Pricing</a>
@@ -646,7 +646,7 @@ export default function App() {
           <a href="#">Privacy</a>
           <a href="#">Terms</a>
         </div>
-        <div className="footer-copy">© 2025 Zynth. Built for engineers, by engineers.</div>
+        <div className="footer-copy">© 2025 LearnQHub. Built for engineers, by engineers.</div>
       </footer>
     </>
   );
