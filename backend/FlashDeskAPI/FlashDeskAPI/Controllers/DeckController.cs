@@ -105,9 +105,9 @@ namespace FlashDeskAPI.Controllers
         }
 
         [HttpGet("getDecksByName/{name}")]
-        public async Task<ActionResult<GetDeckByNameResponse>> GetDeckByNameAsync(string name)
+        public async Task<ActionResult<GetDeckByNameResponse>> GetDeckByNameAsync(GetDeckByNameDTO dto)
         {
-            var result = await deckRepo.GetDeckByNameRepository(new GetDeckByNameDTO { Name = name });
+            var result = await deckRepo.GetDeckByNameRepository(dto);
             return Ok(result);
         }
 
@@ -121,7 +121,7 @@ namespace FlashDeskAPI.Controllers
             if (pdfFile.ContentType != "application/pdf")
                 return BadRequest("Only PDF files are accepted.");
 
-            const long maxFileSize = 10 * 1024 * 1024;
+            const long maxFileSize = 20 * 1024 * 1024;
             if (pdfFile.Length > maxFileSize)
                 return BadRequest("The file is too large. The maximum allowed size is 10MB.");
 

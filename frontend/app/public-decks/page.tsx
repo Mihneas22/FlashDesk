@@ -39,9 +39,15 @@ export default function PublicDecksPage() {
 
   const fetchSearchDeck = useCallback(async () =>{
       const query = search.trim();
+      const isPublic = true;
       try {
         setLoading(true);
-        const res = await fetch(`https://learnqhub.com/api/deck/getDecksByName/${encodeURIComponent(query)}`, {
+        const url = new URL("https://learnqhub.com/api/deck/getDecksByName");
+          url.searchParams.append("Name", query);
+          url.searchParams.append("Status", isPublic.toString());
+
+        const res = await fetch(url.toString(), {
+          method: 'GET',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem("token")}`,
             'Content-Type': 'application/json'

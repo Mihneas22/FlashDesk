@@ -433,14 +433,14 @@ namespace Infastructure.Repository
             {
                 decks = await dbContext.DeckEntity
                 .AsNoTracking()
-                .Where(dc => dc.Title!.Contains(getDeckByNameDTO.Name))
+                .Where(dc => dc.Title!.StartsWith(getDeckByNameDTO.Name))
                 .ToListAsync();
             }
             else
             {
                 decks = await dbContext.DeckEntity
                 .AsNoTracking()
-                .Where(dc => dc.Title!.Contains(getDeckByNameDTO.Name) && dc.Status == true)
+                .Where(dc => dc.Title!.StartsWith(getDeckByNameDTO.Name) && dc.Status == true)
                 .ToListAsync();
             }
 

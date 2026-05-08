@@ -99,14 +99,20 @@ export default function AdminDashboardPage() {
   const fetchDecksList = useCallback(async () => {
     try {
       const query = search.trim();
-      const endpoint = query 
-        ? `${API_BASE_URL}/deck/getDecksByName/${encodeURIComponent(query)}`
-        : `${API_BASE_URL}/deck/getAllDecks`;
-
-      const res = await fetch(endpoint, {
-        method: "GET",
-        headers: getAuthHeaders()
+    
+    let endpoint = `${API_BASE_URL}/deck/getAllDecks`;
+    if (query) {
+      const params = new URLSearchParams({
+        Name: query,
+        Status: "false"
       });
+      endpoint = `${API_BASE_URL}/deck/getDecksByName?${params.toString()}`;
+    }
+
+    const res = await fetch(endpoint, {
+      method: "GET",
+      headers: getAuthHeaders()
+    });
       const data = await res.json();
 
       if (res.ok && data.flag) {
