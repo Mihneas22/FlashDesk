@@ -140,9 +140,6 @@ export default function App() {
         ))}
       </div>
 
-      {/* ═══════════ NAV ═══════════ */}
-      <Navbar isLoggedIn={false} />
-
       {/* ═══════════ HERO ═══════════ */}
       <section className="hero">
         <div className="hero-inner">
