@@ -104,8 +104,8 @@ namespace FlashDeskAPI.Controllers
             return Ok(result);
         }
 
-        [HttpGet("getDecksByName/{name}")]
-        public async Task<ActionResult<GetDeckByNameResponse>> GetDeckByNameAsync(GetDeckByNameDTO dto)
+        [HttpGet("getDecksByName")]
+        public async Task<ActionResult<GetDeckByNameResponse>> GetDeckByNameAsync([FromQuery] GetDeckByNameDTO dto)
         {
             var result = await deckRepo.GetDeckByNameRepository(dto);
             return Ok(result);
