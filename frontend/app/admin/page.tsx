@@ -116,10 +116,18 @@ export default function AdminDashboardPage() {
       const data = await res.json();
 
       if (res.ok && data.flag) {
-        setDecks(query ? (data.deck ? [data.deck] : []) : (data.decks || []));
+        const rawData = data.decks || (data.deck ? [data.deck] : []);
+
+        const mapped = rawData.map((d: any) => ({
+          ...d,
+          id: d.deckId,
+          name: d.title
+        }));
+
+        setDecks(mapped);
       } else {
         setDecks([]);
-        if(query) showToast(`Pachetul nu a fost găsit: ${data.message}`, "error");
+        if (query) showToast(`Pachetul nu a fost găsit: ${data.message}`, "error");
       }
     } catch (error) {
       showToast("Eroare de rețea la obținerea pachetelor.", "error");
