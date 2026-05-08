@@ -50,11 +50,11 @@ namespace FlashDeskAPI.Controllers
             return Ok(result);
         }
 
-        [HttpGet("getPublicDecks/{filter}")]
+        [HttpGet("getPublicDecks")]
         [AllowAnonymous]
-        public async Task<ActionResult<GetPublicDecksResponse>> GetPublicDecksAsync(string filter)
+        public async Task<ActionResult<GetPublicDecksResponse>> GetPublicDecksAsync([FromQuery] GetPublicDecksDTO dto)
         {
-            var result = await deckRepo.GetPublicDecksRepository(new GetPublicDecksDTO { Filter = filter });
+            var result = await deckRepo.GetPublicDecksRepository(dto);
             return Ok(result);
         }
 

@@ -78,40 +78,39 @@ export default function PublicDecksPage() {
   }, [search])
 
   const fetchPublicDecks = useCallback(async (filterText: string) => {
-    const safeFilter = filterText === "All Topics" ? "all" : encodeURIComponent(filterText);
-    
-    try {
-      setLoading(true);
-      const response = await fetch(`https://learnqhub.com/api/deck/getPublicDecks/${safeFilter}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem("token")}`
-        }
-      });
+    const safeFilter = filterText === "All Topics" ? "all" : filterText;
+    const userRole = "Free";
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.flag || data.success) {
-          const rawDecks = data.decks || [];
-          const mappedDecks = rawDecks.map((d: any) => ({
-            ...d,
-            id: d.id || d.deckId,
-            cards: d.deckCards || []
-          }));
-          
-          setPublicDecks(mappedDecks); 
+    try {
+        setLoading(true);
+        const response = await fetch(
+            `https://learnqhub.com/api/deck/getPublicDecks?filter=${encodeURIComponent(safeFilter)}&role=${userRole}`, 
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem("token")}`
+                }
+            }
+        );
+
+        if (response.ok) {
+            const data = await response.json();
+            if (data.flag || data.success) {
+                const rawDecks = data.decks || [];
+                const mappedDecks = rawDecks.map((d: any) => ({
+                    ...d,
+                    id: d.id || d.deckId,
+                    cards: d.deckCards || []
+                }));
+                setPublicDecks(mappedDecks);
+            }
+        } else {
+            showToast("Failed to load decks.", "error");
         }
-      } else {
-        console.error(" from the server.:", response.statusText);
-        setPublicDecks([]);
-        showToast("Failed to load decks from the server.", "error");
-      }
     } catch (error) {
-      console.error("Failed to fetch public decks:", error);
-      setPublicDecks([]);
-      showToast("Network error. Could not connect to the server.", "error");
+        showToast("Network error.", "error");
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
   }, [showToast]);
 
