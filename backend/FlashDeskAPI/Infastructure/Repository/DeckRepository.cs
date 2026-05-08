@@ -224,6 +224,7 @@ namespace Infastructure.Repository
                     CreatedAt = DateTime.UtcNow
                 }).ToList() ?? new List<Card>(),
                 Status = createDeckDTO.Status == "Public",
+                RolesAccess = new List<string> { "Core", "Pro" },
                 CreatedAt = DateTime.UtcNow,
             };
 
@@ -475,7 +476,7 @@ namespace Infastructure.Repository
             var query = dbContext.DeckEntity
                 .AsNoTracking()
                 .Include(dc => dc.DeckCards)
-                .Where(dc => dc.Status == true);
+                .Where(dc => dc.Status == true && dc.RolesAccess!.Contains(getPublicDecksDTO.Role));
 
             if (getPublicDecksDTO.Filter != "all")
             {

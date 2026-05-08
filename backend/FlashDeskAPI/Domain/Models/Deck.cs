@@ -24,6 +24,8 @@ namespace Domain.Models
 
         public bool Status { get; set; } //1 - public,0 - private
 
+        public ICollection<string>? RolesAccess { get; set; }
+
         public DateTime? CreatedAt { get; set; }
     }
 }

@@ -9,5 +9,8 @@ namespace Application.DTOs.Deck.GetPublicDecks
     {
         [Required]
         public string Filter { get; set; } = string.Empty;
+
+        [Required]
+        public string Role { get; set; } = string.Empty;
     }
 }
