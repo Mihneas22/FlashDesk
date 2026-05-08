@@ -52,7 +52,7 @@ export function FlashcardView({ card, resetKey }: FlashcardViewProps) {
       
       {/* 3D Card Container */}
       <div 
-        className="group relative h-80 w-full max-w-2xl cursor-pointer"
+        className="group relative h-[400px] md:h-[450px] w-full max-w-3xl cursor-pointer" // Am crescut h și max-w
         onClick={() => setIsFlipped(!isFlipped)}
         style={{ perspective: "1500px" }}
       >
@@ -80,12 +80,11 @@ export function FlashcardView({ card, resetKey }: FlashcardViewProps) {
             </div>
             
             {/* Content */}
-            <div className="text-xl md:text-3xl font-medium text-gray-800 w-full max-h-[75%] overflow-y-auto prose dark:prose-invert flex flex-col items-center justify-center scrollbar-hide">
+            <div className="text-xl md:text-2xl font-medium text-gray-800 w-full max-h-[85%] overflow-y-auto px-4 prose dark:prose-invert flex flex-col items-center justify-center scrollbar-hide">
               <ReactMarkdown 
                 remarkPlugins={[remarkMath]} 
                 rehypePlugins={[rehypeKatex]}
               >
-                {/* Procesăm textul înainte de randare */}
                 {processLatex(card.front)}
               </ReactMarkdown>
             </div>
@@ -113,13 +112,12 @@ export function FlashcardView({ card, resetKey }: FlashcardViewProps) {
               </span>
             </div>
             
-            {/* Content */}
-            <div className="text-xl md:text-3xl font-medium text-gray-800 w-full max-h-[75%] overflow-y-auto prose dark:prose-invert flex flex-col items-center justify-center scrollbar-hide">
+            {/* Content BACK */}
+            <div className="text-xl md:text-2xl font-medium text-gray-800 w-full max-h-[85%] overflow-y-auto px-4 prose dark:prose-invert flex flex-col items-center justify-center scrollbar-hide">
               <ReactMarkdown 
                 remarkPlugins={[remarkMath]} 
                 rehypePlugins={[rehypeKatex]}
               >
-                {/* Procesăm textul înainte de randare */}
                 {processLatex(card.back)}
               </ReactMarkdown>
             </div>
