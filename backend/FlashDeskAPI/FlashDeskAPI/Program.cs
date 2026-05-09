@@ -27,7 +27,7 @@ using (var scope = app.Services.CreateScope())
     try 
     {
         var db = services.GetRequiredService<ApplicationDbContext>();
-        db.Database.Migrate();
+	db.Database.EnsureCreated();
         Console.WriteLine("Migrările au fost aplicate cu succes!");
     }
     catch (Exception ex) 

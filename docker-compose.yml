@@ -36,6 +36,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+    env_file:
+      - ./frontned/.env.local 
     ports:
       - "8080:3000"
     depends_on:
