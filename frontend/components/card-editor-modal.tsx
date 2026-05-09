@@ -34,8 +34,8 @@ export interface GraphPoint {
 }
 
 export interface ViewBoxConfig {
-  x: number[];
-  y: number[];
+  x: [number, number];
+  y: [number, number];
 }
 
 export interface ViewConfig {
@@ -50,7 +50,7 @@ export interface ViewConfig {
 export interface CardEditorModalProps {
   open: boolean;
   onClose: () => void;
-  onSave: (front: string, back: string, tips: string[], graphConfig: ViewConfig | null) => void;
+  onSave: (front: string, back: string, tips: string[], graphConfig: ViewConfig | null) => void | Promise<void>;
   initialCard?: any; // Consider typing this strictly based on your data model
   title: string;
 }
