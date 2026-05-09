@@ -1,4 +1,5 @@
-﻿using Application.DTOs.Test.AddTest;
+﻿using Application.DTOs.Test.AddSubmission;
+using Application.DTOs.Test.AddTest;
 using Application.DTOs.Test.DeleteTest;
 using Application.DTOs.Test.EditTest;
 using Application.DTOs.Test.GetTestById;
@@ -20,6 +21,8 @@ namespace Application.Repository
         Task<EditTestResponse> EditTestRepository(EditTestDTO editTestDTO);
 
         Task<DeleteTestResponse> DeleteTestRepository(DeleteTestDTO deleteTestDTO);
+
+        Task<AddTestSubmissionResponse> AddTestSubmissionRepository(AddTestSubmissionDTO addTestSubmissionDTO);
         /*
          * de implementatat
          * Add Test

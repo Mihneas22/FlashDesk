@@ -1,4 +1,5 @@
 ﻿using Application.DTOs.Deck.DeleteDeck;
+using Application.DTOs.Test.AddSubmission;
 using Application.DTOs.Test.AddTest;
 using Application.DTOs.Test.DeleteTest;
 using Application.DTOs.Test.EditTest;
@@ -61,6 +62,39 @@ namespace FlashDeskAPI.Controllers
         {
             var result = await testRepo.GetTestsFilterRepository(new GetTestsDTO { Filter = filter });
             return Ok(result);
+        }
+
+        [HttpPost("addTestSubmission")]
+        public async Task<IActionResult> AddSubmission([FromBody] AddTestSubmissionDTO dto)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+                var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userIdString)) return Unauthorized();
+
+                if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out Guid loggedInUserId))
+                {
+                    return Unauthorized(new { message = "Invalid token or user ID not found in token claims." });
+                }
+                dto.Subm_UserId = loggedInUserId;
+                var result = await testRepo.AddTestSubmissionRepository(dto);
+                if (result.Flag)
+                {
+                    return Ok(result);
+                }
+                else
+                {
+                    return BadRequest(result);
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An internal server error occurred.", details = ex.Message });
+            }
         }
     }
 }

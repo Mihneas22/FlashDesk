@@ -278,3 +278,81 @@ BEGIN
 END $EF$;
 COMMIT;
 
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20260509132215_AddStripeCustomerIdToUser') THEN
+    ALTER TABLE "UserEntity" ADD "StripeUserId" text;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20260509132215_AddStripeCustomerIdToUser') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20260509132215_AddStripeCustomerIdToUser', '10.0.7');
+    END IF;
+END $EF$;
+COMMIT;
+
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20260509204341_test_migration') THEN
+    ALTER TABLE "TestSubmissionEntity" ALTER COLUMN "WrongAnswers" TYPE integer[];
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20260509204341_test_migration') THEN
+    ALTER TABLE "TestSubmissionEntity" ALTER COLUMN "CorrectAnswers" TYPE integer[];
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20260509204341_test_migration') THEN
+    ALTER TABLE "TestSubmissionEntity" ADD "FinishedAt" timestamp with time zone;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20260509204341_test_migration') THEN
+    ALTER TABLE "TestSubmissionEntity" ADD "StartedAt" timestamp with time zone;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20260509204341_test_migration') THEN
+    ALTER TABLE "TestQuestionEntity" ADD "MatrixConfig" jsonb;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20260509204341_test_migration') THEN
+    ALTER TABLE "TestQuestionEntity" ADD "Points" integer;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20260509204341_test_migration') THEN
+    ALTER TABLE "TestQuestionEntity" ADD "ViewConfig" jsonb;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20260509204341_test_migration') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20260509204341_test_migration', '10.0.7');
+    END IF;
+END $EF$;
+COMMIT;
+

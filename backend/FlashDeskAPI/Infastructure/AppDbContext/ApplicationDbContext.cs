@@ -107,6 +107,27 @@ namespace Infastructure.AppDbContext
                         v => JsonSerializer.Deserialize<MatrixViewConfig>(v, (JsonSerializerOptions)null)
                     );
             });
+
+            modelBuilder.Entity<TestQuestion>(entity =>
+            {
+                entity.Property(e => e.ViewConfig)
+                    .HasColumnType("jsonb")
+                    .HasConversion(
+                        v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
+                        v => JsonSerializer.Deserialize<ViewConfig>(v, (JsonSerializerOptions)null)
+                    );
+            });
+
+            modelBuilder.Entity<TestQuestion>(entity =>
+            {
+                entity.Property(e => e.MatrixConfig)
+                    .HasColumnName("MatrixConfig")
+                    .HasColumnType("jsonb")
+                    .HasConversion(
+                        v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
+                        v => JsonSerializer.Deserialize<MatrixViewConfig>(v, (JsonSerializerOptions)null)
+                    );
+            });
         }
 
         public DbSet<User> UserEntity { get; set; }

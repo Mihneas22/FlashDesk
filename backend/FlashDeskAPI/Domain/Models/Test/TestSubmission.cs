@@ -10,11 +10,14 @@ namespace Domain.Models
         [Key]
         public Guid TestSubmissionId { get; set; }
 
-        public int? CorrectAnswers { get; set; }
+        public ICollection<int>? CorrectAnswers { get; set; }
 
-        public int? WrongAnswers { get; set; }
+        public ICollection<int>? WrongAnswers { get; set; }
 
-        public int? Points { get; set; } 
+        public int? Points { get; set; }
+
+        public DateTime? StartedAt { get; set; }
+        public DateTime? FinishedAt { get; set; }
 
         public Guid Subm_UserId { get; set; }
 

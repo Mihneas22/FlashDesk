@@ -1,5 +1,6 @@
 ﻿using Application.DTOs.Deck.DeleteDeck;
 using Application.DTOs.Deck.EditDeck;
+using Application.DTOs.Test.AddSubmission;
 using Application.DTOs.Test.AddTest;
 using Application.DTOs.Test.DeleteTest;
 using Application.DTOs.Test.EditTest;
@@ -47,6 +48,45 @@ namespace Infastructure.Repository
             await dbContext.SaveChangesAsync();
 
             return new AddTestResponse(true, "Added test!");
+        }
+
+        public async Task<AddTestSubmissionResponse> AddTestSubmissionRepository(AddTestSubmissionDTO addTestSubmissionDTO)
+        {
+            try
+            {
+                var userExists = await dbContext.UserEntity.AnyAsync(u => u.UserId == addTestSubmissionDTO.Subm_UserId);
+                if (!userExists)
+                {
+                    return new AddTestSubmissionResponse(false, "User not found.");
+                }
+
+                var testExists = await dbContext.TestEntity.AnyAsync(t => t.TestId == addTestSubmissionDTO.Subm_TestId);
+                if (!testExists)
+                {
+                    return new AddTestSubmissionResponse(false, "Test not found.");
+                }
+
+                var submission = new TestSubmission
+                {
+                    TestSubmissionId = Guid.NewGuid(),
+                    CorrectAnswers = addTestSubmissionDTO.CorrectAnswers,
+                    WrongAnswers = addTestSubmissionDTO.WrongAnswers,
+                    Points = addTestSubmissionDTO.Points,
+                    StartedAt = addTestSubmissionDTO.StartedAt,
+                    FinishedAt = addTestSubmissionDTO.FinishedAt,
+                    Subm_UserId = addTestSubmissionDTO.Subm_UserId,
+                    Subm_TestId = addTestSubmissionDTO.Subm_TestId
+                };
+
+                await dbContext.TestSubmissionEntity.AddAsync(submission);
+                await dbContext.SaveChangesAsync();
+
+                return new AddTestSubmissionResponse(true, "Test submission added successfully.");
+            }
+            catch (Exception ex)
+            {
+                return new AddTestSubmissionResponse(false, $"An error occurred while saving the submission: {ex.Message}");
+            }
         }
 
         public async Task<DeleteTestResponse> DeleteTestRepository(DeleteTestDTO deleteTestDTO)

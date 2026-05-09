@@ -24,6 +24,10 @@ export default function ActiveTestPage({ params }: { params: Promise<{ id: strin
   const [isFinished, setIsFinished] = useState(false);
   const [tipUsed, setTipUsed] = useState(false);
 
+  const [isSavingResult, setIsSavingResult] = useState(false);
+  const [correctAnswersLog, setCorrectAnswersLog] = useState<number[]>([]);
+  const [wrongAnswersLog, setWrongAnswersLog] = useState<number[]>([]);
+
   // Toast Notification State
   const [toast, setToast] = useState({ show: false, message: "", type: "error" });
 
@@ -108,11 +112,15 @@ export default function ActiveTestPage({ params }: { params: Promise<{ id: strin
 
   const handleNextQuestion = () => {
     const currentQuestion = questions[currentQuestionIndex];
-    
+
     if (selectedOption === currentQuestion.correctAnswerIndex) {
       let earnedPoints = 10;
       if (tipUsed) earnedPoints -= 2;
       setScore(prev => prev + earnedPoints);
+      
+      setCorrectAnswersLog(prev => [...prev, currentQuestionIndex]);
+    } else {
+      setWrongAnswersLog(prev => [...prev, currentQuestionIndex]);
     }
 
     if (currentQuestionIndex < questions.length - 1) {
@@ -124,7 +132,48 @@ export default function ActiveTestPage({ params }: { params: Promise<{ id: strin
     }
   };
 
-  // Elementul de Toast pentru a putea fi refolosit în return-urile condiționate
+  useEffect(() => {
+    const submitResults = async () => {
+      if (!isFinished || isSavingResult || !isLoggedIn) return;
+
+      setIsSavingResult(true);
+
+      const submissionData = {
+        Subm_TestId: id,
+        Score: score,
+        WrongAnswers: wrongAnswersLog,
+        CorrectAnswers: correctAnswersLog,
+        StartedAt: new Date(Date.now() - ((time * 60 - timeLeft) * 1000)).toISOString(), // Aproximare a timpului de start
+        FinishedAt: new Date().toISOString()
+      };
+
+      try {
+        const response = await fetch(`https://learnqhub.com/api/testsubmission/addTestSubmission`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem("token")}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(submissionData)
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to save submission");
+        }
+
+        showToast("Results saved successfully!", "success");
+
+      } catch (error) {
+        console.error("Error saving test results:", error);
+        showToast("Error saving results to the server.", "error");
+      } finally {
+        setIsSavingResult(false);
+      }
+    };
+
+    submitResults();
+  }, [isFinished, isLoggedIn, id, score, wrongAnswersLog, correctAnswersLog, time, timeLeft, showToast]);
+
   const toastElement = toast.show && (
     <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-4 rounded-2xl shadow-2xl border backdrop-blur-md flex items-center gap-3 animate-fade-in-up transition-all ${
       toast.type === "error" 
@@ -210,6 +259,18 @@ export default function ActiveTestPage({ params }: { params: Promise<{ id: strin
             </Link>
           </div>
         </div>
+
+        <p className="text-gray-400 font-medium mb-8">
+          You finished the test in {formatTime(time * 60 - timeLeft)}.
+        </p>
+
+        {isSavingResult ? (
+            <p className="text-sm text-yellow-400 mb-4 animate-pulse">Saving your results...</p>
+        ) : (
+            <p className="text-sm text-green-400 mb-4 flex items-center justify-center gap-2">
+              <CheckCircle className="w-4 h-4"/> Results saved to your profile
+            </p>
+        )}
         {toastElement}
         <style jsx>{`
           @keyframes blob { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-20px, 20px) scale(0.9); } }
