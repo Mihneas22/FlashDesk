@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, Layers, LogIn, LogOut, User, Menu, X } from "lucide-react"; 
+import { LogOut, User, Menu, X } from "lucide-react"; 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 
 export function Navbar({ isLoggedIn }: { isLoggedIn?: boolean }) {
   const pathname = usePathname();
@@ -58,13 +59,14 @@ export function Navbar({ isLoggedIn }: { isLoggedIn?: boolean }) {
         
         {/* Brand */}
         <Link href="/dashboard" className="group flex items-center gap-3 shrink-0">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0a0a0a] border border-white/10 shadow-xl shadow-black/50 transform group-hover:scale-110 transition-all duration-300 overflow-hidden">
-            <img 
-              src="/favicon.png"
-              alt="Logo"
-              className="h-full w-full object-cover" 
-            />
-          </div>
+          <Image 
+            src="/favicon.png"
+            alt="Logo"
+            width={36}
+            height={36}
+            priority
+            className="transform group-hover:scale-110 transition-all duration-300 object-contain"
+          />
           <span className="text-xl font-black tracking-tighter text-white font-syne">
             LearnQHub
           </span>
