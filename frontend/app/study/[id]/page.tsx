@@ -143,11 +143,17 @@ export default function StudyPage({ params }: PageProps) {
     cardStartTimeRef.current = Date.now();
   }, [currentIndex])
 
+  // UPDATE: Centram automat vederea mai aproape daca e matrice 2D
   useEffect(() => {
     if (showPlotter && cards[currentIndex]?.viewConfig) {
       const vc = cards[currentIndex].viewConfig;
-      setDomainX(vc.viewBox?.x || [-10, 10]);
-      setDomainY(vc.viewBox?.y || [-10, 10]);
+      if (vc.type === '2d_transform') {
+        setDomainX([-4, 4]); // Un zoom mai bun pentru vectori unitate
+        setDomainY([-4, 4]);
+      } else {
+        setDomainX(vc.viewBox?.x || [-10, 10]);
+        setDomainY(vc.viewBox?.y || [-10, 10]);
+      }
     }
   }, [showPlotter, currentIndex, cards]);
 
@@ -172,8 +178,13 @@ export default function StudyPage({ params }: PageProps) {
   const handleResetZoom = () => {
     const vc = cards[currentIndex]?.viewConfig;
     if (vc) {
-      setDomainX(vc.viewBox?.x || [-10, 10]);
-      setDomainY(vc.viewBox?.y || [-10, 10]);
+      if (vc.type === '2d_transform') {
+        setDomainX([-4, 4]);
+        setDomainY([-4, 4]);
+      } else {
+        setDomainX(vc.viewBox?.x || [-10, 10]);
+        setDomainY(vc.viewBox?.y || [-10, 10]);
+      }
     }
   };
 
@@ -215,7 +226,7 @@ export default function StudyPage({ params }: PageProps) {
 
   const graphData = useMemo(() => {
     const currentCard = cards[currentIndex];
-    if (!currentCard?.viewConfig) return null;
+    if (!currentCard?.viewConfig || currentCard.viewConfig.type === '2d_transform') return null;
 
     const vc = currentCard.viewConfig;
     const [minX, maxX] = domainX;
@@ -249,7 +260,6 @@ export default function StudyPage({ params }: PageProps) {
     };
   }, [cards, currentIndex, domainX, domainY]);
 
-  // 3. Stabilizăm submitSessionResults cu useCallback
   const submitSessionResults = useCallback(async (finalFeedback: typeof cardFeedback) => {
     setIsSubmitting(true);
     const token = localStorage.getItem("token");
@@ -280,19 +290,17 @@ export default function StudyPage({ params }: PageProps) {
       setIsSubmitting(false);
       setSessionDone(true);
     }
-  }, [id, userId, showToast]);
+  }, [id, showToast]);
 
   const handleFeedback = async (difficulty: 'hard' | 'medium' | 'easy') => {
   const currentCard = cards[currentIndex];
-  
-  // Calculează timpul petrecut în secunde
   const timeSpentInSeconds = Math.floor((Date.now() - cardStartTimeRef.current) / 1000);
 
   const newFeedback = { 
       cardId: currentCard.id, 
-      rating: difficulty, // Se mapează pe C# CardReview.Rating
-      timeSpent: timeSpentInSeconds, // Se mapează pe C# CardReview.TimeSpent
-      reviewAt: new Date().toISOString() // Se mapează pe C# CardReview.ReviewAt
+      rating: difficulty, 
+      timeSpent: timeSpentInSeconds, 
+      reviewAt: new Date().toISOString() 
     };
     
     const updatedFeedback = [...cardFeedback, newFeedback];
@@ -362,6 +370,7 @@ export default function StudyPage({ params }: PageProps) {
   const progress = ((currentIndex + 1) / totalCards) * 100;
   const currentCard = cards[currentIndex];
   const hasViewConfig = !!currentCard?.viewConfig;
+  const vc = currentCard?.viewConfig;
 
   if (sessionDone) {
     return (
@@ -439,16 +448,16 @@ export default function StudyPage({ params }: PageProps) {
             className="mt-6 flex items-center gap-2 px-5 py-3 bg-violet-500/10 border border-violet-500/30 rounded-xl text-violet-400 hover:bg-violet-500/20 hover:border-violet-500/50 transition-all font-semibold text-sm shadow-xl shadow-violet-500/10"
           >
             <LineChartIcon size={20} />
-            Open Interactive Graph
+            {vc.type === '2d_transform' ? 'Open Visual Matrix Transform' : 'Open Interactive Graph'}
           </button>
         )}
 
-        {showPlotter && hasViewConfig && graphData && (
+        {showPlotter && hasViewConfig && (
           <div className="mt-6 w-full bg-[#121317] rounded-2xl border border-white/10 p-6 animate-slide-up shadow-xl">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-white font-bold flex items-center gap-2 text-lg">
                 <Activity className="w-5 h-5 text-violet-500" />
-                Interactive Graph
+                {vc.type === '2d_transform' ? '2D Matrix Transformation' : 'Interactive Graph'}
               </h3>
 
               <div className="flex items-center gap-2">
@@ -477,75 +486,158 @@ export default function StudyPage({ params }: PageProps) {
             
             <div 
               ref={chartContainerRef}
-              className={`h-[400px] w-full bg-[#0a0a0a]/50 rounded-xl p-4 border border-white/5 relative select-none ${isPanning ? 'cursor-grabbing' : 'cursor-grab'}`}
+              className={`h-[400px] w-full bg-[#0a0a0a]/50 rounded-xl border border-white/5 relative select-none overflow-hidden ${isPanning ? 'cursor-grabbing' : 'cursor-grab'}`}
               onMouseDown={handleMouseDown}
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUpOrLeave}
               onMouseLeave={handleMouseUpOrLeave}
             >
-              <ResponsiveContainer width="100%" height="100%" className="pointer-events-none">
-                <ComposedChart data={graphData.lineData} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff15" />
-                  
-                  <XAxis 
-                    dataKey="x" 
-                    type="number" 
-                    domain={domainX} 
-                    stroke="#ffffff40" 
-                    tick={{ fill: '#ffffff80', fontSize: 12 }} 
-                    allowDataOverflow={true} 
-                  />
-                  <YAxis 
-                    type="number" 
-                    domain={domainY} 
-                    stroke="#ffffff40" 
-                    tick={{ fill: '#ffffff80', fontSize: 12 }}
-                    allowDataOverflow={true} 
-                  />
-                  
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: '#121317', border: '1px solid #ffffff20', borderRadius: '8px', color: '#fff' }}
-                    labelStyle={{ color: '#a78bfa', fontWeight: 'bold', marginBottom: '4px' }}
-                    formatter={(value: any) => Number(value).toFixed(2)}
-                  />
-                  
-                  <ReferenceLine x={0} stroke="#ffffff40" strokeWidth={1} />
-                  <ReferenceLine y={0} stroke="#ffffff40" strokeWidth={1} />
+              
+              {vc.type === '2d_transform' ? (
+                // ========== NATIVE SVG RENDERER FOR 2D TRANSFORMS ==========
+                <div className="w-full h-full relative pointer-events-none">
+                  {/* Descriere Transformare Overlay */}
+                  <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 z-10">
+                    <span className="text-white font-bold text-sm block mb-1">{vc.description}</span>
+                    <div className="flex gap-4 text-xs font-medium">
+                      <span className="flex items-center gap-1 text-red-400">
+                        <div className="w-2 h-2 rounded-full bg-red-500"/> 
+                          X-axis ({"\u00EE"})
+                      </span>
+                      <span className="flex items-center gap-1 text-blue-400">
+                        <div className="w-2 h-2 rounded-full bg-blue-500"/> 
+                          Y-axis ({"\u0135"})
+                      </span>
+                    </div>
+                  </div>
 
-                  {graphData.functions.map((f: any, i: number) => (
-                    <Line 
-                      key={`line-${i}`}
-                      type="monotone" 
-                      dataKey={`f${i}`} 
-                      stroke={f.color || "#8b5cf6"} 
-                      strokeWidth={3}
-                      dot={false}
-                      name={f.latexLabel || f.expr}
-                      isAnimationActive={false}
-                    />
-                  ))}
+                  {/* SVG Canvas legat perfect de domainX si domainY pt Pan/Zoom */}
+                  <svg 
+                    width="100%" 
+                    height="100%" 
+                    viewBox={`${domainX[0]} ${-domainY[1]} ${domainX[1]-domainX[0]} ${domainY[1]-domainY[0]}`} 
+                    preserveAspectRatio="xMidYMid slice"
+                  >
+                     <defs>
+                       <marker id="arrow-i" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                         <path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444" />
+                       </marker>
+                       <marker id="arrow-j" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                         <path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6" />
+                       </marker>
+                     </defs>
+                     
+                     <g transform="scale(1, -1)">
+                        {/* Grid X si Y */}
+                        {Array.from({ length: 61 }, (_, i) => i - 30).map(i => (
+                          <g key={`grid-${i}`}>
+                            <line x1={-30} y1={i} x2={30} y2={i} stroke={i === 0 ? "#ffffff40" : "#ffffff10"} vectorEffect="non-scaling-stroke" strokeWidth={i === 0 ? 2 : 1} />
+                            <line x1={i} y1={-30} x2={i} y2={30} stroke={i === 0 ? "#ffffff40" : "#ffffff10"} vectorEffect="non-scaling-stroke" strokeWidth={i === 0 ? 2 : 1} />
+                          </g>
+                        ))}
 
-                  {graphData.points.map((p: any, i: number) => (
-                    <ReferenceDot 
-                      key={`point-${i}`}
-                      x={p.coords[0]} 
-                      y={p.coords[1]} 
-                      r={6}
-                      fill={p.color || "#ec4899"} 
-                      stroke="#121317"
-                      strokeWidth={2}
-                      label={{ 
-                        position: 'top', 
-                        value: p.latexLabel || `P${i+1}`, 
-                        fill: p.color || '#ec4899', 
-                        fontSize: 14, 
-                        fontWeight: 'bold',
-                        offset: 10
-                      }}
-                    />
-                  ))}
-                </ComposedChart>
-              </ResponsiveContainer>
+                        {/* Pătratul Unitate Original (Fantoma punctată) */}
+                        <polygon points="0,0 1,0 1,1 0,1" fill="#ffffff05" stroke="#ffffff60" strokeDasharray="4 4" vectorEffect="non-scaling-stroke" strokeWidth={2} />
+                        <line x1="0" y1="0" x2="1" y2="0" stroke="#ef4444" strokeOpacity="0.3" vectorEffect="non-scaling-stroke" strokeWidth={3} />
+                        <line x1="0" y1="0" x2="0" y2="1" stroke="#3b82f6" strokeOpacity="0.3" vectorEffect="non-scaling-stroke" strokeWidth={3} />
+
+                        {/* Pătratul și Vectorii Transformați */}
+                        {vc.matrix && (
+                          <>
+                            {/* Pătratul rezultat */}
+                            <polygon 
+                              points={`0,0 ${vc.matrix[0][0]},${vc.matrix[1][0]} ${vc.matrix[0][0]+vc.matrix[0][1]},${vc.matrix[1][0]+vc.matrix[1][1]} ${vc.matrix[0][1]},${vc.matrix[1][1]}`} 
+                              fill="#8b5cf630" stroke="#8b5cf6" vectorEffect="non-scaling-stroke" strokeWidth={2} 
+                            />
+                            
+                            {/* Vectorul baza X transformat (i_hat) */}
+                            <line 
+                              x1="0" y1="0" 
+                              x2={vc.matrix[0][0]} y2={vc.matrix[1][0]} 
+                              stroke="#ef4444" vectorEffect="non-scaling-stroke" strokeWidth={4} markerEnd="url(#arrow-i)" 
+                            />
+                            
+                            {/* Vectorul baza Y transformat (j_hat) */}
+                            <line 
+                              x1="0" y1="0" 
+                              x2={vc.matrix[0][1]} y2={vc.matrix[1][1]} 
+                              stroke="#3b82f6" vectorEffect="non-scaling-stroke" strokeWidth={4} markerEnd="url(#arrow-j)" 
+                            />
+                          </>
+                        )}
+                     </g>
+                  </svg>
+                </div>
+              ) : (
+                // ========== EXISTING RECHARTS RENDERER ==========
+                graphData && (
+                  <div className="w-full h-full p-4 pointer-events-none">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <ComposedChart data={graphData.lineData} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff15" />
+                        
+                        <XAxis 
+                          dataKey="x" 
+                          type="number" 
+                          domain={domainX} 
+                          stroke="#ffffff40" 
+                          tick={{ fill: '#ffffff80', fontSize: 12 }} 
+                          allowDataOverflow={true} 
+                        />
+                        <YAxis 
+                          type="number" 
+                          domain={domainY} 
+                          stroke="#ffffff40" 
+                          tick={{ fill: '#ffffff80', fontSize: 12 }}
+                          allowDataOverflow={true} 
+                        />
+                        
+                        <Tooltip 
+                          contentStyle={{ backgroundColor: '#121317', border: '1px solid #ffffff20', borderRadius: '8px', color: '#fff' }}
+                          labelStyle={{ color: '#a78bfa', fontWeight: 'bold', marginBottom: '4px' }}
+                          formatter={(value: any) => Number(value).toFixed(2)}
+                        />
+                        
+                        <ReferenceLine x={0} stroke="#ffffff40" strokeWidth={1} />
+                        <ReferenceLine y={0} stroke="#ffffff40" strokeWidth={1} />
+
+                        {graphData.functions.map((f: any, i: number) => (
+                          <Line 
+                            key={`line-${i}`}
+                            type="monotone" 
+                            dataKey={`f${i}`} 
+                            stroke={f.color || "#8b5cf6"} 
+                            strokeWidth={3}
+                            dot={false}
+                            name={f.latexLabel || f.expr}
+                            isAnimationActive={false}
+                          />
+                        ))}
+
+                        {graphData.points.map((p: any, i: number) => (
+                          <ReferenceDot 
+                            key={`point-${i}`}
+                            x={p.coords[0]} 
+                            y={p.coords[1]} 
+                            r={6}
+                            fill={p.color || "#ec4899"} 
+                            stroke="#121317"
+                            strokeWidth={2}
+                            label={{ 
+                              position: 'top', 
+                              value: p.latexLabel || `P${i+1}`, 
+                              fill: p.color || '#ec4899', 
+                              fontSize: 14, 
+                              fontWeight: 'bold',
+                              offset: 10
+                            }}
+                          />
+                        ))}
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </div>
+                )
+              )}
             </div>
           </div>
         )}
