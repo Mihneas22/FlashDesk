@@ -458,7 +458,7 @@ export default function App() {
                 <li className="plan-feat off"><div className="pf-check no">—</div>Mastery heatmap</li>
                 <li className="plan-feat off"><div className="pf-check no">—</div>Exam simulation</li>
               </ul>
-              <a href="#contact" className="plan-cta ghost">Get started free</a>
+              <a href="/login" className="plan-cta ghost">Get started free</a>
             </div>
 
             {/* CORE (featured) */}
@@ -487,7 +487,7 @@ export default function App() {
                 <li className="plan-feat off"><div className="pf-check no">—</div>Exam simulation + insights</li>
                 <li className="plan-feat off"><div className="pf-check no">—</div>Collaborative decks</li>
               </ul>
-              <a href="#contact" className="plan-cta primary">Get started</a>
+              <a href="/pricing" className="plan-cta primary">Get started</a>
             </div>
 
             {/* PRO */}
@@ -514,7 +514,7 @@ export default function App() {
                 <li className="plan-feat"><div className="pf-check yes">✓</div>Browser extension (highlight → card)</li>
                 <li className="plan-feat"><div className="pf-check yes">✓</div>Priority support</li>
               </ul>
-              <a href="#contact" className="plan-cta ghost">Get started</a>
+              <a href="/pricing" className="plan-cta ghost">Get started</a>
             </div>
           </div>
 

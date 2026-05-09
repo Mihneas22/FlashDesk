@@ -4,12 +4,14 @@ import { useState, useEffect } from "react";
 import { CheckCircle, Sparkles, Zap, Shield, Crown, ArrowRight, Loader2 } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { jwtDecode } from "jwt-decode";
+import { Toaster, toast } from "react-hot-toast";
 
+// Am modificat 'price' pentru a fi un obiect ce contine atat varianta lunara cat si anuala
 const PLANS = [
   {
     name: "Free",
     description: "The best free tier on the market. Genuinely useful, forever.",
-    price: "0",
+    price: { Monthly: "0", Annually: "0" },
     icon: <Shield className="w-6 h-6 text-gray-400" />,
     features: [
       "10 full pre-built course decks",
@@ -25,7 +27,7 @@ const PLANS = [
   {
     name: "Core",
     description: "Everything a student needs to dominate a full semester.",
-    price: "4.99",
+    price: { Monthly: "4.99", Annually: "49.90" }, // Ex: Am aplicat o reducere pentru cel anual
     icon: <Zap className="w-6 h-6 text-purple-400" />,
     features: [
       "Unlimited pre-built course decks",
@@ -42,7 +44,7 @@ const PLANS = [
   {
     name: "Pro",
     description: "For students who study seriously — and in groups.",
-    price: "8.49",
+    price: { Monthly: "8.49", Annually: "84.90" },
     icon: <Crown className="w-6 h-6 text-fuchsia-400" />,
     features: [
       "Everything in Core",
@@ -64,13 +66,15 @@ const PLANS = [
 export default function PricingPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  
+  // State nou pentru a urmări ciclul de facturare (exact string-urile așteptate de C#)
+  const [billingCycle, setBillingCycle] = useState<"Monthly" | "Annually">("Monthly");
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
       try {
         const decoded: any = jwtDecode(token);
-        // Poți extrage rolul aici dacă vrei să blochezi butoanele pentru planurile deja deținute
         setIsLoggedIn(true);
       } catch (error) {
         setIsLoggedIn(false);
@@ -79,11 +83,11 @@ export default function PricingPage() {
   }, []);
 
   const handleSubscribe = async (planName: string) => {
-    if (planName === "Free") return; // Free plan nu are nevoie de Stripe
+    if (planName === "Free") return;
     
     if (!isLoggedIn) {
-      alert("Te rugăm să te loghezi pentru a achiziționa un plan!");
-      // window.location.href = "/login";
+      toast.error("Please log in to subscribe.");
+      setTimeout(() => { window.location.href = "/login"; }, 1500);
       return;
     }
 
@@ -91,33 +95,47 @@ export default function PricingPage() {
       setLoadingPlan(planName);
       const token = localStorage.getItem("token");
 
+      // Acum trimitem atât planName cât și billingCycle către API-ul tău C#
       const response = await fetch("https://learnqhub.com/api/stripe/create-checkout-session", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify({ planName })
+        body: JSON.stringify({ 
+          planName: planName, 
+          billingCycle: billingCycle 
+        })
       });
 
       const data = await response.json();
 
       if (data.url) {
+        toast.success("Redirecting to secure checkout...");
         window.location.href = data.url;
       } else {
-        alert("Eroare la procesarea plății: " + (data.message || "Unknown error"));
+        toast.error("Payment error: " + (data.message || "Unknown error"));
         setLoadingPlan(null);
       }
     } catch (error) {
       console.error("Eroare:", error);
-      alert("A apărut o eroare de rețea.");
+      toast.error("Network error. Please try again later.");
       setLoadingPlan(null);
     }
   };
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-gray-950 text-gray-100 font-sans">
-      {/* Background Effects (Sincronizate cu Dashboard) */}
+      {/* Componenta Toaster care randează alertele frumoase */}
+      <Toaster position="top-center" reverseOrder={false} toastOptions={{
+        style: {
+          background: '#1f2937',
+          color: '#fff',
+          border: '1px solid #374151',
+        },
+      }}/>
+
+      {/* Background Effects */}
       <div className="fixed inset-0 -z-10 bg-gradient-to-br from-gray-950 via-purple-950/20 to-gray-900" />
       <div className="fixed inset-0 -z-10 opacity-20">
         <div className="absolute top-0 -left-4 w-96 h-96 bg-purple-600 rounded-full mix-blend-screen filter blur-3xl animate-blob" />
@@ -128,8 +146,7 @@ export default function PricingPage() {
       <Navbar isLoggedIn={isLoggedIn} />
 
       <main className="mx-auto max-w-7xl px-4 sm:px-6 py-16 sm:py-24 animate-fade-in">
-        {/* Header Section */}
-        <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
+        <div className="text-center max-w-3xl mx-auto mb-10 space-y-4">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 font-semibold text-sm mb-4 animate-slide-up">
             <Sparkles className="w-4 h-4" />
             Supercharge Your Study Sessions
@@ -142,12 +159,31 @@ export default function PricingPage() {
           </p>
         </div>
 
+        {/* Toggle Monthly / Annually */}
+        <div className="flex justify-center items-center gap-4 mb-12 animate-slide-up" style={{ animationDelay: "300ms" }}>
+          <span className={`text-sm font-medium transition-colors ${billingCycle === "Monthly" ? "text-white" : "text-gray-500"}`}>
+            Monthly
+          </span>
+          <button
+            onClick={() => setBillingCycle(prev => prev === "Monthly" ? "Annually" : "Monthly")}
+            className="w-14 h-7 bg-gray-800 rounded-full relative transition-colors focus:outline-none border border-gray-700 hover:border-purple-500/50"
+          >
+            <div className={`w-5 h-5 bg-gradient-to-r from-violet-500 to-purple-500 rounded-full absolute top-[3px] shadow-sm transition-transform duration-300 ${billingCycle === "Annually" ? "translate-x-[30px]" : "translate-x-1"}`} />
+          </button>
+          <span className={`text-sm font-medium flex items-center gap-2 transition-colors ${billingCycle === "Annually" ? "text-white" : "text-gray-500"}`}>
+            Annual
+            <span className="text-[10px] font-bold text-purple-300 bg-purple-500/20 px-2 py-0.5 rounded-full uppercase tracking-wider border border-purple-500/30">
+              Save 20%
+            </span>
+          </span>
+        </div>
+
         {/* Pricing Cards Grid */}
         <div className="grid gap-8 lg:grid-cols-3 lg:gap-8 max-w-6xl mx-auto">
           {PLANS.map((plan, index) => (
             <div
               key={plan.name}
-              className={`relative flex flex-col rounded-3xl bg-gray-900/60 backdrop-blur-md border animate-slide-up transition-transform duration-300 hover:-translate-y-2
+              className={`relative flex flex-col rounded-3xl bg-gray-900/60 backdrop-blur-md border animate-slide-up transition-all duration-300 hover:-translate-y-2
                 ${plan.popular ? "border-purple-500/50 shadow-[0_0_40px_rgba(139,92,246,0.15)]" : "border-gray-800 shadow-xl"}
               `}
               style={{ animationDelay: `${(index + 1) * 150}ms` }}
@@ -175,8 +211,8 @@ export default function PricingPage() {
                 </p>
 
                 <div className="mb-8 flex items-baseline gap-1">
-                  <span className="text-4xl font-black text-white">${plan.price}</span>
-                  <span className="text-gray-400 font-medium">/month</span>
+                  <span className="text-4xl font-black text-white">€{plan.price[billingCycle]}</span>
+                  <span className="text-gray-400 font-medium">/{billingCycle === "Monthly" ? "mo" : "yr"}</span>
                 </div>
 
                 <ul className="space-y-4 mb-8 flex-1">
