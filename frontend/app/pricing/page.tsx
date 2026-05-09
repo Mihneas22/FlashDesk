@@ -27,7 +27,7 @@ const PLANS = [
   {
     name: "Core",
     description: "Everything a student needs to dominate a full semester.",
-    price: { Monthly: "4.99", Annually: "49.90" }, // Ex: Am aplicat o reducere pentru cel anual
+    price: { Monthly: "4.99", Annually: "39.96" },
     icon: <Zap className="w-6 h-6 text-purple-400" />,
     features: [
       "Unlimited pre-built course decks",
@@ -44,7 +44,7 @@ const PLANS = [
   {
     name: "Pro",
     description: "For students who study seriously — and in groups.",
-    price: { Monthly: "8.49", Annually: "84.90" },
+    price: { Monthly: "8.49", Annually: "84.96" },
     icon: <Crown className="w-6 h-6 text-fuchsia-400" />,
     features: [
       "Everything in Core",
