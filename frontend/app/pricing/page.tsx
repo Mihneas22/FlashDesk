@@ -34,7 +34,6 @@ const PLANS = [
       "Unlimited cards",
       "5 AI PDF → cards per day",
       "Mastery heatmap per course",
-      "5-minute daily mode"
     ],
     buttonText: "Get started",
     buttonStyle: "bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-lg shadow-purple-900/40 hover:shadow-purple-700/50 border border-purple-500/50",

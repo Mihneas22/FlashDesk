@@ -482,10 +482,8 @@ export default function App() {
                 <li className="plan-feat"><div className="pf-check yes">✓</div>Unlimited cards</li>
                 <li className="plan-feat"><div className="pf-check yes">✓</div>5 AI PDF → cards per day</li>
                 <li className="plan-feat"><div className="pf-check yes">✓</div>Mastery heatmap per course</li>
-                <li className="plan-feat"><div className="pf-check yes">✓</div>5-minute daily mode</li>
                 <li className="plan-feat off"><div className="pf-check no">—</div>Unlimited AI generation</li>
                 <li className="plan-feat off"><div className="pf-check no">—</div>Exam simulation + insights</li>
-                <li className="plan-feat off"><div className="pf-check no">—</div>Collaborative decks</li>
               </ul>
               <a href="/pricing" className="plan-cta primary">Get started</a>
             </div>
