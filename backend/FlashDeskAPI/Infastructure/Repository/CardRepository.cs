@@ -46,7 +46,8 @@ namespace Infastructure.Repository
                 CardReviews = new List<CardReview>(),
                 UserCardStates = new List<UserCardState>(),
                 CreatedAt = DateTime.UtcNow,
-                ViewConfig = addCardDTO.GraphConfig
+                ViewConfig = addCardDTO.GraphConfig,
+                MatrixConfig = addCardDTO.MatrixConfig,
             };
 
             if (deck.DeckCards == null)
@@ -95,7 +96,7 @@ namespace Infastructure.Repository
                 .FirstOrDefaultAsync(cd => cd.CardId == editCardDTO.CardId && cd.DeckId == editCardDTO.DeckId);
 
             if (card == null)
-                return new EditCardResponse(false, "Cardul nu a fost găsit în acest pachet.");
+                return new EditCardResponse(false, "The card was not found in this package.");
 
             if (!editCardDTO.IsAdmin)
             {
@@ -103,7 +104,7 @@ namespace Infastructure.Repository
                     .AnyAsync(dc => dc.DeckId == editCardDTO.DeckId && dc.DeckUserId == editCardDTO.UserId);
 
                 if (!isDeckOwner)
-                    return new EditCardResponse(false, "Nu ai permisiunea să modifici carduri din acest pachet.");
+                    return new EditCardResponse(false, "You are not allowed to modify cards in this deck.");
             }
 
             card.Question = editCardDTO.Question;

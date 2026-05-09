@@ -21,5 +21,7 @@ namespace Application.DTOs.Card.AddCard
         public List<string> Tips { get; set; } = new List<string>();
 
         public ViewConfig? GraphConfig { get; set; }
+
+        public MatrixViewConfig? MatrixConfig { get; set; }
     }
 }

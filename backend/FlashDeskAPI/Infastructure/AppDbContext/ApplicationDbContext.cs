@@ -96,6 +96,16 @@ namespace Infastructure.AppDbContext
                         v => JsonSerializer.Deserialize<ViewConfig>(v, (JsonSerializerOptions)null)
                     );
             });
+
+            modelBuilder.Entity<Card>(entity =>
+            {
+                entity.Property(e => e.MatrixConfig)
+                    .HasColumnType("jsonb")
+                    .HasConversion(
+                        v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
+                        v => JsonSerializer.Deserialize<MatrixViewConfig>(v, (JsonSerializerOptions)null)
+                    );
+            });
         }
 
         public DbSet<User> UserEntity { get; set; }

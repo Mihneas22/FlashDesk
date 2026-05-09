@@ -26,6 +26,9 @@ namespace Domain.Models
         [JsonPropertyName("viewConfig")]
         public ViewConfig? ViewConfig { get; set; }
 
+        [JsonPropertyName("matrixConfig")]
+        public MatrixViewConfig? MatrixConfig { get; set; }
+
         public ICollection<CardReview>? CardReviews { get; set; }
 
         public ICollection<UserCardState>? UserCardStates { get; set; }
