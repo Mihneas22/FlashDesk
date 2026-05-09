@@ -60,7 +60,7 @@ export function Navbar({ isLoggedIn }: { isLoggedIn?: boolean }) {
         <Link href="/dashboard" className="group flex items-center gap-3 shrink-0">
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0a0a0a] border border-white/10 shadow-xl shadow-black/50 transform group-hover:scale-110 transition-all duration-300 overflow-hidden">
             <img 
-              src="/favicon1.png"
+              src="/favicon.png"
               alt="Logo"
               className="h-full w-full object-cover" 
             />

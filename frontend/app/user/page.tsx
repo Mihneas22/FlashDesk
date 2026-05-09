@@ -318,7 +318,7 @@ export default function ProfilePage() {
               </div>
               <div className="flex flex-wrap gap-2">
                 {[
-                  { icon: <Calendar className="w-3 h-3 text-purple-400" />, text: `Member for ${Math.floor((new Date().getTime() - new Date(user?.createdAt!).getTime()) / (1000 * 60 * 60 * 24))} days` },
+                  { icon: <Calendar className="w-3 h-3 text-purple-400" />, text: `Member for ${Math.floor((new Date().getTime() - new Date(user?.createdAt!).getTime()) / (1000 * 60 * 60 * 24))+1} days` },
                   { icon: <Trophy className="w-3 h-3 text-amber-400" />,   text: `Best streak: ${user?.streak?.maxStreak} days` },
                 ].map((b) => (
                   <span key={b.text} className="px-3 py-1 rounded-lg bg-gray-800/70 border border-gray-700/50 text-xs font-semibold text-gray-300 flex items-center gap-1.5">
