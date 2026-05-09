@@ -151,7 +151,7 @@ namespace Infastructure.Repository
                     CreatedAt = us.CreatedAt,
                     Streak = us.Streak,
                     Plan = us.Plan,
-                    StripeUserId = us.StripeUserId,
+                    StripeUserId = (us.StripeUserId != NULL)? us.StripeUserId : string.Empty,
                     UserDecks = us.UserDecks
                 })
                 .FirstOrDefaultAsync();
