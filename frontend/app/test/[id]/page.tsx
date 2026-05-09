@@ -148,7 +148,7 @@ export default function ActiveTestPage({ params }: { params: Promise<{ id: strin
       };
 
       try {
-        const response = await fetch(`https://learnqhub.com/api/testsubmission/addTestSubmission`, {
+        const response = await fetch(`https://learnqhub.com/api/test/addTestSubmission`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem("token")}`,
@@ -257,20 +257,20 @@ export default function ActiveTestPage({ params }: { params: Promise<{ id: strin
             >
               <ArrowLeft className="w-5 h-5" /> Back to Tests
             </Link>
+
+            <p className="text-gray-400 font-medium mb-8">
+              You finished the test in {formatTime(time * 60 - timeLeft)}.
+            </p>
+
+            {isSavingResult ? (
+                <p className="text-sm text-yellow-400 mb-4 animate-pulse">Saving your results...</p>
+            ) : (
+                <p className="text-sm text-green-400 mb-4 flex items-center justify-center gap-2">
+                  <CheckCircle className="w-4 h-4"/> Results saved to your profile
+                </p>
+            )}
           </div>
         </div>
-
-        <p className="text-gray-400 font-medium mb-8">
-          You finished the test in {formatTime(time * 60 - timeLeft)}.
-        </p>
-
-        {isSavingResult ? (
-            <p className="text-sm text-yellow-400 mb-4 animate-pulse">Saving your results...</p>
-        ) : (
-            <p className="text-sm text-green-400 mb-4 flex items-center justify-center gap-2">
-              <CheckCircle className="w-4 h-4"/> Results saved to your profile
-            </p>
-        )}
         {toastElement}
         <style jsx>{`
           @keyframes blob { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-20px, 20px) scale(0.9); } }
