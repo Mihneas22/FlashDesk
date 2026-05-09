@@ -38,8 +38,8 @@ export default function PublicDecksPage() {
         const decoded: any = jwtDecode(token);
         if (decoded) {
           setIsLoggedIn(true);
-          setSubscriptionPlan(decoded["SubscriptionPlan"] || "Free");
-          console.log("Plan is: " + subscriptionPlan);
+          const planFromToken = decoded["SubscriptionPlan"] || "Free";
+          setSubscriptionPlan(planFromToken);
         }
       } catch (e) { 
         setIsLoggedIn(false); 
@@ -129,7 +129,7 @@ export default function PublicDecksPage() {
     } finally {
         setLoading(false);
     }
-  }, [showToast]);
+  }, [showToast,subscriptionPlan]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -152,7 +152,7 @@ export default function PublicDecksPage() {
     }, 500);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [search, selectedTopic, fetchSearchDeck, fetchPublicDecks]);
+  }, [search, selectedTopic, fetchSearchDeck, fetchPublicDecks, subscriptionPlan]);
 
   const displayDecks = search.trim() ? publicDecks : publicDecks.filter(d => 
     selectedTopic === "All Topics" || d.topic === selectedTopic
