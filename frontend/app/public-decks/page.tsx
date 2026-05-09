@@ -39,6 +39,7 @@ export default function PublicDecksPage() {
         if (decoded) {
           setIsLoggedIn(true);
           setSubscriptionPlan(decoded["SubscriptionPlan"] || "Free");
+          console.log("Plan is: " + subscriptionPlan);
         }
       } catch (e) { 
         setIsLoggedIn(false); 
