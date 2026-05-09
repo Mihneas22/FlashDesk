@@ -101,8 +101,7 @@ export default function ActiveTestPage({ params }: { params: Promise<{ id: strin
         FinishedAt: new Date().toISOString()
       };
 
-      // Modifică link-ul cu endpoint-ul tău real pentru TestSubmission
-      const response = await fetch(`https://learnqhub.com/api/testsubmission/add`, { 
+      const response = await fetch(`https://learnqhub.com/api/test/addTestSubmission`, { 
         method: "POST",
         headers: {
           'Authorization': `Bearer ${localStorage.getItem("token")}`,
