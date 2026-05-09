@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "Yz7BlWrRTxU=",
+  "dgSpecHash": "ZQA0GbEl1LU=",
   "success": true,
-  "projectFilePath": "c:\\Users\\Mihnea\\Proiecte\\FlashDesk\\backend\\FlashDeskAPI\\FlashDeskAPI\\FlashDeskAPI.csproj",
+  "projectFilePath": "C:\\Users\\Mihnea\\Proiecte\\FlashDesk\\backend\\FlashDeskAPI\\FlashDeskAPI\\FlashDeskAPI.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Mihnea\\.nuget\\packages\\bcrypt.net-next\\4.1.0\\bcrypt.net-next.4.1.0.nupkg.sha512",
     "C:\\Users\\Mihnea\\.nuget\\packages\\dotnetenv\\3.1.1\\dotnetenv.3.1.1.nupkg.sha512",

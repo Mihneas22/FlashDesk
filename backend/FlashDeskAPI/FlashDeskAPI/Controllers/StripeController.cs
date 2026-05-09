@@ -8,6 +8,8 @@ using System.Security.Claims;
 public class CreateCheckoutDto
 {
     public string PlanName { get; set; } = string.Empty;
+
+    public string BillingCycle { get; set; } = string.Empty;
 }
 
 [ApiController]
@@ -26,11 +28,13 @@ public class StripeController : ControllerBase
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        string stripePriceId = req.PlanName switch
+        string stripePriceId = (req.PlanName, req.BillingCycle) switch
         {
-            "Core" => "price_1TTPgtRoqTgzpcMy1UOZwoXZ",
-            "Pro" => "price_1TTPhSRoqTgzpcMyhpZXZDUK",
-            _ => throw new Exception("Invalid plan selected.")
+            ("Core", "Monthly") => "price_1TVA3pRoqTgzpcMyXSBYbVni",
+            ("Core", "Annually") => "price_1TVA7zRoqTgzpcMysQk5KmFu",
+            ("Pro", "Monthly") => "price_1TVA5CRoqTgzpcMyZe53QttM",
+            ("Pro", "Annually") => "price_1TVA74RoqTgzpcMy6B5xJxf2",
+            _ => throw new Exception("Invalid plan or billing cycle selected.")
         };
 
         var options = new SessionCreateOptions()
@@ -45,13 +49,14 @@ public class StripeController : ControllerBase
                 }
             },
             Mode = "subscription",
-            SuccessUrl = "http://localhost:8080/dashboard?success=true",
-            CancelUrl = "http://localhost:8080/dashboard?canceled=true",
+            SuccessUrl = "https://learnqhub.com/dashboard?success=true",
+            CancelUrl = "ttps://learnqhub.com/dashboard?canceled=true",
 
             ClientReferenceId = userId,
             Metadata = new Dictionary<string, string>
             {
-                { "PlanName", req.PlanName }
+                { "PlanName", req.PlanName },
+                { "BillingCycle", req.BillingCycle }
             }
         };
 
