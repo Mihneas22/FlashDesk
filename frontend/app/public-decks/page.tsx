@@ -5,6 +5,7 @@ import { Search, Sparkles, BookOpen, Trophy, Zap, AlertCircle, CheckCircle, X } 
 import { Navbar } from "@/components/navbar";
 import { DeckCard } from "@/components/deck-card";
 import { jwtDecode } from "jwt-decode";
+import { sub } from "date-fns";
 
 const TOPICS = [
   "Mathematical Analysis",
@@ -28,30 +29,22 @@ export default function PublicDecksPage() {
   const [selectedTopic, setSelectedTopic] = useState("All Topics");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [userRoles, setUserRoles] = useState<string[]>([]);
+  const [subscriptionPlan, setSubscriptionPlan] = useState("Free");
 
   useEffect(() => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    try {
-      const decoded: any = jwtDecode(token);
-      if (decoded) {
-        setIsLoggedIn(true);
-      
-        const roles = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
-        
-        if (Array.isArray(roles)) {
-          setUserRoles(roles);
-        } else if (roles) {
-          setUserRoles([roles]);
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const decoded: any = jwtDecode(token);
+        if (decoded) {
+          setIsLoggedIn(true);
+          setSubscriptionPlan(decoded["SubscriptionPlan"] || "Free");
         }
+      } catch (e) { 
+        setIsLoggedIn(false); 
       }
-    } catch (e) { 
-      setIsLoggedIn(false); 
-      setUserRoles([]);
     }
-  }
-}, []);
+  }, []);
 
   // Toast Notification State
   const [toast, setToast] = useState({ show: false, message: "", type: "error" });
@@ -103,20 +96,11 @@ export default function PublicDecksPage() {
 
   const fetchPublicDecks = useCallback(async (filterText: string) => {
     const safeFilter = filterText === "All Topics" ? "all" : filterText;
-    let activeRole = "Free";
-
-    if (userRoles.includes("Pro")) {
-      activeRole = "Pro";
-    } else if (userRoles.includes("Core")) {
-      activeRole = "Core";
-    } else if (userRoles.includes("user")) {
-      activeRole = "Free";
-    }
 
     try {
         setLoading(true);
         const response = await fetch(
-            `https://learnqhub.com/api/deck/getPublicDecks?filter=${encodeURIComponent(safeFilter)}&role=${activeRole}`, 
+            `https://learnqhub.com/api/deck/getPublicDecks?filter=${encodeURIComponent(safeFilter)}&role=${subscriptionPlan}`, 
             {
                 headers: {
                     'Content-Type': 'application/json',
@@ -144,7 +128,7 @@ export default function PublicDecksPage() {
     } finally {
         setLoading(false);
     }
-  }, [showToast,userRoles]);
+  }, [showToast]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
