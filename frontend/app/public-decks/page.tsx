@@ -28,6 +28,30 @@ export default function PublicDecksPage() {
   const [selectedTopic, setSelectedTopic] = useState("All Topics");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [userRoles, setUserRoles] = useState<string[]>([]);
+
+  useEffect(() => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    try {
+      const decoded: any = jwtDecode(token);
+      if (decoded) {
+        setIsLoggedIn(true);
+      
+        const roles = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+        
+        if (Array.isArray(roles)) {
+          setUserRoles(roles);
+        } else if (roles) {
+          setUserRoles([roles]);
+        }
+      }
+    } catch (e) { 
+      setIsLoggedIn(false); 
+      setUserRoles([]);
+    }
+  }
+}, []);
 
   // Toast Notification State
   const [toast, setToast] = useState({ show: false, message: "", type: "error" });
@@ -79,12 +103,20 @@ export default function PublicDecksPage() {
 
   const fetchPublicDecks = useCallback(async (filterText: string) => {
     const safeFilter = filterText === "All Topics" ? "all" : filterText;
-    const userRole = "Free";
+    let activeRole = "Free";
+
+    if (userRoles.includes("Pro")) {
+      activeRole = "Pro";
+    } else if (userRoles.includes("Core")) {
+      activeRole = "Core";
+    } else if (userRoles.includes("user")) {
+      activeRole = "Free";
+    }
 
     try {
         setLoading(true);
         const response = await fetch(
-            `https://learnqhub.com/api/deck/getPublicDecks?filter=${encodeURIComponent(safeFilter)}&role=${userRole}`, 
+            `https://learnqhub.com/api/deck/getPublicDecks?filter=${encodeURIComponent(safeFilter)}&role=${activeRole}`, 
             {
                 headers: {
                     'Content-Type': 'application/json',
@@ -112,7 +144,7 @@ export default function PublicDecksPage() {
     } finally {
         setLoading(false);
     }
-  }, [showToast]);
+  }, [showToast,userRoles]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
