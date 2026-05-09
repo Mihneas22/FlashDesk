@@ -120,7 +120,7 @@ export default function App() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const res = await fetch('/api/route', {
+    const res = await fetch('/api/send', {
       method: 'POST',
       body: JSON.stringify(formData),
     });
