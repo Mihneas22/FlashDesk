@@ -39,6 +39,7 @@ namespace Infastructure.Migrations
 
                     b.Property<string>("MatrixConfig")
                         .HasColumnType("jsonb")
+                        .HasColumnName("MatrixConfig")
                         .HasJsonPropertyName("matrixConfig");
 
                     b.Property<string>("Question")
@@ -228,6 +229,9 @@ namespace Infastructure.Migrations
 
                     b.PrimitiveCollection<string[]>("Roles")
                         .HasColumnType("text[]");
+
+                    b.Property<string>("StripeUserId")
+                        .HasColumnType("text");
 
                     b.Property<string>("Username")
                         .HasColumnType("text");

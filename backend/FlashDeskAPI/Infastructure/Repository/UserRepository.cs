@@ -121,6 +121,7 @@ namespace Infastructure.Repository
                 UserDecks = new List<Deck>(),
                 Roles = new List<string> { "user" },
                 Plan = "Free",
+                StripeUserId = string.Empty,
                 CreatedAt = DateTime.UtcNow
             });
 
@@ -150,6 +151,7 @@ namespace Infastructure.Repository
                     CreatedAt = us.CreatedAt,
                     Streak = us.Streak,
                     Plan = us.Plan,
+                    StripeUserId = us.StripeUserId,
                     UserDecks = us.UserDecks
                 })
                 .FirstOrDefaultAsync();
@@ -442,6 +444,7 @@ namespace Infastructure.Repository
                     if (user != null)
                     {
                         string purchasedPlan = "Pro";
+                        user.StripeUserId = session.CustomerId;
 
                         if (session.Metadata != null && session.Metadata.ContainsKey("PlanName"))
                         {
@@ -455,6 +458,22 @@ namespace Infastructure.Repository
                     }
                     else
                         return new AddStripeWebhookResponse(false, "The user was not found in the database.");
+                }
+                else if (stripeEvent.Type == "checkout.session.deleted")
+                {
+                    var subscription = stripeEvent.Data.Object as Subscription;
+                    if (subscription == null) return new AddStripeWebhookResponse(false, "Subscription object is null.");
+
+                    var stripeCustomerId = subscription.CustomerId;
+                    var user = await dbContext.UserEntity.FirstOrDefaultAsync(u => u.StripeUserId == stripeCustomerId);
+
+                    if (user != null)
+                    {
+                        user.Plan = "Free";
+                        await dbContext.SaveChangesAsync();
+                        return new AddStripeWebhookResponse(true, $"User {user.Email} reverted to Free plan.");
+                    }
+                    return new AddStripeWebhookResponse(false, "User with this StripeCustomerId not found.");
                 }
                 return new AddStripeWebhookResponse(true, "Stripe event intentionally ignored (not CheckoutSessionCompleted).");
             }
