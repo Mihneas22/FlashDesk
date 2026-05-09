@@ -145,14 +145,13 @@ namespace Infastructure.Repository
                     Email = us.Email,
                     Elo = us.Elo,
                     Roles = us.Roles,
-                    UserCardReviews = us.UserCardReviews,
-                    UserDailyStats = us.UserDailyStats,
-                    UserCardStates = us.UserCardStates,
+                    UserCardReviews = NULL,
+                    UserDailyStats = NULL,
+                    UserCardStates = NULL,
                     CreatedAt = us.CreatedAt,
                     Streak = us.Streak,
                     Plan = us.Plan,
-                    StripeUserId = (us.StripeUserId != NULL)? us.StripeUserId : string.Empty,
-                    UserDecks = us.UserDecks
+                    StripeUserId = us.StripeUserId ?? string.Empty,
                 })
                 .FirstOrDefaultAsync();
 
