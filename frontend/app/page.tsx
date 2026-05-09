@@ -113,6 +113,21 @@ export default function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const [formData, setFormData] = useState({
+    firstName: '', lastName: '', email: '', role: '', topic: '', message: ''
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const res = await fetch('/api/contact', {
+      method: 'POST',
+      body: JSON.stringify(formData),
+    });
+
+    if (res.ok) setIsFormSubmitted(true);
+  };
+
   return (
     <>
       {/* Ambient lights */}
@@ -532,11 +547,11 @@ export default function App() {
                 <div className="ci-icon">✉</div>
                 <div>
                   <div className="ci-label">Email</div>
-                  <div className="ci-val">hello@learnqhub.app</div>
+                  <div className="ci-val">contact@learnqhub.com</div>
                 </div>
               </div>
 
-              <div className="contact-info-item" style={{ transitionDelay: '100ms' }}>
+        @      <div className="contact-info-item" style={{ transitionDelay: '100ms' }}>
                 <div className="ci-icon">🏫</div>
                 <div>
                   <div className="ci-label">University &amp; department access</div>
@@ -565,29 +580,57 @@ export default function App() {
             {/* Right: form */}
             <div className="contact-form reveal-item">
               {!isFormSubmitted ? (
-                <div id="formContent">
+                <form onSubmit={handleSubmit}>
                   <h3 style={{ fontFamily: "'Syne', sans-serif", fontSize: '20px', fontWeight: '800', marginBottom: '6px', letterSpacing: '-0.5px' }}>Send a message</h3>
                   <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '28px' }}>We'll get back to you within 24 hours.</p>
 
                   <div className="form-row">
                     <div className="form-group">
                       <label className="form-label">First name</label>
-                      <input type="text" className="form-input" placeholder="Ana" />
+                      <input 
+                        type="text" 
+                        name="firstName"
+                        value={formData.firstName}
+                        onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                        className="form-input" 
+                        placeholder="Ana" 
+                        required
+                        />
                     </div>
                     <div className="form-group">
                       <label className="form-label">Last name</label>
-                      <input type="text" className="form-input" placeholder="Mihailescu" />
+                      <input 
+                        type="text" 
+                        name="lastName"
+                        value={formData.lastName}
+                        onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                        className="form-input" 
+                        placeholder="Ana" 
+                        required
+                        />
                     </div>
                   </div>
 
                   <div className="form-group">
                     <label className="form-label">Email</label>
-                    <input type="email" className="form-input" placeholder="ana@university.eu" />
+                    <input 
+                        type="email" 
+                        name="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData({...formData, email: e.target.value})}
+                        className="form-input" 
+                        placeholder="ana@university.eu" 
+                        required
+                        />
                   </div>
 
                   <div className="form-group">
                     <label className="form-label">I am a</label>
-                    <select className="form-select">
+                      <select 
+                        className="form-select"
+                        name="role"
+                        onChange={(e) => setFormData({...formData, role: e.target.value})}
+                      >
                       <option value="">Select role...</option>
                       <option>Engineering student</option>
                       <option>MSc / PhD student</option>
@@ -599,7 +642,11 @@ export default function App() {
 
                   <div className="form-group">
                     <label className="form-label">Interested in</label>
-                    <select className="form-select">
+                    <select 
+                        className="form-select"
+                        name="role"
+                        onChange={(e) => setFormData({...formData, topic: e.target.value})}
+                      >
                       <option value="">Select topic...</option>
                       <option>Free plan questions</option>
                       <option>Core plan — €4.99/mo</option>
@@ -612,13 +659,18 @@ export default function App() {
 
                   <div className="form-group">
                     <label className="form-label">Message</label>
-                    <textarea className="form-textarea" placeholder="Your question, idea, or feedback..."></textarea>
+                    <textarea 
+                        name="message"
+                        onChange={(e) => setFormData({...formData, message: e.target.value})}
+                        className="form-textarea"
+                        placeholder="Enter your ideas, proposals etc..."
+                      ></textarea>
                   </div>
 
-                  <button className="form-submit" onClick={() => setIsFormSubmitted(true)}>
+                  <button type="submit" className="form-submit">
                     Send message →
                   </button>
-                </div>
+                </form>
               ) : (
                 <div className="form-success show">
                   <div className="success-icon">✅</div>
