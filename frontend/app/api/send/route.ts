@@ -28,6 +28,11 @@ export async function POST(req: Request) {
         <p><strong>Subiect:</strong> ${topic}</p>
         <p><strong>Mesaj:</strong> ${message}</p>
       `,
+      dsn: {
+            id: 'some-unique-id-' + Date.now(),
+            return: 'headers',
+            notify: ['never']
+        }
     });
 
     return NextResponse.json({ success: true });
