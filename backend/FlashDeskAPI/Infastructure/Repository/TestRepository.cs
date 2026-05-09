@@ -54,24 +54,60 @@ namespace Infastructure.Repository
         {
             try
             {
-                var userExists = await dbContext.UserEntity.AnyAsync(u => u.UserId == addTestSubmissionDTO.Subm_UserId);
-                if (!userExists)
-                {
-                    return new AddTestSubmissionResponse(false, "User not found.");
-                }
+                var user = await dbContext.UserEntity.FirstOrDefaultAsync(u => u.UserId == addTestSubmissionDTO.Subm_UserId);
+                if (user == null) return new AddTestSubmissionResponse(false, "User not found.");
 
                 var testExists = await dbContext.TestEntity.AnyAsync(t => t.TestId == addTestSubmissionDTO.Subm_TestId);
-                if (!testExists)
+                if (!testExists) return new AddTestSubmissionResponse(false, "Test not found.");
+
+                var testQuestions = await dbContext.TestQuestionEntity
+                    .Where(q => q.Quest_TestId == addTestSubmissionDTO.Subm_TestId)
+                    .ToListAsync();
+
+                var maxPossibleScore = testQuestions.Sum(q => q.Points ?? 10);
+
+                int calculatedScore = 0;
+                var correctAnswersList = new List<Guid>();
+                var wrongAnswersList = new List<Guid>();
+
+                foreach (var userAnswer in addTestSubmissionDTO.Answers)
                 {
-                    return new AddTestSubmissionResponse(false, "Test not found.");
+                    var dbQuestion = testQuestions.FirstOrDefault(q => q.TestQuestionId == userAnswer.QuestionId);
+
+                    if (dbQuestion != null)
+                    {
+                        if (dbQuestion.CorrectAnswerIndex == userAnswer.SelectedAnswerIndex)
+                        {
+                            int earnedPoints = dbQuestion.Points ?? 10;
+                            if (userAnswer.HintUsed) earnedPoints -= 2;
+
+                            calculatedScore += earnedPoints;
+                            correctAnswersList.Add(dbQuestion.TestQuestionId);
+                        }
+                        else
+                        {
+                            wrongAnswersList.Add(dbQuestion.TestQuestionId);
+                        }
+                    }
                 }
 
+                var hasMaxScoreAttempt = await dbContext.TestSubmissionEntity
+                    .AnyAsync(s => s.Subm_UserId == addTestSubmissionDTO.Subm_UserId &&
+                                   s.Subm_TestId == addTestSubmissionDTO.Subm_TestId &&
+                                   s.Points >= maxPossibleScore);
+
+                if (!hasMaxScoreAttempt)
+                {
+                    user.Elo = (user.Elo ?? 0) + calculatedScore;
+                }
+
+                // 4. Salvăm submission-ul cu datele calculate 100% de noi
                 var submission = new TestSubmission
                 {
                     TestSubmissionId = Guid.NewGuid(),
-                    CorrectAnswers = addTestSubmissionDTO.CorrectAnswers,
-                    WrongAnswers = addTestSubmissionDTO.WrongAnswers,
-                    Points = addTestSubmissionDTO.Points,
+                    CorrectAnswers = correctAnswersList,
+                    WrongAnswers = wrongAnswersList,
+                    Points = calculatedScore,
                     StartedAt = addTestSubmissionDTO.StartedAt,
                     FinishedAt = addTestSubmissionDTO.FinishedAt,
                     Subm_UserId = addTestSubmissionDTO.Subm_UserId,
@@ -81,11 +117,11 @@ namespace Infastructure.Repository
                 await dbContext.TestSubmissionEntity.AddAsync(submission);
                 await dbContext.SaveChangesAsync();
 
-                return new AddTestSubmissionResponse(true, "Test submission added successfully.");
+                return new AddTestSubmissionResponse(true, "Test submission saved securely.");
             }
             catch (Exception ex)
             {
-                return new AddTestSubmissionResponse(false, $"An error occurred while saving the submission: {ex.Message}");
+                return new AddTestSubmissionResponse(false, $"An error occurred: {ex.Message}");
             }
         }
 

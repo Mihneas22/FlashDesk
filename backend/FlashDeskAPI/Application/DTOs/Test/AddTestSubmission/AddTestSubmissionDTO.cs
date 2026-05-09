@@ -5,16 +5,16 @@ using System.Text;
 
 namespace Application.DTOs.Test.AddSubmission
 {
+    public class UserAnswerDTO
+    {
+        public Guid QuestionId { get; set; }
+        public int SelectedAnswerIndex { get; set; }
+        public bool HintUsed { get; set; }
+    }
     public class AddTestSubmissionDTO
     {
         [Required]
-        public List<int> CorrectAnswers { get; set; } = new List<int>();
-
-        [Required]
-        public List<int> WrongAnswers { get; set; } = new List<int>();
-
-        [Required]
-        public int Points { get; set; } = 0;
+        public List<UserAnswerDTO> Answers { get; set; } = new List<UserAnswerDTO>();
 
         [Required]
         public DateTime StartedAt { get; set; } = DateTime.UtcNow;

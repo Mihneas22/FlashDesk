@@ -10,9 +10,9 @@ namespace Domain.Models
         [Key]
         public Guid TestSubmissionId { get; set; }
 
-        public ICollection<int>? CorrectAnswers { get; set; }
+        public ICollection<Guid>? CorrectAnswers { get; set; }
 
-        public ICollection<int>? WrongAnswers { get; set; }
+        public ICollection<Guid>? WrongAnswers { get; set; }
 
         public int? Points { get; set; }
 
