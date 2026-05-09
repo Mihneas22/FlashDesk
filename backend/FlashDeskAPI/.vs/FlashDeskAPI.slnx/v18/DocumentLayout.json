@@ -3,6 +3,10 @@
   "WorkspaceRootPath": "C:\\Users\\Mihnea\\Proiecte\\FlashDesk\\backend\\FlashDeskAPI\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{9926F944-72F1-6C45-D07D-DC2D79CE9E91}|Infastructure\\Infastructure.csproj|c:\\users\\mihnea\\proiecte\\flashdesk\\backend\\flashdeskapi\\infastructure\\repository\\deckrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9926F944-72F1-6C45-D07D-DC2D79CE9E91}|Infastructure\\Infastructure.csproj|solutionrelative:infastructure\\repository\\deckrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{9926F944-72F1-6C45-D07D-DC2D79CE9E91}|Infastructure\\Infastructure.csproj|c:\\users\\mihnea\\proiecte\\flashdesk\\backend\\flashdeskapi\\infastructure\\repository\\userrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{9926F944-72F1-6C45-D07D-DC2D79CE9E91}|Infastructure\\Infastructure.csproj|solutionrelative:infastructure\\repository\\userrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -35,19 +39,31 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "DeckRepository.cs",
+              "DocumentMoniker": "C:\\Users\\Mihnea\\Proiecte\\FlashDesk\\backend\\FlashDeskAPI\\Infastructure\\Repository\\DeckRepository.cs",
+              "RelativeDocumentMoniker": "Infastructure\\Repository\\DeckRepository.cs",
+              "ToolTip": "C:\\Users\\Mihnea\\Proiecte\\FlashDesk\\backend\\FlashDeskAPI\\Infastructure\\Repository\\DeckRepository.cs",
+              "RelativeToolTip": "Infastructure\\Repository\\DeckRepository.cs",
+              "ViewState": "AgIAAKYBAAAAAAAAAAAkwLQBAAAsAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-09T20:04:27.32Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
               "Title": "UserRepository.cs",
               "DocumentMoniker": "C:\\Users\\Mihnea\\Proiecte\\FlashDesk\\backend\\FlashDeskAPI\\Infastructure\\Repository\\UserRepository.cs",
               "RelativeDocumentMoniker": "Infastructure\\Repository\\UserRepository.cs",
               "ToolTip": "C:\\Users\\Mihnea\\Proiecte\\FlashDesk\\backend\\FlashDeskAPI\\Infastructure\\Repository\\UserRepository.cs",
               "RelativeToolTip": "Infastructure\\Repository\\UserRepository.cs",
-              "ViewState": "AgIAALUBAAAAAAAAAAAmwM0BAABGAAAAAAAAAA==",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAAAAAAAAfAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-09T13:14:20.763Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-09T13:14:20.763Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "User.cs",
               "DocumentMoniker": "C:\\Users\\Mihnea\\Proiecte\\FlashDesk\\backend\\FlashDeskAPI\\Domain\\Models\\User.cs",
               "RelativeDocumentMoniker": "Domain\\Models\\User.cs",
@@ -55,12 +71,11 @@
               "RelativeToolTip": "Domain\\Models\\User.cs",
               "ViewState": "AgIAABEAAAAAAAAAAAAwwCMAAAAxAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-09T13:13:59.438Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-09T13:13:59.438Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "StripeController.cs",
               "DocumentMoniker": "C:\\Users\\Mihnea\\Proiecte\\FlashDesk\\backend\\FlashDeskAPI\\FlashDeskAPI\\Controllers\\StripeController.cs",
               "RelativeDocumentMoniker": "FlashDeskAPI\\Controllers\\StripeController.cs",
@@ -68,8 +83,7 @@
               "RelativeToolTip": "FlashDeskAPI\\Controllers\\StripeController.cs",
               "ViewState": "AgIAAD0AAAAAAAAAAAAcwDEAAAAOAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-09T12:38:17.612Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-09T12:38:17.612Z"
             }
           ]
         }

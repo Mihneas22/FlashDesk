@@ -434,6 +434,7 @@ namespace Infastructure.Repository
             {
                 decks = await dbContext.DeckEntity
                 .AsNoTracking()
+                .Include(dc => dc.DeckCards)
                 .Where(dc => dc.Title!.StartsWith(getDeckByNameDTO.Name))
                 .ToListAsync();
             }
@@ -441,6 +442,7 @@ namespace Infastructure.Repository
             {
                 decks = await dbContext.DeckEntity
                 .AsNoTracking()
+                .Include(dc => dc.DeckCards)
                 .Where(dc => dc.Title!.StartsWith(getDeckByNameDTO.Name) && dc.Status == true)
                 .ToListAsync();
             }
