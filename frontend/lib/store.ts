@@ -40,7 +40,14 @@ export interface Flashcard {
   front: string;
   back: string;
   tips: string[];
-  graphConfig: string;
+  viewConfig: ViewConfig | null;
+  matrixConfig: MatrixConfig | null;
+}
+
+export interface MatrixConfig {
+  type: "2d_transform";
+  matrix: [[number, number], [number, number]];
+  description?: string;
 }
 
 export interface Deck {
@@ -79,8 +86,8 @@ export interface GraphPoint {
 }
 
 export interface ViewBoxConfig {
-  x: number[];
-  y: number[];
+  x: [number, number];  // ← era number[]
+  y: [number, number];  // ← era number[]
 }
 
 export interface ViewConfig {
