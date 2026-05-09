@@ -510,8 +510,6 @@ export default function App() {
                 <li className="plan-feat"><div className="pf-check yes">✓</div>Unlimited AI card generation</li>
                 <li className="plan-feat"><div className="pf-check yes">✓</div>Exam simulation mode</li>
                 <li className="plan-feat"><div className="pf-check yes">✓</div>Weak formula clustering insights</li>
-                <li className="plan-feat"><div className="pf-check yes">✓</div>Collaborative decks (4 people)</li>
-                <li className="plan-feat"><div className="pf-check yes">✓</div>Browser extension (highlight → card)</li>
                 <li className="plan-feat"><div className="pf-check yes">✓</div>Priority support</li>
               </ul>
               <a href="/pricing" className="plan-cta ghost">Get started</a>

@@ -52,8 +52,6 @@ const PLANS = [
       "Unlimited AI card generation",
       "Exam simulation mode",
       "Weak formula clustering insights",
-      "Collaborative decks (4 people)",
-      "Browser extension (highlight → card)",
       "Priority support"
     ],
     buttonText: "Get started",
