@@ -100,6 +100,7 @@ namespace Infastructure.AppDbContext
             modelBuilder.Entity<Card>(entity =>
             {
                 entity.Property(e => e.MatrixConfig)
+                    .HasColumnName("MatrixConfig")
                     .HasColumnType("jsonb")
                     .HasConversion(
                         v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
