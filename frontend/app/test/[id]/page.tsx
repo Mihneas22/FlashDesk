@@ -1,7 +1,7 @@
 "use client";
 
 import { use, useState, useEffect, useCallback } from "react";
-import { Timer, Lightbulb, ChevronRight, Trophy, ArrowLeft, Sparkles, AlertCircle, CheckCircle, X, Info } from "lucide-react";
+import { Timer, Lightbulb, ChevronRight, Trophy, ArrowLeft, Lock, AlertCircle, CheckCircle, X, Info, Crown } from "lucide-react";
 import Link from "next/link";
 import { jwtDecode } from "jwt-decode";
 
@@ -63,7 +63,10 @@ export default function ActiveTestPage({ params }: { params: Promise<{ id: strin
 
   const [isSavingResult, setIsSavingResult] = useState(false);
   const [userAnswers, setUserAnswers] = useState<any[]>([]);
-  const [startedAt, setStartedAt] = useState<string>(""); 
+  const [startedAt, setStartedAt] = useState<string>("");
+  
+  const [isPro, setIsPro] = useState<boolean | null>(null); 
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
 
   const [toast, setToast] = useState({ show: false, message: "", type: "error" });
 
@@ -77,14 +80,35 @@ export default function ActiveTestPage({ params }: { params: Promise<{ id: strin
     if (token) {
       try {
         const decoded: any = jwtDecode(token);
-        const extractedId = decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] || decoded.sub || decoded.nameid;
-        if (extractedId) setIsLoggedIn(true);
+        const extractedId = decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"];
+        
+        const subscriptionPlan = decoded["SubscriptionPlan"];
+        
+        const roles = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || [];
+        const isUserAdmin = Array.isArray(roles) ? roles.includes("admin") : roles === "admin";
+        
+        if (extractedId) {
+          setIsLoggedIn(true);
+          
+          if (subscriptionPlan === "Pro" || isUserAdmin) {
+            setIsPro(true);
+          } else {
+            setIsPro(false);
+          }
+        } else {
+          setIsLoggedIn(false);
+          setIsPro(false);
+        }
       } catch (error) {
+        console.error("Eroare la decodarea token-ului:", error);
         setIsLoggedIn(false);
+        setIsPro(false);
       }
     } else {
       setIsLoggedIn(false);
+      setIsPro(false);
     }
+    setIsAuthChecking(false);
   }, []);
 
   useEffect(() => {
@@ -236,6 +260,62 @@ export default function ActiveTestPage({ params }: { params: Promise<{ id: strin
 
   const question = questions[currentQuestionIndex];
   const isTimeRunningOut = timeLeft < 60;
+
+  if (isAuthChecking) {
+    return <div className="min-h-screen flex items-center justify-center bg-gray-950"><div className="w-10 h-10 border-4 border-violet-500 border-t-transparent rounded-full animate-spin"></div></div>;
+  }
+
+  // --- NOU: ECRANUL PENTRU PAYWALL / UPGRADE TO PRO ---
+  if (isPro === false) {
+    return (
+      <div className="min-h-screen relative overflow-hidden bg-gray-950 text-gray-100 flex items-center justify-center p-6">
+        <div className="fixed inset-0 -z-10 bg-gradient-to-br from-gray-950 via-purple-950/10 to-gray-900" />
+        <div className="fixed inset-0 -z-10 opacity-20 pointer-events-none">
+          <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-yellow-600/30 rounded-full mix-blend-screen filter blur-3xl animate-blob" />
+        </div>
+
+        <div className="max-w-md w-full animate-scale-in">
+          <div className="bg-gray-900/80 backdrop-blur-md rounded-3xl p-8 md:p-10 text-center shadow-2xl border border-gray-800 relative overflow-hidden">
+            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-yellow-400 via-amber-500 to-yellow-400 opacity-80" />
+            
+            <div className="w-20 h-20 mx-auto bg-gray-950 border border-gray-800 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-black/50 relative">
+              <Lock className="w-8 h-8 text-gray-500 absolute" />
+              <Crown className="w-10 h-10 text-yellow-400/90 translate-x-3 -translate-y-3 drop-shadow-md" />
+            </div>
+            
+            <h2 className="text-2xl font-black text-white mb-3">
+              Pro Access Required
+            </h2>
+            <p className="text-gray-400 text-sm md:text-base leading-relaxed mb-8">
+              This test contains advanced materials and complex configurations that are only available to our Pro members. Upgrade your account to unlock this feature.
+            </p>
+            
+            <div className="flex flex-col gap-3">
+              <Link 
+                href="/pricing"
+                className="w-full py-4 rounded-xl font-bold text-gray-950 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 shadow-lg shadow-yellow-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+              >
+                <Crown className="w-5 h-5" /> Upgrade to Pro
+              </Link>
+              <Link 
+                href="/test" 
+                className="w-full py-4 rounded-xl font-bold text-gray-300 bg-transparent hover:bg-gray-800/50 border border-transparent hover:border-gray-700 transition-all"
+              >
+                Go back to free tests
+              </Link>
+            </div>
+          </div>
+        </div>
+        
+        <style jsx>{`
+          @keyframes blob { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-20px, 20px) scale(0.9); } }
+          @keyframes scale-in { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+          .animate-blob { animation: blob 7s infinite; }
+          .animate-scale-in { animation: scale-in 0.4s ease-out; }
+        `}</style>
+      </div>
+    );
+  }
 
   if (isFinished && isLoggedIn) {
     const mistakes = questions.map((q, index) => {
