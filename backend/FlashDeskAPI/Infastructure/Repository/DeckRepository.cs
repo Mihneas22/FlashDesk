@@ -417,10 +417,13 @@ namespace Infastructure.Repository
                 .Include(dc => dc.DeckCards)
                 .FirstOrDefaultAsync(dc => dc.DeckId == getDeckByIdDTO.DeckId);
 
-            if (deck == null)
+            if(deck == null)
                 return new GetDeckByIdResponse(false, "Deck not found");
-            else
-                return new GetDeckByIdResponse(true, "Deck found", deck);
+
+            if (deck.Status == false && deck.DeckUserId != getDeckByIdDTO.UserId)
+                return new GetDeckByIdResponse(false, "Invalid Auth");
+
+            return new GetDeckByIdResponse(true, "Deck found", deck);
         }
 
         public async Task<GetDeckByNameResponse> GetDeckByNameRepository(GetDeckByNameDTO getDeckByNameDTO)

@@ -3,12 +3,16 @@
   "WorkspaceRootPath": "C:\\Users\\Mihnea\\Proiecte\\FlashDesk\\backend\\FlashDeskAPI\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{9926F944-72F1-6C45-D07D-DC2D79CE9E91}|Infastructure\\Infastructure.csproj|c:\\users\\mihnea\\proiecte\\flashdesk\\backend\\flashdeskapi\\infastructure\\repository\\deckrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9926F944-72F1-6C45-D07D-DC2D79CE9E91}|Infastructure\\Infastructure.csproj|solutionrelative:infastructure\\repository\\deckrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{2F643FC0-3C50-462B-2CA1-0D9C7BA82374}|FlashDeskAPI\\FlashDeskAPI.csproj|c:\\users\\mihnea\\proiecte\\flashdesk\\backend\\flashdeskapi\\flashdeskapi\\controllers\\deckcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{2F643FC0-3C50-462B-2CA1-0D9C7BA82374}|FlashDeskAPI\\FlashDeskAPI.csproj|solutionrelative:flashdeskapi\\controllers\\deckcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{9926F944-72F1-6C45-D07D-DC2D79CE9E91}|Infastructure\\Infastructure.csproj|c:\\users\\mihnea\\proiecte\\flashdesk\\backend\\flashdeskapi\\infastructure\\repository\\deckrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{9926F944-72F1-6C45-D07D-DC2D79CE9E91}|Infastructure\\Infastructure.csproj|solutionrelative:infastructure\\repository\\deckrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{F80C4E72-27A0-12B5-0634-DD5C11CFB0C1}|Application\\Application.csproj|c:\\users\\mihnea\\proiecte\\flashdesk\\backend\\flashdeskapi\\application\\dtos\\deck\\getdeckbyid\\getdeckbyiddto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F80C4E72-27A0-12B5-0634-DD5C11CFB0C1}|Application\\Application.csproj|solutionrelative:application\\dtos\\deck\\getdeckbyid\\getdeckbyiddto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -18,8 +22,21 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 4,
           "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "GetDeckByIdDTO.cs",
+              "DocumentMoniker": "C:\\Users\\Mihnea\\Proiecte\\FlashDesk\\backend\\FlashDeskAPI\\Application\\DTOs\\Deck\\GetDeckById\\GetDeckByIdDTO.cs",
+              "RelativeDocumentMoniker": "Application\\DTOs\\Deck\\GetDeckById\\GetDeckByIdDTO.cs",
+              "ToolTip": "C:\\Users\\Mihnea\\Proiecte\\FlashDesk\\backend\\FlashDeskAPI\\Application\\DTOs\\Deck\\GetDeckById\\GetDeckByIdDTO.cs",
+              "RelativeToolTip": "Application\\DTOs\\Deck\\GetDeckById\\GetDeckByIdDTO.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAqwA4AAAA2AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-11T17:02:58.66Z",
+              "EditorCaption": ""
+            },
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{fbcae063-e2c0-4ab1-a516-996ea3dafb72}"
@@ -30,26 +47,26 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "DeckController.cs",
               "DocumentMoniker": "C:\\Users\\Mihnea\\Proiecte\\FlashDesk\\backend\\FlashDeskAPI\\FlashDeskAPI\\Controllers\\DeckController.cs",
               "RelativeDocumentMoniker": "FlashDeskAPI\\Controllers\\DeckController.cs",
               "ToolTip": "C:\\Users\\Mihnea\\Proiecte\\FlashDesk\\backend\\FlashDeskAPI\\FlashDeskAPI\\Controllers\\DeckController.cs",
               "RelativeToolTip": "FlashDeskAPI\\Controllers\\DeckController.cs",
-              "ViewState": "AgIAACQAAAAAAAAAAAAowDQAAAAgAAAAAAAAAA==",
+              "ViewState": "AgIAAD0AAAAAAAAAAAAAAFIAAAA9AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-05-09T21:42:17.149Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
               "Title": "DeckRepository.cs",
               "DocumentMoniker": "C:\\Users\\Mihnea\\Proiecte\\FlashDesk\\backend\\FlashDeskAPI\\Infastructure\\Repository\\DeckRepository.cs",
               "RelativeDocumentMoniker": "Infastructure\\Repository\\DeckRepository.cs",
               "ToolTip": "C:\\Users\\Mihnea\\Proiecte\\FlashDesk\\backend\\FlashDeskAPI\\Infastructure\\Repository\\DeckRepository.cs",
               "RelativeToolTip": "Infastructure\\Repository\\DeckRepository.cs",
-              "ViewState": "AgIAAM4BAAAAAAAAAAAswNgBAABKAAAAAAAAAA==",
+              "ViewState": "AgIAAI0BAAAAAAAAAAA3wKkBAAAMAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-05-09T21:39:34.913Z",
               "EditorCaption": ""

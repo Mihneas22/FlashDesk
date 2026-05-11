@@ -35,6 +35,9 @@ namespace FlashDeskAPI.Controllers
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdString)) return Unauthorized();
 
+            if (!Guid.TryParse(userIdString, out var userId))
+                return BadRequest("Invalid user ID format.");
+
             createDeckDTO.UserId = Guid.Parse(userIdString);
             var result = await deckRepo.CreateDeckRepository(createDeckDTO);
             return Ok(result);
@@ -45,6 +48,9 @@ namespace FlashDeskAPI.Controllers
         {
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdString)) return Unauthorized();
+
+            if (!Guid.TryParse(userIdString, out var userId))
+                return BadRequest("Invalid user ID format.");
 
             var result = await deckRepo.GetDecksRepository(new GetDecksDTO { UserId = Guid.Parse(userIdString) });
             return Ok(result);
@@ -65,7 +71,16 @@ namespace FlashDeskAPI.Controllers
         [HttpGet("getDeckById/{id}")]
         public async Task<ActionResult<GetDeckByIdResponse>> GetDeckByIdAsync(string id)
         {
-            var result = await deckRepo.GetDeckByIdRepository(new GetDeckByIdDTO { DeckId = Guid.Parse(id) });
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdString)) return Unauthorized();
+
+            if (!Guid.TryParse(userIdString, out var userId))
+                return BadRequest("Invalid user ID format.");
+
+            if (!Guid.TryParse(id, out var deckId))
+                return BadRequest("Invalid deck ID format.");
+
+            var result = await deckRepo.GetDeckByIdRepository(new GetDeckByIdDTO { UserId = Guid.Parse(userIdString),DeckId = Guid.Parse(id) });
             return Ok(result);
         }
 
@@ -74,6 +89,12 @@ namespace FlashDeskAPI.Controllers
         {
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdString)) return Unauthorized();
+
+            if (!Guid.TryParse(userIdString, out var userId))
+                return BadRequest("Invalid user ID format.");
+
+            if (!Guid.TryParse(deckId, out var udeckId))
+                return BadRequest("Invalid user ID format.");
 
             var deleteDeckDTO = new DeleteDeckDTO
             {
@@ -92,6 +113,9 @@ namespace FlashDeskAPI.Controllers
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdString)) return Unauthorized();
 
+            if (!Guid.TryParse(userIdString, out var userId))
+                return BadRequest("Invalid user ID format.");
+
             editDeckDTO.UserId = Guid.Parse(userIdString);
             editDeckDTO.IsAdmin = User.IsInRole("admin");
 
@@ -103,6 +127,12 @@ namespace FlashDeskAPI.Controllers
         [Authorize(Roles = "admin")]
         public async Task<ActionResult<GetAllDecksResponse>> GetAllDecksAsync()
         {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdString)) return Unauthorized();
+
+            if (!Guid.TryParse(userIdString, out var userId))
+                return BadRequest("Invalid user ID format.");
+
             var result = await deckRepo.GetAllDeckRepository();
             return Ok(result);
         }
@@ -146,10 +176,13 @@ namespace FlashDeskAPI.Controllers
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdString)) return Unauthorized();
 
+            if (!Guid.TryParse(userIdString, out var userId))
+                return BadRequest("Invalid user ID format.");
+
             addDeckSubmissionDTO.UserId = Guid.Parse(userIdString);
 
             var result = await deckRepo.AddDeckSumbissionRepository(addDeckSubmissionDTO);
-            return Ok();
+            return Ok(result);
         }
     }
 }
