@@ -34,7 +34,7 @@ export function CookieBanner() {
   if (!isVisible) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 md:bottom-8 md:right-8 md:left-auto md:max-w-md animate-in fade-in slide-in-from-bottom-10 duration-700">
+    <div className="fixed bottom-4 left-4 p-24 right-4 z-50 md:bottom-8 md:right-8 md:left-auto md:max-w-md animate-in fade-in slide-in-from-bottom-10 duration-700">
       <div className="relative overflow-hidden rounded-2xl bg-zinc-900/95 backdrop-blur-md border border-zinc-800 p-6 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
         
         {/* Accent Decorativ Vibrant */}
