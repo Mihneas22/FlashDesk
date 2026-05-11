@@ -28,49 +28,62 @@ export function CookieBanner() {
   };
 
   const loadTrackingScripts = () => {
-    console.log("Scripturi de analiză încărcate");
+    console.log("Analytics loaded");
   };
 
   if (!isVisible) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 p-24 right-4 z-50 md:bottom-8 md:right-8 md:left-auto md:max-w-md animate-in fade-in slide-in-from-bottom-10 duration-700">
-      <div className="relative overflow-hidden rounded-2xl bg-zinc-900/95 backdrop-blur-md border border-zinc-800 p-6 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+    // Containerul exterior - am scos p-24 pentru a lăsa cardul să își ia mărimea naturală
+    <div className="fixed bottom-6 left-6 right-6 z-50 md:right-10 md:left-auto md:max-w-[420px] animate-in fade-in slide-in-from-bottom-8 duration-1000 ease-out">
+      
+      <div className="relative overflow-hidden rounded-[2rem] bg-zinc-900/90 backdrop-blur-xl border border-white/10 p-8 md:p-10 shadow-[0_32px_64px_-15px_rgba(0,0,0,0.6)]">
         
-        {/* Accent Decorativ Vibrant */}
-        <div className="absolute -top-10 -right-10 h-32 w-32 bg-blue-600/10 blur-3xl rounded-full" />
+        {/* Glow de fundal pentru vibrație */}
+        <div className="absolute -top-24 -right-24 h-48 w-48 bg-blue-500/20 blur-[80px] rounded-full" />
+        <div className="absolute -bottom-24 -left-24 h-48 w-48 bg-indigo-500/10 blur-[80px] rounded-full" />
         
         <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
-            <span className="text-xs font-bold uppercase tracking-widest text-zinc-500">Cookie Policy</span>
+          {/* Header cu status */}
+          <div className="flex items-center gap-3 mb-8">
+            <span className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+            </span>
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">
+              Privacy & Cookies
+            </span>
           </div>
 
-          <h3 className="text-white font-semibold text-lg mb-2">
-            We value your privacy
-          </h3>
-          
-          <p className="text-zinc-400 text-sm leading-relaxed mb-6">
-            We use cookies to enhance your browsing experience and analyze our traffic. 
-            By clicking <span className="text-zinc-200 font-medium">"Accept All"</span>, you consent to our use of cookies. 
-            Details in our{" "}
-            <Link href="/privacy" className="text-blue-400 hover:text-blue-300 underline underline-offset-4 transition-colors">
-              Cookie Policy
-            </Link>.
-          </p>
+          {/* Text Content cu line-height mai mare */}
+          <div className="space-y-4 mb-10">
+            <h3 className="text-white text-2xl font-semibold tracking-tight">
+              Control your data
+            </h3>
+            
+            <p className="text-zinc-400 text-base leading-relaxed">
+              We use cookies to create a more <span className="text-zinc-200">vibrant and personalized</span> experience for you. 
+              Review our{" "}
+              <Link href="/privacy" className="text-blue-400 hover:text-blue-300 transition-colors font-medium decoration-blue-400/30 underline underline-offset-8">
+                Policy
+              </Link>.
+            </p>
+          </div>
 
-          <div className="flex flex-col sm:flex-row gap-3">
-            <button 
-              onClick={rejectCookies}
-              className="flex-1 px-4 py-2.5 text-sm font-semibold text-zinc-400 bg-zinc-800/50 hover:bg-zinc-800 hover:text-white border border-zinc-700 rounded-xl transition-all duration-200"
-            >
-              Refuse All
-            </button>
+          {/* Butoane cu padding generos */}
+          <div className="flex flex-col gap-4">
             <button 
               onClick={acceptCookies}
-              className="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_0_25px_rgba(37,99,235,0.5)] rounded-xl transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+              className="w-full py-4 px-6 text-sm font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-2xl shadow-lg shadow-blue-600/20 transform active:scale-[0.97] transition-all duration-200"
             >
               Accept All
+            </button>
+            
+            <button 
+              onClick={rejectCookies}
+              className="w-full py-4 px-6 text-sm font-semibold text-zinc-400 hover:text-white bg-zinc-800/40 hover:bg-zinc-800 rounded-2xl transition-all duration-200"
+            >
+              Custom Settings
             </button>
           </div>
         </div>
