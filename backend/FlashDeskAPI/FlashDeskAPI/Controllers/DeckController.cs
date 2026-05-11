@@ -55,7 +55,9 @@ namespace FlashDeskAPI.Controllers
         public async Task<ActionResult<GetPublicDecksResponse>> GetPublicDecksAsync([FromQuery] GetPublicDecksDTO dto)
         {
             var plan = User.Claims.FirstOrDefault(c => c.Type == "SubscriptionPlan")?.Value;
-            dto.Role = plan;
+            dto.Role = "Free";
+            if(plan != null)
+                dto.Role = plan;
             var result = await deckRepo.GetPublicDecksRepository(dto);
             return Ok(result);
         }
