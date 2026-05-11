@@ -10,7 +10,7 @@ namespace Application.DTOs.Deck.GetPublicDecks
         [Required]
         public string Filter { get; set; } = string.Empty;
 
-        [Required]
+        [JsonIgnore]
         public string Role { get; set; } = string.Empty;
     }
 }

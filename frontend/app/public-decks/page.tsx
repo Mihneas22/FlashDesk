@@ -29,7 +29,6 @@ export default function PublicDecksPage() {
   const [selectedTopic, setSelectedTopic] = useState("All Topics");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [subscriptionPlan, setSubscriptionPlan] = useState("Free");
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -38,8 +37,6 @@ export default function PublicDecksPage() {
         const decoded: any = jwtDecode(token);
         if (decoded) {
           setIsLoggedIn(true);
-          const planFromToken = decoded["SubscriptionPlan"] || "Free";
-          setSubscriptionPlan(planFromToken);
         }
       } catch (e) { 
         setIsLoggedIn(false); 
@@ -97,11 +94,11 @@ export default function PublicDecksPage() {
 
   const fetchPublicDecks = useCallback(async (filterText: string) => {
     const safeFilter = filterText === "All Topics" ? "all" : filterText;
-
+    
     try {
         setLoading(true);
         const response = await fetch(
-            `https://learnqhub.com/api/deck/getPublicDecks?filter=${encodeURIComponent(safeFilter)}&role=${subscriptionPlan}`, 
+            `https://learnqhub.com/api/deck/getPublicDecks?filter=${encodeURIComponent(safeFilter)}`, 
             {
                 headers: {
                     'Content-Type': 'application/json',
@@ -129,7 +126,7 @@ export default function PublicDecksPage() {
     } finally {
         setLoading(false);
     }
-  }, [showToast,subscriptionPlan]);
+  }, [showToast]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -152,7 +149,7 @@ export default function PublicDecksPage() {
     }, 500);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [search, selectedTopic, fetchSearchDeck, fetchPublicDecks, subscriptionPlan]);
+  }, [search, selectedTopic, fetchSearchDeck, fetchPublicDecks]);
 
   const displayDecks = search.trim() ? publicDecks : publicDecks.filter(d => 
     selectedTopic === "All Topics" || d.topic === selectedTopic
