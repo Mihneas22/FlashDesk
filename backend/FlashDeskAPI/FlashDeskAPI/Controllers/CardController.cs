@@ -36,8 +36,11 @@ namespace FlashDeskAPI.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<GetCardsByDeckResponse>> GetCardsByDeckAsync(string id)
         {
+            if (!Guid.TryParse(id, out var deckId))
+                return BadRequest("ID deck invalid.");
+
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            Guid? currentUserId = string.IsNullOrEmpty(userIdString) ? null : Guid.Parse(userIdString);
+            Guid? currentUserId = Guid.TryParse(userIdString, out var uid) ? uid : null;
             bool isAdmin = currentUserId.HasValue && User.IsInRole("admin");
 
             var dto = new GetCardsByDeckDTO
@@ -76,19 +79,26 @@ namespace FlashDeskAPI.Controllers
             return Ok(result);
         }
 
+        private static readonly string[] AllowedMimeTypes = ["image/jpeg", "image/png", "image/webp"];
+        private const long MaxFileSizeBytes = 5 * 1024 * 1024;
         [HttpPost("extract-latex")]
         [Authorize]
         public async Task<IActionResult> ExtractLatex(IFormFile file)
         {
+            
             if (file == null || file.Length == 0) return BadRequest("Image not found.");
 
+            if (file.Length > MaxFileSizeBytes)
+             return BadRequest("The file exceeds the maximum size of 5MB.");
+
+            if (!AllowedMimeTypes.Contains(file.ContentType.ToLowerInvariant()))
+                return BadRequest("Unallowed file type. Supported: JPEG, PNG, WEBP.");
             try
             {
-                using var ms = new MemoryStream();
+                using var ms = new MemoryStream((int)file.Length);
                 await file.CopyToAsync(ms);
-                var fileBytes = ms.ToArray();
-
-                string latexResult = await _ocrService.RecognizeLatexAsync(fileBytes);
+                
+                string latexResult = await _ocrService.RecognizeLatexAsync(ms.ToArray());
 
                 return Ok(new { formula = latexResult });
             }

@@ -98,6 +98,14 @@ namespace Infastructure.DepInject
                         AutoReplenishment = true
                     });
                 });
+
+                options.AddFixedWindowLimiter("ocr", cfg =>
+                {
+                    cfg.PermitLimit = 10;
+                    cfg.Window = TimeSpan.FromMinutes(1);
+                    cfg.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                    cfg.QueueLimit = 2;
+                });
             });
 
             services.AddScoped<ICard, CardRepository>();
