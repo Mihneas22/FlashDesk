@@ -37,7 +37,7 @@ export function CookieBanner() {
     // Containerul exterior - am scos p-24 pentru a lăsa cardul să își ia mărimea naturală
     <div className="fixed bottom-6 left-6 right-6 z-50 md:right-10 md:left-auto md:max-w-[420px] animate-in fade-in slide-in-from-bottom-8 duration-1000 ease-out">
       
-      <div className="relative overflow-hidden rounded-[2rem] bg-zinc-900/90 backdrop-blur-xl border border-white/10 p-8 md:p-10 shadow-[0_32px_64px_-15px_rgba(0,0,0,0.6)]">
+      <div style="padding: 32px;" className="relative overflow-hidden rounded-[2rem] bg-zinc-900/90 backdrop-blur-xl border border-white/10 p-8 md:p-10 shadow-[0_32px_64px_-15px_rgba(0,0,0,0.6)]">
         
         {/* Glow de fundal pentru vibrație */}
         <div className="absolute -top-24 -right-24 h-48 w-48 bg-blue-500/20 blur-[80px] rounded-full" />
