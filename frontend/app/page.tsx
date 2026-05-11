@@ -547,7 +547,7 @@ export default function App() {
                 </div>
               </div>
 
-        @      <div className="contact-info-item" style={{ transitionDelay: '100ms' }}>
+              <div className="contact-info-item" style={{ transitionDelay: '100ms' }}>
                 <div className="ci-icon">🏫</div>
                 <div>
                   <div className="ci-label">University &amp; department access</div>
