@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut, User, Menu, X } from "lucide-react"; 
-import { Button } from "@/components/ui/button";
+import { LogOut, User, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -17,33 +16,38 @@ export function Navbar({ isLoggedIn }: { isLoggedIn?: boolean }) {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
-  // Închidem meniul mobil la schimbarea rutei
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [pathname]);
 
   useEffect(() => {
-    const checkAuthorization = () => {
-      const token = localStorage.getItem("token");
-      if (token) {
-        try {
-          const decoded: any = jwtDecode(token);
-          const roleClaim = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || decoded.role || decoded.Role;
-          const extractedUsername = decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] || decoded.nameid || decoded.sub;
-          
-          if (extractedUsername) setUsername(extractedUsername);
+    const handleScroll = () => setScrolled(window.scrollY > 8);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
-          const roles = Array.isArray(roleClaim) ? roleClaim : [roleClaim];
-          const isAdmin = roles.some(r => r === "admin" || r === "Admin");
-          setIsAuthorized(isAdmin);
-        } catch (error) {
-          setIsAuthorized(false);
-          setUsername(null);
-        }
-      }
-    };
-    checkAuthorization();
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    try {
+      const decoded: any = jwtDecode(token);
+      const roleClaim =
+        decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] ||
+        decoded.role ||
+        decoded.Role;
+      const extractedUsername =
+        decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] ||
+        decoded.nameid ||
+        decoded.sub;
+      if (extractedUsername) setUsername(extractedUsername);
+      const roles = Array.isArray(roleClaim) ? roleClaim : [roleClaim];
+      setIsAuthorized(roles.some((r) => r === "admin" || r === "Admin"));
+    } catch {
+      setIsAuthorized(false);
+      setUsername(null);
+    }
   }, []);
 
   const handleLogout = () => {
@@ -54,104 +58,154 @@ export function Navbar({ isLoggedIn }: { isLoggedIn?: boolean }) {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/5 bg-[#1b1f26]/80 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-        
+    <header
+      className={cn(
+        "sticky top-0 z-50 transition-all duration-200",
+        scrolled
+          ? "bg-[#0F1419]/95 border-b border-[#2A3142] backdrop-blur-xl"
+          : "bg-[#0F1419]/80 border-b border-transparent backdrop-blur-md"
+      )}
+    >
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
+
         {/* Brand */}
-        <Link href="/dashboard" className="group flex items-center gap-3 shrink-0">
-          <Image 
+        <Link href="/dashboard" className="group flex items-center gap-2.5 shrink-0">
+          <Image
             src="/favicon.png"
             alt="Logo"
-            width={36}
-            height={36}
+            width={28}
+            height={28}
             priority
-            className="transform group-hover:scale-110 transition-all duration-300 object-contain"
+            className="transition-transform duration-200 group-hover:scale-110 object-contain"
           />
-          <span className="text-xl font-black tracking-tighter text-white font-syne">
-            LearnQHub
+          <span
+            className="text-sm font-bold tracking-tight text-[#E8EAED]"
+            style={{ fontFamily: "'JetBrains Mono', monospace" }}
+          >
+            LearnQ<span className="text-[#FFB84D]">Hub</span>
+            <span className="text-[#3A4152]">.exe</span>
           </span>
         </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-2">
+        {/* Desktop nav */}
+        <nav className="hidden md:flex items-center gap-1">
           {isAuthorized && (
             <NavLink href="/admin" active={pathname === "/admin"}>
-              Admin
+              admin
             </NavLink>
           )}
-          <NavLink href="/public-decks" active={pathname === "/public-decks"}>Public Decks</NavLink>
-          <NavLink href="/test" active={pathname === "/test"}>Tests</NavLink>
-          <NavLink href="/pricing" active={pathname === "/pricing"}>Pricing</NavLink>
-          
-          <div className="mx-2 h-5 w-px bg-white/10"></div>
+          <NavLink href="/public-decks" active={pathname === "/public-decks"}>
+            decks
+          </NavLink>
+          <NavLink href="/test" active={pathname === "/test"}>
+            tests
+          </NavLink>
+          <NavLink href="/pricing" active={pathname === "/pricing"}>
+            pricing
+          </NavLink>
+
+          <div className="mx-3 h-4 w-px bg-[#2A3142]" />
 
           {isLoggedIn ? (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               {username && (
-                <NavLink href="/user" active={pathname === "/user"}>
-                  <div className="flex items-center gap-2 text-gray-300 bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
-                    <User className="h-3.5 w-3.5 text-purple-400" />
-                  </div>
-                </NavLink>
+                <Link
+                  href="/user"
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs transition-all duration-150",
+                    "border border-[#2A3142] text-[#7A8394] hover:text-[#FFB84D] hover:border-[#FFB84D]/30 hover:bg-[#FFB84D]/5",
+                    pathname === "/user" && "text-[#FFB84D] border-[#FFB84D]/30 bg-[#FFB84D]/5"
+                  )}
+                  style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                >
+                  <User className="h-3 w-3" />
+                  <span>{username}</span>
+                </Link>
               )}
-              <Button 
-                variant="ghost" 
-                className="h-9 px-3 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+              <button
                 onClick={handleLogout}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs border border-[#2A3142] text-[#7A8394] hover:text-red-400 hover:border-red-500/30 hover:bg-red-500/5 transition-all duration-150"
+                style={{ fontFamily: "'JetBrains Mono', monospace" }}
               >
-                <LogOut className="h-4 w-4" />
-              </Button>
+                <LogOut className="h-3 w-3" />
+                <span>logout</span>
+              </button>
             </div>
           ) : (
-            <Button asChild className="h-9 px-5 bg-violet-600 hover:bg-violet-500 text-white border-0">
-              <Link href="/login">Sign in</Link>
-            </Button>
+            <Link
+              href="/login"
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-bold bg-[#FFB84D] text-[#0F1419] hover:bg-[#E69B00] transition-all duration-150"
+              style={{ fontFamily: "'JetBrains Mono', monospace" }}
+            >
+              $ sign_in
+            </Link>
           )}
         </nav>
 
-        {/* Mobile Menu Toggle */}
-        <button 
-          className="md:hidden p-2 text-white hover:bg-white/5 rounded-lg"
+        {/* Mobile toggle */}
+        <button
+          className="md:hidden p-2 rounded-md text-[#7A8394] hover:text-[#E8EAED] hover:bg-[#1A1F2E] transition-all duration-150"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          aria-label="Toggle menu"
         >
-          {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
       </div>
 
-      {/* Mobile Menu Overlay */}
+      {/* Mobile menu */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden border-t border-white/5 bg-[#1b1f26] overflow-hidden"
+            transition={{ duration: 0.18, ease: "easeInOut" }}
+            className="md:hidden border-t border-[#2A3142] bg-[#0F1419] overflow-hidden"
           >
-            <div className="flex flex-col gap-2 p-6">
+            <div className="flex flex-col gap-1 p-4">
               {username && (
-                 <div className="flex items-center gap-2 text-purple-400 mb-4 px-4">
-                    <User className="h-4 w-4" />
-                 </div>
+                <div
+                  className="flex items-center gap-2 px-3 py-2 mb-2 rounded-md bg-[#1A1F2E] border border-[#2A3142]"
+                  style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                >
+                  <User className="h-3 w-3 text-[#FFB84D]" />
+                  <span className="text-xs text-[#FFB84D]">{username}</span>
+                </div>
               )}
-              <NavLink href="/public-decks" active={pathname === "/public-decks"} mobile>Public Decks</NavLink>
-              <NavLink href="/test" active={pathname === "/test"} mobile>Tests</NavLink>
-              <NavLink href="/lab-asist" active={pathname === "/lab-asist"} mobile>Lab Assistant</NavLink>
+
+              <MobileNavLink href="/public-decks" active={pathname === "/public-decks"}>
+                decks
+              </MobileNavLink>
+              <MobileNavLink href="/test" active={pathname === "/test"}>
+                tests
+              </MobileNavLink>
+              <MobileNavLink href="/pricing" active={pathname === "/pricing"}>
+                pricing
+              </MobileNavLink>
               {isAuthorized && (
-                <NavLink href="/admin" active={pathname === "/admin"} mobile>Admin Dashboard</NavLink>
+                <MobileNavLink href="/admin" active={pathname === "/admin"}>
+                  admin
+                </MobileNavLink>
               )}
-              
-              <div className="pt-4 mt-2 border-t border-white/5">
+
+              <div className="mt-3 pt-3 border-t border-[#2A3142]">
                 {isLoggedIn ? (
-                  <Button 
+                  <button
                     onClick={handleLogout}
-                    className="w-full justify-start gap-2 bg-red-500/10 text-red-500 hover:bg-red-500/20 border-0"
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-xs text-red-400 border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 transition-all duration-150"
+                    style={{ fontFamily: "'JetBrains Mono', monospace" }}
                   >
-                    <LogOut className="h-4 w-4" /> Log out
-                  </Button>
+                    <LogOut className="h-3.5 w-3.5" />
+                    $ logout
+                  </button>
                 ) : (
-                  <Button asChild className="w-full bg-violet-600 text-white">
-                    <Link href="/login">Sign in</Link>
-                  </Button>
+                  <Link
+                    href="/login"
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md text-xs font-bold bg-[#FFB84D] text-[#0F1419] hover:bg-[#E69B00] transition-all duration-150"
+                    style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                  >
+                    $ sign_in
+                  </Link>
                 )}
               </div>
             </div>
@@ -166,24 +220,49 @@ function NavLink({
   href,
   active,
   children,
-  mobile
 }: {
   href: string;
   active: boolean;
   children: React.ReactNode;
-  mobile?: boolean;
 }) {
   return (
     <Link
       href={href}
       className={cn(
-        "flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition-all duration-300",
+        "px-3 py-1.5 rounded-md text-xs transition-all duration-150",
+        "font-medium",
         active
-          ? "bg-violet-600/20 text-violet-400"
-          : "text-gray-400 hover:text-white hover:bg-white/5",
-        mobile && "text-base py-3"
+          ? "text-[#FFB84D] bg-[#FFB84D]/8 border border-[#FFB84D]/20"
+          : "text-[#7A8394] hover:text-[#E8EAED] hover:bg-[#1A1F2E] border border-transparent"
       )}
+      style={{ fontFamily: "'JetBrains Mono', monospace" }}
     >
+      {children}
+    </Link>
+  );
+}
+
+function MobileNavLink({
+  href,
+  active,
+  children,
+}: {
+  href: string;
+  active: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={cn(
+        "flex items-center gap-2 px-3 py-2.5 rounded-md text-sm transition-all duration-150",
+        active
+          ? "text-[#FFB84D] bg-[#FFB84D]/8 border border-[#FFB84D]/20"
+          : "text-[#7A8394] hover:text-[#E8EAED] hover:bg-[#1A1F2E] border border-transparent"
+      )}
+      style={{ fontFamily: "'JetBrains Mono', monospace" }}
+    >
+      <span className="text-[#3A4152]">❯</span>
       {children}
     </Link>
   );
