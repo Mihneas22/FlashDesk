@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FlashDeskAPI")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+cd3a2ae679928b172347428347e097630da0e31f")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+cba2cfed6e34b56d36574ec0d4dbc2ac40a4a716")]
 [assembly: System.Reflection.AssemblyProductAttribute("FlashDeskAPI")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FlashDeskAPI")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

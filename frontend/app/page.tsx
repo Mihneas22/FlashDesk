@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Navbar } from "@/components/navbar";
 
 /* ─── floating math symbols ─── */
@@ -15,6 +15,16 @@ interface MathSym {
   id: number; sym: string; left: string;
   duration: string; delay: string; fontSize: string;
 }
+
+/* ─── terminal typewriter lines ─── */
+const TERMINAL_LINES = [
+  "❯ learnqhub --init",
+  "// loading study environment...",
+  "spaced_repetition : enabled ✓",
+  "latex_rendering   : enabled ✓",
+  "ai_extraction     : enabled ✓",
+  "pre_built_decks   : 340+",
+];
 
 /* ─── inline styles (Tailwind-compatible tokens) ─── */
 const C = {
@@ -59,14 +69,6 @@ export default function LandingPage() {
   }, []);
 
   /* terminal typewriter */
-  const TERMINAL_LINES = [
-    "❯ learnqhub --init",
-    "// loading study environment...",
-    "spaced_repetition : enabled ✓",
-    "latex_rendering   : enabled ✓",
-    "ai_extraction     : enabled ✓",
-    "pre_built_decks   : 340+",
-  ];
   useEffect(() => {
     let i = 0;
     const id = setInterval(() => {
@@ -123,8 +125,22 @@ export default function LandingPage() {
       {/* ── global styles injected once ── */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700;800;900&display=swap');
+        *, *::before, *::after { box-sizing: border-box; }
         html { scroll-behavior: smooth; }
         body { background: ${C.bg0}; margin: 0; }
+
+        /* ── responsive grids: auto-fit collapses columns as space shrinks, no breakpoints needed ── */
+        .lq-grid-2    { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+        .lq-grid-2s   { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+        .lq-grid-3    { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+        .lq-grid-4    { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
+        .lq-grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
+
+        /* ── mobile refinements ── */
+        @media (max-width: 640px) {
+          .lq-hero-h1 { letter-spacing: -1px !important; }
+          .lq-section { padding-left: 20px !important; padding-right: 20px !important; }
+        }
 
         /* floating math */
         .lq-math-sym {
@@ -217,8 +233,8 @@ export default function LandingPage() {
         </div>
 
         {/* ════════════════════ HERO ════════════════════ */}
-        <section style={{ maxWidth: 1100, margin: "0 auto", padding: "80px 32px 88px", position: "relative", zIndex: 1 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 52, alignItems: "center" }}>
+        <section className="lq-section" style={{ maxWidth: 1100, margin: "0 auto", padding: "clamp(48px, 9vw, 80px) 32px clamp(48px, 9vw, 88px)", position: "relative", zIndex: 1 }}>
+          <div className="lq-grid-2" style={{ gap: 52, alignItems: "center" }}>
 
             {/* left */}
             <div>
@@ -234,8 +250,8 @@ export default function LandingPage() {
                 Built for engineering students
               </div>
 
-              <h1 style={{
-                fontSize: 52, fontWeight: 900, lineHeight: 1.05, letterSpacing: "-2.5px",
+              <h1 className="lq-hero-h1" style={{
+                fontSize: "clamp(34px, 6.5vw, 52px)", fontWeight: 900, lineHeight: 1.05, letterSpacing: "-2.5px",
                 marginBottom: 20, color: C.text,
               }}>
                 Master every<br />
@@ -293,7 +309,7 @@ export default function LandingPage() {
               {/* terminal body */}
               <div style={{ padding: 20, fontFamily: MONO, fontSize: 12.5, lineHeight: 2 }}>
                 {typedLines.map((line, i) => {
-                  let color = C.text;
+                  let color: string = C.text;
                   if (line.startsWith("❯"))         color = C.cyan;
                   else if (line.startsWith("//"))    color = C.muted;
                   else if (line.includes("✓"))       color = C.green;
@@ -375,8 +391,8 @@ export default function LandingPage() {
         </section>
 
         {/* ════════════════════ STATS BAR ════════════════════ */}
-        <div style={{ background: C.bg1, borderTop: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}`, padding: "32px" }}>
-          <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 24 }}>
+        <div className="lq-section" style={{ background: C.bg1, borderTop: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}`, padding: "32px" }}>
+          <div className="lq-grid-4" style={{ maxWidth: 1100, margin: "0 auto", gap: 24 }}>
             {[
               { val: "3.2h",  label: "saved per study session" },
               { val: "340+",  label: "cards per pre-built deck" },
@@ -392,13 +408,13 @@ export default function LandingPage() {
         </div>
 
         {/* ════════════════════ FEATURES ════════════════════ */}
-        <section id="features" style={{ maxWidth: 1100, margin: "0 auto", padding: "88px 32px" }}>
+        <section id="features" className="lq-section" style={{ maxWidth: 1100, margin: "0 auto", padding: "clamp(56px, 9vw, 88px) 32px" }}>
           <div className="lq-reveal" style={revealStyle}>
             <div style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: C.amber, marginBottom: 10 }}>
-              // why learnqhub
+              {"// why learnqhub"}
             </div>
-            <h2 style={{ fontSize: 38, fontWeight: 900, letterSpacing: "-1.5px", lineHeight: 1.1, marginBottom: 12, color: C.text }}>
-              Everything Anki can't do.<br />
+            <h2 style={{ fontSize: "clamp(26px, 4.5vw, 38px)", fontWeight: 900, letterSpacing: "-1.5px", lineHeight: 1.1, marginBottom: 12, color: C.text }}>
+              Everything Anki can&apos;t do.<br />
               <span style={{ color: C.amber }}>Built for engineers.</span>
             </h2>
             <p style={{ fontSize: 15, color: C.muted, lineHeight: 1.7, maxWidth: 520, marginBottom: 52 }}>
@@ -406,12 +422,12 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+          <div className="lq-grid-2s" style={{ gap: 14 }}>
 
             {/* large card */}
-            <div className="lq-feat-card lq-reveal" style={{
+            <div className="lq-feat-card lq-reveal lq-grid-2s" style={{
               ...revealStyle,
-              gridColumn: "span 2", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 36,
+              gridColumn: "span 2", gap: 36,
               alignItems: "center", background: C.bg1, border: `1px solid ${C.border}`,
               borderRadius: 14, padding: 28,
             }}>
@@ -430,7 +446,7 @@ export default function LandingPage() {
               </div>
               <div style={{ background: C.bg0, border: `1px solid ${C.border}`, borderRadius: 10, padding: 18, fontFamily: MONO, fontSize: 12.5, lineHeight: 1.95 }}>
                 <div style={{ color: C.muted }}>{"// uploading lecture_07.pdf..."}</div>
-                <div><span style={{ color: "#7EE787" }}>status</span><span style={{ color: C.muted }}>: </span><span style={{ color: "#F97316" }}>"reading"</span></div>
+                <div><span style={{ color: "#7EE787" }}>status</span><span style={{ color: C.muted }}>: </span><span style={{ color: "#F97316" }}>&quot;reading&quot;</span></div>
                 <div><span style={{ color: "#7EE787" }}>pages</span><span style={{ color: C.muted }}>: </span><span style={{ color: C.cyan }}>12</span></div>
                 <div><span style={{ color: "#7EE787" }}>formulas</span><span style={{ color: C.muted }}>: </span><span style={{ color: C.cyan }}>38</span><span style={{ color: C.muted }}> detected</span></div>
                 <div><span style={{ color: "#7EE787" }}>cards</span><span style={{ color: C.muted }}>: </span><span style={{ color: C.cyan }}>42</span><span style={{ color: C.muted }}> generated</span></div>
@@ -459,13 +475,13 @@ export default function LandingPage() {
         </section>
 
         {/* ════════════════════ HOW IT WORKS ════════════════════ */}
-        <section id="how" style={{ background: C.bg1, borderTop: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}`, padding: "88px 32px" }}>
+        <section id="how" className="lq-section" style={{ background: C.bg1, borderTop: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}`, padding: "clamp(56px, 9vw, 88px) 32px" }}>
           <div style={{ maxWidth: 1100, margin: "0 auto" }}>
             <div className="lq-reveal" style={{ ...revealStyle, marginBottom: 52 }}>
-              <div style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: C.amber, marginBottom: 10 }}>// how_it_works.sh</div>
-              <h2 style={{ fontSize: 38, fontWeight: 900, letterSpacing: "-1.5px", color: C.text }}>Three commands.<br /><span style={{ color: C.cyan }}>One semester sorted.</span></h2>
+              <div style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: C.amber, marginBottom: 10 }}>{"// how_it_works.sh"}</div>
+              <h2 style={{ fontSize: "clamp(26px, 4.5vw, 38px)", fontWeight: 900, letterSpacing: "-1.5px", color: C.text }}>Three commands.<br /><span style={{ color: C.cyan }}>One semester sorted.</span></h2>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14 }}>
+            <div className="lq-grid-3" style={{ gap: 14 }}>
               {[
                 { step: "01", cmd: "upload --pdf lecture.pdf", title: "Upload your notes", desc: "Drop any lecture PDF or handout. Works with scanned images too." },
                 { step: "02", cmd: "generate --cards --latex", title: "AI builds your deck", desc: "42 flashcards with full LaTeX in under 30 seconds. Every formula extracted automatically." },
@@ -488,12 +504,12 @@ export default function LandingPage() {
         </section>
 
         {/* ════════════════════ TESTIMONIALS ════════════════════ */}
-        <section style={{ maxWidth: 1100, margin: "0 auto", padding: "88px 32px" }}>
+        <section className="lq-section" style={{ maxWidth: 1100, margin: "0 auto", padding: "clamp(56px, 9vw, 88px) 32px" }}>
           <div className="lq-reveal" style={{ ...revealStyle, marginBottom: 48 }}>
-            <div style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: C.amber, marginBottom: 10 }}>// student_feedback.log</div>
-            <h2 style={{ fontSize: 38, fontWeight: 900, letterSpacing: "-1.5px", color: C.text }}>Engineers who switched.</h2>
+            <div style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: C.amber, marginBottom: 10 }}>{"// student_feedback.log"}</div>
+            <h2 style={{ fontSize: "clamp(26px, 4.5vw, 38px)", fontWeight: 900, letterSpacing: "-1.5px", color: C.text }}>Engineers who switched.</h2>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14 }}>
+          <div className="lq-grid-3" style={{ gap: 14 }}>
             {[
               { initials: "AM", name: "Ana M.", role: "EE, 3rd year · TU Delft", text: "Passed Electromagnetics with a 9 after bombing the midterm. The spaced repetition + LaTeX combo is exactly what was missing from every other tool." },
               { initials: "MK", name: "Mihai K.", role: "CS / AI, MSc · Politehnica", text: "Uploaded my ML notes and had 40 cards in 30 seconds. The dark mode LaTeX actually works. Used Anki for years — switched immediately." },
@@ -504,7 +520,7 @@ export default function LandingPage() {
                 background: C.bg1, border: `1px solid ${C.border}`, borderRadius: 14, padding: 24,
               }}>
                 <div style={{ color: C.amber, fontSize: 13, letterSpacing: 2, marginBottom: 12 }}>★★★★★</div>
-                <p style={{ fontSize: 13, color: C.muted, lineHeight: 1.7, marginBottom: 18, fontStyle: "italic" }}>"{t.text}"</p>
+                <p style={{ fontSize: 13, color: C.muted, lineHeight: 1.7, marginBottom: 18, fontStyle: "italic" }}>&quot;{t.text}&quot;</p>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <div style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(255,184,77,0.1)", border: "1px solid rgba(255,184,77,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: MONO, fontSize: 10, fontWeight: 700, color: C.amber, flexShrink: 0 }}>{t.initials}</div>
                   <div>
@@ -518,18 +534,18 @@ export default function LandingPage() {
         </section>
 
         {/* ════════════════════ PRICING ════════════════════ */}
-        <section id="pricing" style={{ background: C.bg1, borderTop: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}`, padding: "88px 32px" }}>
+        <section id="pricing" className="lq-section" style={{ background: C.bg1, borderTop: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}`, padding: "clamp(56px, 9vw, 88px) 32px" }}>
           <div style={{ maxWidth: 1100, margin: "0 auto" }}>
             <div className="lq-reveal" style={{ ...revealStyle, textAlign: "center", maxWidth: 520, margin: "0 auto 48px" }}>
-              <div style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: C.amber, marginBottom: 10 }}>// pricing.config</div>
-              <h2 style={{ fontSize: 38, fontWeight: 900, letterSpacing: "-1.5px", color: C.text, marginBottom: 10 }}>
+              <div style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: C.amber, marginBottom: 10 }}>{"// pricing.config"}</div>
+              <h2 style={{ fontSize: "clamp(26px, 4.5vw, 38px)", fontWeight: 900, letterSpacing: "-1.5px", color: C.text, marginBottom: 10 }}>
                 Less than a coffee.<br /><span style={{ color: C.cyan }}>Worth a grade.</span>
               </h2>
               <p style={{ fontSize: 15, color: C.muted, lineHeight: 1.7 }}>No tricks, no hidden fees. Cancel any time.</p>
             </div>
 
             {/* billing toggle */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginBottom: 36 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginBottom: 36, flexWrap: "wrap", textAlign: "center" }}>
               <span style={{ fontFamily: MONO, fontSize: 12, color: isAnnual ? C.muted : C.text }}>Monthly</span>
               <div className={`lq-toggle ${isAnnual ? "on" : ""}`} onClick={() => setIsAnnual(!isAnnual)}>
                 <div className="lq-toggle-thumb" />
@@ -540,7 +556,7 @@ export default function LandingPage() {
               )}
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14 }}>
+            <div className="lq-grid-3" style={{ gap: 14 }}>
               {/* FREE */}
               <div className="lq-plan" style={{ background: C.bg0, border: `1px solid ${C.border}`, borderRadius: 14, padding: 28 }}>
                 <div style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: C.muted, marginBottom: 6 }}>Free</div>
@@ -638,16 +654,16 @@ export default function LandingPage() {
         </section>
 
         {/* ════════════════════ CONTACT ════════════════════ */}
-        <section id="contact" style={{ maxWidth: 1100, margin: "0 auto", padding: "88px 32px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 52, alignItems: "start" }}>
+        <section id="contact" className="lq-section" style={{ maxWidth: 1100, margin: "0 auto", padding: "clamp(56px, 9vw, 88px) 32px" }}>
+          <div className="lq-grid-2" style={{ gap: 52, alignItems: "start" }}>
             {/* left */}
             <div className="lq-reveal" style={revealStyle}>
-              <div style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: C.amber, marginBottom: 10 }}>// contact.reach()</div>
-              <h2 style={{ fontSize: 38, fontWeight: 900, letterSpacing: "-1.5px", color: C.text, marginBottom: 16 }}>
-                Questions?<br />We're <span style={{ color: C.amber }}>here</span>.
+              <div style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: C.amber, marginBottom: 10 }}>{"// contact.reach()"}</div>
+              <h2 style={{ fontSize: "clamp(26px, 4.5vw, 38px)", fontWeight: 900, letterSpacing: "-1.5px", color: C.text, marginBottom: 16 }}>
+                Questions?<br />We&apos;re <span style={{ color: C.amber }}>here</span>.
               </h2>
               <p style={{ fontSize: 14, color: C.muted, lineHeight: 1.75, marginBottom: 32 }}>
-                Whether you're a student, a professor, or just curious — we reply within 24 hours.
+                Whether you&apos;re a student, a professor, or just curious — we reply within 24 hours.
               </p>
 
               {[
@@ -677,9 +693,9 @@ export default function LandingPage() {
               {!isFormSubmitted ? (
                 <form onSubmit={handleSubmit}>
                   <div style={{ fontFamily: MONO, fontSize: 15, fontWeight: 700, color: C.text, marginBottom: 4 }}>send_message()</div>
-                  <p style={{ fontSize: 12, color: C.muted, marginBottom: 22 }}>We'll get back to you within 24 hours.</p>
+                  <p style={{ fontSize: 12, color: C.muted, marginBottom: 22 }}>We&apos;ll get back to you within 24 hours.</p>
 
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 0 }}>
+                  <div className="lq-grid-form" style={{ gap: 12, marginBottom: 0 }}>
                     <div>
                       <label style={{ display: "block", fontFamily: MONO, fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: C.muted, marginBottom: 5 }}>first_name</label>
                       <input className="lq-input" type="text" placeholder="Ana" required value={formData.firstName} onChange={e => setFormData({ ...formData, firstName: e.target.value })} />
@@ -732,7 +748,7 @@ export default function LandingPage() {
                 <div style={{ textAlign: "center", padding: "32px 0" }}>
                   <div style={{ fontSize: 40, marginBottom: 16 }}>✅</div>
                   <div style={{ fontFamily: MONO, fontSize: 16, fontWeight: 700, color: C.text, marginBottom: 8 }}>Message sent!</div>
-                  <p style={{ fontSize: 13, color: C.muted, lineHeight: 1.65, marginBottom: 24 }}>We'll be in touch within 24 hours. In the meantime, why not try the free plan?</p>
+                  <p style={{ fontSize: 13, color: C.muted, lineHeight: 1.65, marginBottom: 24 }}>We&apos;ll be in touch within 24 hours. In the meantime, why not try the free plan?</p>
                   <a href="#pricing" style={{
                     display: "inline-block", fontFamily: MONO, fontSize: 12, fontWeight: 700,
                     color: C.bg0, background: C.amber, padding: "11px 22px",
@@ -745,7 +761,7 @@ export default function LandingPage() {
         </section>
 
         {/* ════════════════════ FOOTER ════════════════════ */}
-        <footer style={{ background: C.bg1, borderTop: `1px solid ${C.border}`, padding: "36px 32px", textAlign: "center" }}>
+        <footer className="lq-section" style={{ background: C.bg1, borderTop: `1px solid ${C.border}`, padding: "36px 32px", textAlign: "center" }}>
           <div style={{ fontFamily: MONO, fontSize: 16, fontWeight: 700, color: C.amber, marginBottom: 16 }}>LearnQHub.exit(0)</div>
           <div style={{ display: "flex", justifyContent: "center", gap: 28, flexWrap: "wrap", marginBottom: 16 }}>
             {["features","pricing","contact","privacy","terms"].map((l) => (
