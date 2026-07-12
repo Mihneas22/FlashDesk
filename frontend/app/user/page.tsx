@@ -1,20 +1,34 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
-  Trophy, Zap, BookOpen, Star, Target, TrendingUp,
-  Clock, Award, Activity,
-  CheckCircle, Layers, Calendar, Sparkles, Edit2, X,
-  Settings, User as UserIcon, Mail, Key // <-- Iconițe noi
+  Trophy, Zap, BookOpen, Activity,
+  Layers, Calendar, Sparkles, X,
+  Settings, User as UserIcon, Mail, Key, Lock, ArrowUpRight,
 } from "lucide-react";
 import { jwtDecode } from "jwt-decode";
-import { User } from '../../lib/store';
+import { User, MappedTopic } from "../../lib/store";
 import { StudyHeatmap } from "../../components/heatmap";
 import { Navbar } from "@/components/navbar";
-import { MappedTopic } from "../../lib/store";
 import { TopicMastery } from "@/components/topic-mastery";
 import { Ring } from "@/components/ui/ring";
 import { useInView } from "@/hooks/use-in-view";
+
+/* ─── LearnQHub design tokens (shared with the landing page) ─── */
+const C = {
+  bg0: "#0F1419",
+  bg1: "#1A1F2E",
+  bg2: "#252D3D",
+  amber: "#FFB84D",
+  amberD: "#E69B00",
+  cyan: "#00D9FF",
+  text: "#E8EAED",
+  muted: "#7A8394",
+  border: "#2A3142",
+  green: "#4ADE80",
+  red: "#FF6B6B",
+} as const;
+const MONO = "'JetBrains Mono', monospace";
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -179,15 +193,22 @@ export default function ProfilePage() {
                     const masteryData = await masteryRes.json();
                     if (masteryData.flag && masteryData.data) {
                         const colorPalette = [
-                            { color: "from-violet-500 to-purple-600", ringColor: "#8b5cf6" },
-                            { color: "from-fuchsia-500 to-pink-600", ringColor: "#d946ef" },
-                            { color: "from-cyan-500 to-blue-600", ringColor: "#06b6d4" },
-                            { color: "from-amber-500 to-orange-600", ringColor: "#f59e0b" },
-                            { color: "from-emerald-500 to-teal-600", ringColor: "#10b981" },
-                            { color: "from-rose-500 to-red-600", ringColor: "#f43f5e" },
+                            { color: "from-[#FFB84D] to-[#E69B00]", ringColor: C.amber },
+                            { color: "from-[#00D9FF] to-[#00B8D4]", ringColor: C.cyan },
+                            { color: "from-[#4ADE80] to-[#16A34A]", ringColor: C.green },
+                            { color: "from-[#FF6B6B] to-[#DC2626]", ringColor: C.red },
+                            { color: "from-[#FFD08A] to-[#FFB84D]", ringColor: "#FFD08A" },
+                            { color: "from-[#67E8F9] to-[#00D9FF]", ringColor: "#67E8F9" },
                         ];
 
-                        const mappedTopics = masteryData.data.map((item: any, index: number) => {
+                        interface MasteryApiItem {
+                          topic: string;
+                          totalCards: number;
+                          masteredCards: number;
+                          masteryPct: number;
+                        }
+
+                        const mappedTopics = masteryData.data.map((item: MasteryApiItem, index: number) => {
                             const palette = colorPalette[index % colorPalette.length];
                             return {
                                 name: item.topic,
@@ -214,7 +235,12 @@ export default function ProfilePage() {
         const token = localStorage.getItem("token");
         if (token) {
           try {
-            const decoded: any = jwtDecode(token);
+            interface DecodedToken {
+              sub?: string;
+              nameid?: string;
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"?: string;
+            }
+            const decoded = jwtDecode<DecodedToken>(token);
             const extractedId = decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] || decoded.sub || decoded.nameid;
     
             if (extractedId) {
@@ -244,84 +270,97 @@ export default function ProfilePage() {
       overallMasteryPct: 0
   };
   const overallMastery = currentStats.overallMasteryPct;
+  const memberDays = user?.createdAt
+    ? Math.floor((Date.now() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60 * 24)) + 1
+    : null;
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => { const t = setTimeout(() => setMounted(true), 80); return () => clearTimeout(t); }, []);
 
   const HERO_STATS = [
-      { icon: <Zap className="w-4 h-4 text-cyan-400" />,      label: "Cards Mastered",   val: currentStats.cardsMastered, suffix: "" },
-      { icon: <Layers className="w-4 h-4 text-pink-400" />,   label: "Total Cards",      val: currentStats.totalCards,    suffix: "" },
-      { icon: <BookOpen className="w-4 h-4 text-violet-400" />,label:"Decks Completed",  val: currentStats.decksCompleted,suffix: `/${currentStats.totalDecks}` },
-      { icon: <Activity className="w-4 h-4 text-emerald-400" />,label:"This Week",       val: currentStats.daysStudiedThisWeek, suffix: "/7 days" },
+      { icon: <Zap className="w-4 h-4" style={{ color: C.amber }} />,      label: "Cards Mastered",   val: currentStats.cardsMastered, suffix: "" },
+      { icon: <Layers className="w-4 h-4" style={{ color: C.cyan }} />,    label: "Total Cards",      val: currentStats.totalCards,    suffix: "" },
+      { icon: <BookOpen className="w-4 h-4" style={{ color: C.green }} />, label: "Decks Completed",  val: currentStats.decksCompleted, suffix: `/${currentStats.totalDecks}` },
+      { icon: <Activity className="w-4 h-4" style={{ color: C.amber }} />, label: "This Week",        val: currentStats.daysStudiedThisWeek, suffix: "/7 days" },
   ];
 
     if (loading || !user) {
         return (
-            <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-            <div className="flex flex-col items-center gap-4">
-                <div className="w-12 h-12 border-4 border-purple-500/20 border-t-purple-500 rounded-full animate-spin" />
-                <p className="text-gray-400 font-medium animate-pulse">Loading profile...</p>
-            </div>
+            <div className="min-h-screen flex items-center justify-center" style={{ background: C.bg0 }}>
+              <style>{`@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700;800;900&display=swap');`}</style>
+              <div className="flex flex-col items-center gap-4">
+                <div className="w-10 h-10 rounded-full animate-spin" style={{ border: `3px solid ${C.border}`, borderTopColor: C.amber }} />
+                <p className="animate-pulse text-sm font-medium" style={{ color: C.muted, fontFamily: MONO }}>loading profile…</p>
+              </div>
             </div>
         );
     }
   return (
-    <div className="min-h-screen relative overflow-x-hidden bg-gray-950 text-gray-100">
+    <div className="min-h-screen relative overflow-x-hidden" style={{ background: C.bg0, color: C.text, fontFamily: "'Inter', sans-serif" }}>
 
       {/* Background */}
-      <div className="fixed inset-0 -z-10 bg-gradient-to-br from-gray-950 via-purple-950/20 to-gray-900" />
-      <div className="fixed inset-0 -z-10 opacity-20 pointer-events-none">
-        <div className="absolute top-0 -left-4 w-96 h-96 bg-purple-600 rounded-full mix-blend-screen filter blur-3xl animate-blob" />
-        <div className="absolute top-0 -right-4 w-96 h-96 bg-fuchsia-600 rounded-full mix-blend-screen filter blur-3xl animate-blob animation-delay-2000" />
-        <div className="absolute -bottom-8 left-20 w-96 h-96 bg-violet-600 rounded-full mix-blend-screen filter blur-3xl animate-blob animation-delay-4000" />
+      <div className="fixed inset-0 -z-10 pointer-events-none opacity-[0.07]">
+        <div className="absolute top-0 -left-20 w-[36rem] h-[36rem] rounded-full blur-3xl animate-blob" style={{ background: C.amber }} />
+        <div className="absolute top-0 -right-20 w-[36rem] h-[36rem] rounded-full blur-3xl animate-blob animation-delay-2000" style={{ background: C.cyan }} />
       </div>
 
       <Navbar isLoggedIn={isLoggedIn} />
 
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 py-12 space-y-6">
+      <main className="mx-auto max-w-6xl px-4 sm:px-6 py-10 sm:py-12 space-y-6">
+
+        {/* ── PAGE HEADER ────────────────────────────────────────────────── */}
+        <div className="flex items-center gap-2 px-1" style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: C.amber }}>
+          <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: C.green }} />
+          {"// user.profile"}
+        </div>
 
         {/* ── HERO ───────────────────────────────────────────────────────── */}
-        <div className={`relative rounded-3xl overflow-hidden border border-purple-500/20 bg-gray-900/40 backdrop-blur-md transition-all duration-700 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
-          <div className="absolute inset-0 bg-gradient-to-br from-violet-900/30 via-purple-900/20 to-transparent pointer-events-none" />
-          {/* Decorative float formula */}
-          <div className="absolute top-6 right-8 text-violet-500/10 font-mono text-5xl font-bold select-none pointer-events-none hidden sm:block animate-float">
+        <div className={`relative rounded-2xl overflow-hidden transition-all duration-700 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`} style={{ border: `1px solid ${C.border}`, background: `${C.bg1}99`, backdropFilter: "blur(12px)" }}>
+          <div className="absolute inset-0 pointer-events-none" style={{ background: `linear-gradient(135deg, ${C.amber}14, transparent 55%)` }} />
+          {/* Decorative float formula — echoes the landing page's floating math motif */}
+          <div className="absolute top-6 right-8 text-5xl font-bold select-none pointer-events-none hidden sm:block animate-float" style={{ color: `${C.amber}1a`, fontFamily: MONO }}>
             ∫∑∂
           </div>
+
+          {/* Settings — top-right corner, out of the identity row */}
+          <button
+            onClick={handleOpenSettings}
+            className="absolute top-5 right-5 z-10 p-2 rounded-xl transition-all"
+            style={{ background: `${C.bg2}99`, border: `1px solid ${C.border}`, color: C.muted }}
+            onMouseEnter={e => { e.currentTarget.style.color = C.amber; e.currentTarget.style.borderColor = `${C.amber}4d`; }}
+            onMouseLeave={e => { e.currentTarget.style.color = C.muted; e.currentTarget.style.borderColor = C.border; }}
+            title="Account Settings"
+          >
+            <Settings className="w-4 h-4" />
+          </button>
 
           <div className="relative p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center gap-6">
             {/* Avatar */}
             <div className="relative flex-shrink-0">
-              <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-2xl shadow-purple-900/60 text-3xl font-black text-white">
+              <div className="w-24 h-24 rounded-2xl flex items-center justify-center text-3xl font-black" style={{ background: C.amber, color: C.bg0, boxShadow: `0 20px 40px -12px ${C.amber}40` }}>
                 {user.username?.charAt(0)}
               </div>
-              <div className="absolute -bottom-2 -right-2 flex items-center gap-1 bg-orange-500 text-white text-[11px] font-black px-2 py-0.5 rounded-full shadow-lg shadow-orange-900/50 border-2 border-gray-950">
+              <div className="absolute -bottom-2 -right-2 flex items-center gap-1 text-[11px] font-black px-2 py-0.5 rounded-full" style={{ background: C.amber, color: C.bg0, border: `2px solid ${C.bg1}`, fontFamily: MONO }}>
                 🔥 {user?.streak?.currentStreak}
               </div>
             </div>
 
             {/* Info */}
-            <div className="flex-1 min-w-0">
-              <div className="flex flex-wrap items-center gap-3 mb-1">
-                <h1 className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-violet-400 via-purple-300 to-pink-400 bg-clip-text text-transparent">
+            <div className="flex-1 min-w-0 pr-8 sm:pr-0">
+              <div className="flex flex-wrap items-center gap-3 mb-2">
+                <h1 className="text-3xl sm:text-4xl font-black bg-clip-text text-transparent" style={{ backgroundImage: `linear-gradient(90deg, ${C.amber}, ${C.cyan})` }}>
                   {user?.username}
                 </h1>
-                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-500/15 border border-violet-500/30 text-violet-300 text-xs font-bold">
+                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: `${C.cyan}1a`, border: `1px solid ${C.cyan}4d`, color: C.cyan }}>
                   <Sparkles className="w-3 h-3" /> {user?.plan}
                 </span>
-                <button 
-                  onClick={handleOpenSettings}
-                  className="ml-2 p-2 rounded-xl bg-gray-800/60 border border-gray-700/50 text-gray-400 hover:text-white hover:bg-violet-500/20 hover:border-violet-500/30 transition-all shadow-sm"
-                  title="Account Settings"
-                >
-                  <Settings className="w-4 h-4" />
-                </button>
               </div>
               <div className="flex flex-wrap gap-2">
                 {[
-                  { icon: <Calendar className="w-3 h-3 text-purple-400" />, text: `Member for ${Math.floor((new Date().getTime() - new Date(user?.createdAt!).getTime()) / (1000 * 60 * 60 * 24))+1} days` },
-                  { icon: <Trophy className="w-3 h-3 text-amber-400" />,   text: `Best streak: ${user?.streak?.maxStreak} days` },
+                  { icon: <Calendar className="w-3 h-3" style={{ color: C.cyan }} />, text: memberDays !== null ? `Member for ${memberDays} days` : "New member" },
+                  { icon: <Trophy className="w-3 h-3" style={{ color: C.amber }} />,   text: `Best streak: ${user?.streak?.maxStreak ?? 0} days` },
                 ].map((b) => (
-                  <span key={b.text} className="px-3 py-1 rounded-lg bg-gray-800/70 border border-gray-700/50 text-xs font-semibold text-gray-300 flex items-center gap-1.5">
+                  <span key={b.text} className="px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5" style={{ background: `${C.bg2}b3`, border: `1px solid ${C.border}`, color: C.muted }}>
                     {b.icon} {b.text}
                   </span>
                 ))}
@@ -330,25 +369,30 @@ export default function ProfilePage() {
 
             {/* Ring */}
             <div className="flex flex-col items-center gap-2 self-center">
-              <Ring pct={overallMastery} size={110} stroke={9} color="#8b5cf6" />
-              <span className="text-xs text-gray-500 font-semibold">overall mastery</span>
+              <Ring pct={overallMastery} size={110} stroke={9} color={C.amber} />
+              <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: C.muted, fontFamily: MONO }}>overall mastery</span>
             </div>
           </div>
 
           {/* Stats bar */}
-          <div className="relative border-t border-gray-800/60 grid grid-cols-2 sm:grid-cols-4 divide-x divide-y sm:divide-y-0 divide-gray-800/60">
+          <div className="relative grid grid-cols-2 sm:grid-cols-4" style={{ borderTop: `1px solid ${C.border}` }}>
             {HERO_STATS.map((s, i) => (
               <div
                 key={s.label}
                 className={`px-6 py-4 flex items-center gap-3 transition-all duration-700 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
-                style={{ transitionDelay: `${200 + i * 80}ms` }}
+                style={{
+                  transitionDelay: `${200 + i * 80}ms`,
+                  borderTop: i >= 2 ? `1px solid ${C.border}` : undefined,
+                  borderLeft: i % 2 === 1 ? `1px solid ${C.border}` : i === 2 || i === 3 ? undefined : undefined,
+                  borderRight: undefined,
+                }}
               >
-                <div className="w-8 h-8 rounded-xl bg-gray-800/60 flex items-center justify-center flex-shrink-0">{s.icon}</div>
+                <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${C.bg2}99` }}>{s.icon}</div>
                 <div>
-                  <div className="text-xl font-black text-white leading-none">
+                  <div className="text-xl font-black leading-none" style={{ color: C.text, fontFamily: MONO }}>
                     <Counter value={s.val} suffix={s.suffix} />
                   </div>
-                  <div className="text-[11px] text-gray-500 font-semibold uppercase tracking-wider mt-0.5">{s.label}</div>
+                  <div className="text-[11px] font-semibold uppercase tracking-wider mt-0.5" style={{ color: C.muted }}>{s.label}</div>
                 </div>
               </div>
             ))}
