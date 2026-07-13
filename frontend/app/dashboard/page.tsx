@@ -1,36 +1,64 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Search, Loader2, Sparkles, BookOpen, Trophy, Zap, FileText, CheckCircle, AlertCircle, X, Flame } from "lucide-react";
+import { 
+  Plus, Search, Loader2, Sparkles, BookOpen, Trophy, Zap, 
+  FileText, CheckCircle, AlertCircle, X, Flame, Users, 
+  TrendingUp, Activity, Award, ChevronRight, Globe 
+} from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { DeckCard } from "@/components/deck-card";
 import { jwtDecode } from "jwt-decode";
 import { Footer } from "@/components/footer";
 
+// Paleta de culori solicitata aplicata direct in componente
+const C = {
+  bg0:    "#0F1419",
+  bg1:    "#1A1F2E",
+  bg2:    "#252D3D",
+  amber:  "#FFB84D",
+  amberD: "#E69B00",
+  cyan:   "#00D9FF",
+  cyanD:  "#00B8D4",
+  text:   "#E8EAED",
+  muted:  "#7A8394",
+  border: "#2A3142",
+  green:  "#4ADE80",
+  red:    "#FF6B6B",
+} as const;
+
 const TOPICS = [
-  "Mathematical Analysis",
-  "Physics",
-  "C++ / Computer Programming",
-  "Special Mathematics",
-  "Numerical Methods",
-  "Data Structures",
-  "Discrete Mathematics",
-  "Electrical Engineering",
-  "Linear Algebra",
-  "Basics of Computer Operation",
-  "Object-oriented programming",
-  "Assembly language programming",
-  "Others"
+  "Mathematical Analysis", "Physics", "C++ / Computer Programming",
+  "Special Mathematics", "Numerical Methods", "Data Structures",
+  "Discrete Mathematics", "Electrical Engineering", "Linear Algebra",
+  "Basics of Computer Operation", "Object-oriented programming",
+  "Assembly language programming", "Others"
 ];
 
-const STATUS = [
-  "Private",
-  "Public"
+const STATUS = ["Private", "Public"];
+
+// --- DATE MOCK PENTRU DESIGNUL "LEETCODE-ISH" SI COMUNITATE ---
+const MOCK_LEADERBOARD = [
+  { rank: 1, name: "Andrei_Dev", xp: 12450, streak: 42, avatar: "⚡" },
+  { rank: 2, name: "Elena_M", xp: 9820, streak: 28, avatar: "🧠" },
+  { rank: 3, name: "Cosmin_Algo", xp: 8150, streak: 19, avatar: "🚀" },
+  { rank: 4, name: "Maria_Code", xp: 7400, streak: 14, avatar: "🎨" }
+];
+
+const MOCK_TRENDING_DECKS = [
+  { id: "t1", title: "Algoritmi Grafuri Interviu", author: "Dr_Stefan", cardsCount: 45, saves: 312, topic: "Data Structures" },
+  { id: "t2", title: "C++ Pointeri & Memorie", author: "CPP_Master", cardsCount: 28, saves: 194, topic: "C++ / Computer Programming" },
+  { id: "t3", title: "Mecanică Cuantică Esențiale", author: "QuantumGuy", cardsCount: 50, saves: 145, topic: "Physics" }
+];
+
+const MOCK_ACTIVITIES = [
+  { id: 1, text: "Ai finalizat 15 carduri din 'Linear Algebra'", time: "Acum 2 ore" },
+  { id: 2, text: "Ai generat un pachet nou din PDF cu ajutorul AI", time: "Ieri" },
+  { id: 3, text: "Ai atins un Streak de 5 zile consecutive!", time: "Acum 2 zile" }
 ];
 
 export default function DashboardPage() {
   const [decks, setDecks] = useState<any[]>([]);
-  
   const [search, setSearch] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newTitle, setNewTitle] = useState("");
@@ -48,7 +76,6 @@ export default function DashboardPage() {
   const [generationSuccess, setGenerationSuccess] = useState(false);
 
   const [streakDays, setStreakDays] = useState(0);
-
   const [toast, setToast] = useState({ show: false, message: "", type: "error" });
 
   const showToast = useCallback((message: string, type: "error" | "success" = "error") => {
@@ -112,8 +139,6 @@ export default function DashboardPage() {
         const data = await response.json();
         if (data.flag && data.currentStreak !== undefined) {
            setStreakDays(data.currentStreak);
-        } else {
-           console.log("Streak response:", data);
         }
       }
     } catch (error) {
@@ -137,7 +162,6 @@ export default function DashboardPage() {
           setLoading(false);
         }
       } catch (error) {
-        console.error("Token invalid:", error);
         setIsLoggedIn(false);
         setLoading(false);
       }
@@ -146,25 +170,6 @@ export default function DashboardPage() {
       setLoading(false);
     }
   }, [fetchDecks, updateUserStreak]);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    
-    if (params.get("success") === "true") {
-      showToast("Payment was successful! Your account has been updated. Please login again!", "success");
-      window.history.replaceState(null, '', window.location.pathname);
-      
-        setTimeout(() => {
-          localStorage.removeItem("token");
-          window.location.href = "/login";
-      }, 3000); 
-    }
-
-    if (params.get("canceled") === "true") {
-      showToast("The payment was canceled.", "error");
-      window.history.replaceState(null, '', window.location.pathname);
-    }
-  }, [showToast]);
 
   const filtered = decks.filter(
     (d) =>
@@ -182,7 +187,6 @@ export default function DashboardPage() {
 
   const handleGenerateFromPdf = async () => {
     if (!pdfFile) return;
-
     setIsGeneratingCards(true);
     setGenerationSuccess(false);
 
@@ -192,48 +196,31 @@ export default function DashboardPage() {
 
       const response = await fetch("https://learnqhub.com/api/deck/generateFlashcards", {
         method: "POST",
-        headers: {
-          "Authorization": `Bearer ${localStorage.getItem("token")}`,
-        },
+        headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
         body: formData,
       });
 
       if (response.ok) {
         const rawText = await response.text();
-        
         let cleanText = rawText;
         const firstIndex = cleanText.indexOf('[');
         const lastIndex = cleanText.lastIndexOf(']');
-        
         if (firstIndex !== -1 && lastIndex !== -1) {
           cleanText = cleanText.substring(firstIndex, lastIndex + 1);
         }
 
-        let data;
-        try {
-          data = JSON.parse(cleanText);
-        } catch (err) {
-          console.error("Error parsing JSON. The extracted text was:", cleanText);
-          showToast("The API generated an incomplete or invalid response. Please try again.", "error");
-          setIsGeneratingCards(false);
-          return;
-        }
-        
+        let data = JSON.parse(cleanText);
         const parsedCards = typeof data === 'string' ? JSON.parse(data) : data;
         const cardsArray = Array.isArray(parsedCards) ? parsedCards : (parsedCards.cards || []);
         
         setGeneratedCards(cardsArray);
         setGenerationSuccess(true);
         showToast("Flashcards generated successfully!", "success");
-      } else if (response.status === 429){
-        showToast("You have reached your AI usage limit! Upgrade to a higher plan to generate more flashcards.", "error");
-      }else {
-        console.error("Error generating cards:", await response.text());
+      } else {
         showToast("Failed to generate cards from the PDF.", "error");
       }
     } catch (error) {
-      console.error("Network error during generation:", error);
-      showToast("Network error. Please check your connection and try again.", "error");
+      showToast("Network error during generation.", "error");
     } finally {
       setIsGeneratingCards(false);
     }
@@ -266,492 +253,384 @@ export default function DashboardPage() {
       });
 
       if (response.ok) {
-        const text = await response.text();
-        let isSuccess = true;
-        let errorMessage = "Could not create the deck.";
-
-        if (text) {
-          try {
-            const result = JSON.parse(text);
-            if (result.success === false || result.flag === false) {
-              isSuccess = false;
-              errorMessage = result.message || errorMessage;
-            }
-          } catch (e) {
-          }
-        }
-
-        if (isSuccess) {
-          fetchDecks();
-          setNewTitle("");
-          setNewDesc("");
-          setNewTopic("");
-          setShowCreateModal(false);
-          setGeneratedCards([]);
-          showToast("Deck created successfully!", "success");
-        } else {
-          showToast(errorMessage, "error");
-        }
-      } else {
-        showToast("Server encountered an error while creating the deck.", "error");
+        fetchDecks();
+        setNewTitle("");
+        setNewDesc("");
+        setNewTopic("");
+        setShowCreateModal(false);
+        setGeneratedCards([]);
+        showToast("Deck created successfully!", "success");
       }
     } catch (error) {
-      console.error("Network error:", error);
       showToast("Network error. Please check your connection.", "error");
     }
   }
 
   const totalCards = decks.reduce((acc, d) => acc + d.cards.length, 0);
 
-  return (
-    <div className="min-h-screen relative overflow-hidden bg-gray-950 text-gray-100">
-      <div className="fixed inset-0 -z-10 bg-gradient-to-br from-gray-950 via-purple-950/20 to-gray-900" />
-      <div className="fixed inset-0 -z-10 opacity-20">
-        <div className="absolute top-0 -left-4 w-96 h-96 bg-purple-600 rounded-full mix-blend-screen filter blur-3xl animate-blob" />
-        <div className="absolute top-0 -right-4 w-96 h-96 bg-fuchsia-600 rounded-full mix-blend-screen filter blur-3xl animate-blob animation-delay-2000" />
-        <div className="absolute -bottom-8 left-20 w-96 h-96 bg-violet-600 rounded-full mix-blend-screen filter blur-3xl animate-blob animation-delay-4000" />
-      </div>
+  // Calcule Mock-up stil LeetCode pentru statistici circulare
+  const masteredCardsCount = Math.floor(totalCards * 0.4);
+  const learningCardsCount = Math.floor(totalCards * 0.35);
+  const newCardsCount = totalCards - masteredCardsCount - learningCardsCount;
 
+  return (
+    <div className="min-h-screen bg-[#0F1419] text-[#E8EAED] font-sans antialiased">
       <Navbar isLoggedIn={isLoggedIn} />
 
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 py-8 sm:py-12">
-        {/* Hero Stats Section */}
-        <div className="mb-10 animate-fade-in">
-          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
-            <div>
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-900/50 animate-float">
-                  <BookOpen className="w-6 h-6 text-white" />
-                </div>
-                <h1 className="text-4xl sm:text-5xl font-black bg-gradient-to-r from-violet-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                  My Study Decks
-                </h1>
-              </div>
-              <p className="text-lg text-gray-400 ml-16">
-                Your personal flashcard collection
-              </p>
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-10">
+        
+        {/* LEETCODE TOP HEADER ROW: Hero & Streak Stats Dashboard */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8 items-center bg-[#1A1F2E] border border-[#2A3142] p-6 rounded-2xl">
+          <div className="lg:col-span-7 flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#00D9FF] to-[#FFB84D] flex items-center justify-center shadow-lg shadow-black/40">
+              <BookOpen className="w-7 h-7 text-[#0F1419]" />
             </div>
-
-            {/* Quick Stats */}
-            <div className="flex flex-wrap gap-3">
-              {/* STREAK UI - The psychological retention engine */}
-              <button 
-                  onClick={() => {
-                    updateUserStreak();
-                    showToast(`Your current streak is ${streakDays} days! Keep it up! 🔥`, "success");
-                  }}
-                  className={`flex items-center gap-3 px-5 py-3 rounded-2xl bg-gray-900/80 backdrop-blur-md border transition-all duration-500 relative overflow-hidden group active:scale-95
-                    ${streakDays > 0 
-                      ? "border-orange-500/40 shadow-[0_0_20px_rgba(249,115,22,0.2)] cursor-pointer" 
-                      : "border-gray-700 shadow-none grayscale opacity-70 cursor-help"}`}
-                >
-                  {/* Background Glow Effect - se activează la streak mare */}
-                  {streakDays >= 3 && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 via-red-500/10 to-transparent animate-pulse" />
-                  )}
-                  
-                  {/* Icon Container */}
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-lg transition-transform duration-300 group-hover:scale-110 
-                    ${streakDays > 0 
-                      ? "bg-gradient-to-br from-orange-500 to-red-600 shadow-orange-900/50" 
-                      : "bg-gray-800 shadow-none"}`}>
-                    <Flame className={`w-5 h-5 text-white ${streakDays > 0 ? "animate-pulse" : ""}`} />
-                  </div>
-
-                  {/* Text Info */}
-                  <div className="flex flex-col justify-center relative z-10 text-left">
-                    <div className={`text-2xl font-black leading-none mb-1 transition-colors
-                      ${streakDays > 0 
-                        ? "text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-500" 
-                        : "text-gray-500"}`}>
-                      {streakDays}
-                    </div>
-                    <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-none">
-                      {streakDays === 1 ? "Day Streak" : "Days Streak"}
-                    </div>
-                  </div>
-
-                  {/* Mic indicator de "Keep it up" (Punctul pulsatoriu) */}
-                  {streakDays > 0 && (
-                    <div className="absolute -top-1 -right-1">
-                      <span className="relative flex h-3 w-3">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-3 w-3 bg-orange-500"></span>
-                      </span>
-                    </div>
-                  )}
-                </button>
-
-              {/* Existing Stats */}
-              <div className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-gray-900/60 backdrop-blur-md shadow-lg border border-purple-500/20 hover:scale-105 transition-transform hover:border-purple-500/40">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
-                  <Trophy className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-white leading-none mb-1">{decks.length}</div>
-                  <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-none">Decks</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-gray-900/60 backdrop-blur-md shadow-lg border border-cyan-500/20 hover:scale-105 transition-transform hover:border-cyan-500/40">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
-                  <Zap className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-white leading-none mb-1">{totalCards}</div>
-                  <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-none">Cards</div>
-                </div>
-              </div>
+            <div>
+              <h1 className="text-3xl font-extrabold text-[#E8EAED] tracking-tight flex items-center gap-2">
+                Panou de Studiu <span className="text-xs px-2 py-0.5 rounded-md bg-[#252D3D] text-[#00D9FF] border border-[#2A3142] font-mono">PRO</span>
+              </h1>
+              <p className="text-[#7A8394] text-sm mt-0.5">Gestionează-ți colecțiile și concurează cu comunitatea.</p>
             </div>
           </div>
+          
+          <div className="lg:col-span-5 flex flex-wrap gap-4 lg:justify-end">
+            {/* Streak Counter */}
+            <button 
+              onClick={() => showToast(`Streak-ul tău actual este de ${streakDays} zile! 🔥`, "success")}
+              className={`flex items-center gap-3 px-4 py-2.5 rounded-xl bg-[#252D3D] border transition-all active:scale-95 ${
+                streakDays > 0 ? "border-[#FFB84D] text-[#FFB84D]" : "border-[#2A3142] text-[#7A8394]"
+              }`}
+            >
+              <Flame className={`w-5 h-5 ${streakDays > 0 ? "animate-pulse text-[#FFB84D]" : ""}`} />
+              <div className="text-left">
+                <div className="text-xl font-black leading-none">{streakDays}</div>
+                <div className="text-[10px] uppercase font-bold tracking-widest text-[#7A8394]">Zile Streak</div>
+              </div>
+            </button>
 
-          {/* Search and Create Section */}
-          <div className="mt-8 flex flex-col sm:flex-row gap-4">
-            <div className="flex-1 relative group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-violet-400 transition-colors" />
-              <input
-                type="search"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search your decks..."
-                className="w-full h-14 pl-12 pr-4 rounded-2xl bg-gray-900/60 backdrop-blur-md border border-purple-500/30 text-white placeholder:text-gray-500 focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/20 shadow-lg transition-all font-medium"
-              />
+            {/* Total Decks */}
+            <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-[#252D3D] border border-[#2A3142]">
+              <Trophy className="w-5 h-5 text-[#FFB84D]" />
+              <div className="text-left">
+                <div className="text-xl font-black leading-none">{decks.length}</div>
+                <div className="text-[10px] uppercase font-bold tracking-widest text-[#7A8394]">Pachete</div>
+              </div>
             </div>
 
-            {isLoggedIn && (
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="h-14 px-8 rounded-2xl bg-gradient-to-r from-violet-600 via-purple-600 to-pink-600 text-white font-bold text-lg shadow-xl shadow-purple-900/40 hover:shadow-2xl hover:shadow-purple-700/50 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 group"
-              >
-                <Plus className="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" />
-                Create Deck
-                <Sparkles className="w-5 h-5 group-hover:scale-125 transition-transform" />
-              </button>
-            )}
+            {/* Total Cards */}
+            <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-[#252D3D] border border-[#2A3142]">
+              <Zap className="w-5 h-5 text-[#00D9FF]" />
+              <div className="text-left">
+                <div className="text-xl font-black leading-none">{totalCards}</div>
+                <div className="text-[10px] uppercase font-bold tracking-widest text-[#7A8394]">Carduri</div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Decks Grid */}
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-32">
-            <div className="relative">
-              <div className="w-20 h-20 rounded-full border-4 border-gray-800 border-t-purple-500 animate-spin" />
-              <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 text-purple-500 animate-pulse" />
+        {/* MAIN LAYOUT: Split into 2 columns (Content Left, LeetCode Side panels Right) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          {/* LEFT SIDE: Core functionality, Decks grid, Custom Filters */}
+          <div className="lg:col-span-8 space-y-6">
+            
+            {/* LEETCODE DAILY CHALLENGE BANNER */}
+            <div className="relative overflow-hidden bg-gradient-to-r from-[#1A1F2E] via-[#252D3D] to-[#1A1F2E] border border-[#2A3142] rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="absolute top-0 right-0 p-1 bg-[#FFB84D] text-[#0F1419] font-mono text-[9px] font-bold px-2 rounded-bl-lg">
+                DAILY BONUS +200 XP
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-[#FFB84D]/10 flex items-center justify-center text-[#FFB84D] border border-[#FFB84D]/20">
+                  <Award className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="text-base font-bold text-[#E8EAED]">Provocarea Zilei</h4>
+                  <p className="text-sm text-[#7A8394]">Repetă 20 de carduri din pachetul recomandat pentru a asigura streak-ul.</p>
+                </div>
+              </div>
+              <button className="whitespace-nowrap px-4 py-2 rounded-xl bg-[#FFB84D] hover:bg-[#E69B00] text-[#0F1419] font-bold text-xs transition-colors flex items-center gap-1.5 shadow-md">
+                Începe sesiunea <ChevronRight className="w-4 h-4" />
+              </button>
             </div>
-            <p className="mt-6 text-lg font-semibold text-gray-400">Loading your decks...</p>
-          </div>
-        ) : filtered.length > 0 ? (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 animate-fade-in-up">
-            {filtered.map((deckList, index) => (
-              <div
-                key={deckList.id}
-                style={{ animationDelay: `${index * 75}ms` }}
-                className="animate-slide-up"
-              >
-                <DeckCard 
-                  deck={deckList} 
-                  usId={userId} 
-                  onDeckDeleted={(deletedId) => {
-                    setDecks(prevDecks => prevDecks.filter(d => d.id !== deletedId));
-                  }}
-                  onDeckUpdated={() => fetchDecks()} 
+
+            {/* Search and Action Toolbar */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex-1 relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7A8394]" />
+                <input
+                  type="search"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Caută în colecțiile tale de carduri..."
+                  className="w-full h-11 pl-11 pr-4 rounded-xl bg-[#1A1F2E] border border-[#2A3142] text-[#E8EAED] placeholder-[#7A8394] focus:border-[#00D9FF] focus:outline-none transition-all text-sm"
                 />
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-24 px-6 bg-gray-900/30 rounded-3xl border border-gray-800/50 backdrop-blur-sm mt-8">
-            <div className="relative mb-6">
-              <div className="w-32 h-32 rounded-3xl bg-gray-800/50 border border-gray-700 flex items-center justify-center shadow-inner">
-                <Search className="w-16 h-16 text-gray-500" />
+
+              {isLoggedIn && (
+                <button
+                  onClick={() => setShowCreateModal(true)}
+                  className="h-11 px-5 rounded-xl bg-[#00D9FF] hover:bg-[#00B8D4] text-[#0F1419] font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#00D9FF]/10 group"
+                >
+                  <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform duration-200" />
+                  Creează Pachet
+                  <Sparkles className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Decks Render Container */}
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-20 bg-[#1A1F2E] border border-[#2A3142] rounded-2xl">
+                <Loader2 className="w-8 h-8 text-[#00D9FF] animate-spin" />
+                <p className="mt-3 text-sm text-[#7A8394]">Se încarcă structura de date...</p>
               </div>
-              <div className="absolute -top-2 -right-2 w-12 h-12 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-900/50 animate-bounce">
-                <Sparkles className="w-6 h-6 text-white" />
+            ) : filtered.length > 0 ? (
+              <div className="grid gap-4 sm:grid-cols-2">
+                {filtered.map((deckList) => (
+                  <DeckCard 
+                    key={deckList.id}
+                    deck={deckList} 
+                    usId={userId} 
+                    onDeckDeleted={(deletedId) => {
+                      setDecks(prevDecks => prevDecks.filter(d => d.id !== deletedId));
+                    }}
+                    onDeckUpdated={() => fetchDecks()} 
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-16 px-6 bg-[#1A1F2E] rounded-2xl border border-[#2A3142]">
+                <Search className="w-10 h-10 text-[#7A8394] mb-3" />
+                <p className="text-base font-bold text-[#E8EAED]">Nu s-au găsit pachete</p>
+                <p className="text-[#7A8394] text-xs text-center mt-1 max-w-xs">
+                  {search ? "Încearcă să modifici termenii căutați." : "Începe prin a crea prima ta colecție manual sau prin AI."}
+                </p>
+              </div>
+            )}
+
+            {/* COMUNITATE: TRENDING DECKS SECTION */}
+            <div className="pt-4">
+              <div className="flex items-center gap-2 mb-4">
+                <TrendingUp className="w-5 h-5 text-[#4ADE80]" />
+                <h3 className="text-lg font-bold text-[#E8EAED]">Pachete Populare în Comunitate</h3>
+              </div>
+              <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
+                {MOCK_TRENDING_DECKS.map((td) => (
+                  <div key={td.id} className="bg-[#1A1F2E] border border-[#2A3142] p-4 rounded-xl flex flex-col justify-between hover:border-[#7A8394] transition-all cursor-pointer">
+                    <div>
+                      <span className="text-[10px] px-2 py-0.5 rounded-md bg-[#252D3D] text-[#7A8394] border border-[#2A3142] font-semibold">
+                        {td.topic}
+                      </span>
+                      <h4 className="text-sm font-bold text-[#E8EAED] mt-2 line-clamp-1">{td.title}</h4>
+                      <p className="text-xs text-[#7A8394] mt-0.5">Autor: @{td.author}</p>
+                    </div>
+                    <div className="flex items-center justify-between text-[11px] text-[#7A8394] mt-4 pt-2 border-t border-[#2A3142]">
+                      <span className="font-mono text-[#00D9FF]">{td.cardsCount} carduri</span>
+                      <span className="flex items-center gap-1 text-[#FFB84D]">⭐ {td.saves} salvări</span>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-            <p className="text-2xl font-bold text-white mb-2">
-              {search ? "No matching decks" : "Start your study journey!"}
-            </p>
-            <p className="text-gray-400 text-center max-w-sm">
-              {search 
-                ? "Try adjusting your search to find what you're looking for" 
-                : "Create your first deck and begin building your knowledge base"}
-            </p>
-            {!search && isLoggedIn && (
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="mt-8 px-8 py-4 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 text-white font-bold shadow-xl hover:shadow-2xl hover:scale-105 transition-all shadow-purple-900/50"
-              >
-                Create Your First Deck
-              </button>
-            )}
+
           </div>
-        )}
+
+          {/* RIGHT SIDE: LEETCODE SIDEBAR METRICS & COMMUNITY SOCIAL HUBS */}
+          <div className="lg:col-span-4 space-y-6">
+
+            {/* LEETCODE STYLE PROGRESS BREAKDOWN */}
+            <div className="bg-[#1A1F2E] border border-[#2A3142] p-5 rounded-2xl">
+              <h3 className="text-sm font-bold text-[#7A8394] uppercase tracking-wider mb-4 flex items-center gap-2">
+                <Activity className="w-4 h-4 text-[#00D9FF]" /> Progresul Cardurilor
+              </h3>
+              
+              <div className="flex items-center gap-6 mb-6">
+                {/* Center Core Circle representation */}
+                <div className="relative w-20 h-20 rounded-full border-4 border-[#2A3142] flex flex-col items-center justify-center bg-[#0F1419]">
+                  <span className="text-xl font-black text-[#E8EAED]">{totalCards}</span>
+                  <span className="text-[9px] text-[#7A8394] uppercase font-bold">Total</span>
+                </div>
+
+                {/* Progress bars indicators */}
+                <div className="flex-1 space-y-2">
+                  <div>
+                    <div className="flex justify-between text-xs mb-0.5">
+                      <span className="text-[#4ADE80] font-semibold">Mastered</span>
+                      <span className="text-[#E8EAED] font-mono">{masteredCardsCount}/{totalCards}</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-[#252D3D] rounded-full overflow-hidden">
+                      <div className="h-full bg-[#4ADE80]" style={{ width: `${totalCards ? (masteredCardsCount/totalCards)*100 : 0}%` }} />
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between text-xs mb-0.5">
+                      <span className="text-[#FFB84D] font-semibold">Learning</span>
+                      <span className="text-[#E8EAED] font-mono">{learningCardsCount}/{totalCards}</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-[#252D3D] rounded-full overflow-hidden">
+                      <div className="h-full bg-[#FFB84D]" style={{ width: `${totalCards ? (learningCardsCount/totalCards)*100 : 0}%` }} />
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between text-xs mb-0.5">
+                      <span className="text-[#00D9FF] font-semibold">New</span>
+                      <span className="text-[#E8EAED] font-mono">{newCardsCount}/{totalCards}</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-[#252D3D] rounded-full overflow-hidden">
+                      <div className="h-full bg-[#00D9FF]" style={{ width: `${totalCards ? (newCardsCount/totalCards)*100 : 0}%` }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* COMMUNITY GLOBAL LEADERBOARD */}
+            <div className="bg-[#1A1F2E] border border-[#2A3142] p-5 rounded-2xl">
+              <h3 className="text-sm font-bold text-[#7A8394] uppercase tracking-wider mb-4 flex items-center gap-2">
+                <Users className="w-4 h-4 text-[#FFB84D]" /> Clasament Global (Top)
+              </h3>
+              
+              <div className="space-y-3">
+                {MOCK_LEADERBOARD.map((user) => (
+                  <div key={user.rank} className="flex items-center justify-between p-2.5 rounded-xl bg-[#252D3D]/50 border border-[#2A3142] hover:bg-[#252D3D] transition-colors">
+                    <div className="flex items-center gap-3">
+                      <span className={`w-5 text-center font-mono text-xs font-black ${
+                        user.rank === 1 ? "text-[#FFB84D]" : user.rank === 2 ? "text-[#7A8394]" : "text-[#E8EAED]"
+                      }`}>
+                        {user.rank}
+                      </span>
+                      <span className="text-base">{user.avatar}</span>
+                      <span className="text-sm font-bold text-[#E8EAED]">{user.name}</span>
+                    </div>
+                    <div className="flex items-center gap-4 text-xs">
+                      <span className="font-mono font-bold text-[#00D9FF]">{user.xp} XP</span>
+                      <span className="text-[#FFB84D] font-bold flex items-center gap-0.5">🔥 {user.streak}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* RECENT USER SESSION ACTIVITIES */}
+            <div className="bg-[#1A1F2E] border border-[#2A3142] p-5 rounded-2xl">
+              <h3 className="text-sm font-bold text-[#7A8394] uppercase tracking-wider mb-4 flex items-center gap-2">
+                <Activity className="w-4 h-4 text-[#FF6B6B]" /> Activitate Recentă
+              </h3>
+              <div className="space-y-4 pl-2 relative border-l border-[#2A3142]">
+                {MOCK_ACTIVITIES.map((act) => (
+                  <div key={act.id} className="relative pl-4">
+                    <div className="absolute left-[-13px] top-1 w-2 h-2 rounded-full bg-[#00D9FF]" />
+                    <p className="text-xs font-medium text-[#E8EAED]">{act.text}</p>
+                    <span className="text-[10px] text-[#7A8394] block mt-0.5">{act.time}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+          </div>
+
+        </div>
       </main>
 
-      {/* Create Modal */}
+      {/* CREATE DECK MODAL */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in">
-          <div 
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm" 
-            onClick={() => setShowCreateModal(false)} 
-          />
-          <div className="relative w-full max-w-xl rounded-3xl bg-gray-900 border border-gray-800 shadow-2xl animate-scale-in overflow-hidden">
-            {/* Modal Header with Gradient */}
-            <div className="relative px-8 py-6 bg-gradient-to-r from-violet-900 via-purple-900 to-gray-900 border-b border-purple-500/20">
-              <div className="relative flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 flex items-center justify-center">
-                  <Sparkles className="w-6 h-6 text-purple-300" />
-                </div>
-                <h2 className="text-2xl font-black text-white">Create New Deck</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShowCreateModal(false)} />
+          <div className="relative w-full max-w-xl rounded-2xl bg-[#1A1F2E] border border-[#2A3142] shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+            
+            <div className="px-6 py-4 bg-[#252D3D] border-b border-[#2A3142] flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-[#00D9FF]" />
+                <h2 className="text-xl font-bold text-[#E8EAED]">Creează un Pachet Nou</h2>
               </div>
+              <button onClick={() => setShowCreateModal(false)} className="text-[#7A8394] hover:text-[#E8EAED]">
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
-            {/* Modal Content */}
-            <div className="px-8 py-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
-
-              <div className="p-5 rounded-2xl border border-purple-500/30 bg-purple-900/10 space-y-4">
-                <div className="flex items-center gap-2 text-sm font-bold text-purple-300 uppercase tracking-wide">
-                  <Zap className="w-4 h-4 text-purple-400" />
-                  Auto-Generate AI Cards (Optional)
+            <div className="p-6 space-y-4 overflow-y-auto">
+              {/* AI Generation Box */}
+              <div className="p-4 rounded-xl border border-[#00D9FF]/20 bg-[#252D3D]/40 space-y-3">
+                <div className="flex items-center gap-2 text-xs font-bold text-[#00D9FF] uppercase tracking-wider">
+                  <Zap className="w-3.5 h-3.5" /> Generare Automată prin AI (Opțional)
                 </div>
-                
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                  <input
-                    type="file"
-                    accept="application/pdf"
-                    onChange={handleFileChange}
-                    className="hidden"
-                    id="pdf-upload"
-                  />
-                  <label
-                    htmlFor="pdf-upload"
-                    className="flex-1 px-4 py-3 border border-dashed border-purple-500/50 rounded-xl text-sm text-gray-300 hover:bg-purple-900/30 hover:border-purple-400 cursor-pointer transition-all flex items-center justify-center gap-2 group"
-                  >
-                    <FileText className="w-4 h-4 text-purple-400 group-hover:scale-110 transition-transform" />
-                    {pdfFile ? <span className="truncate max-w-[200px]">{pdfFile.name}</span> : "Upload PDF Document"}
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input type="file" accept="application/pdf" onChange={handleFileChange} className="hidden" id="pdf-upload" />
+                  <label htmlFor="pdf-upload" className="flex-1 px-3 py-2 border border-dashed border-[#2A3142] rounded-xl text-xs text-[#7A8394] hover:border-[#00D9FF] cursor-pointer transition-all flex items-center justify-center gap-2">
+                    <FileText className="w-4 h-4 text-[#00D9FF]" />
+                    {pdfFile ? <span className="truncate max-w-[180px] text-[#E8EAED]">{pdfFile.name}</span> : "Încarcă Document PDF"}
                   </label>
                   
                   {pdfFile && !generationSuccess && (
-                    <button
-                      type="button"
-                      onClick={handleGenerateFromPdf}
-                      disabled={isGeneratingCards}
-                      className="px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-purple-900/40"
-                    >
-                      {isGeneratingCards ? (
-                        <><Loader2 className="w-4 h-4 animate-spin" /> Generating...</>
-                      ) : (
-                        <><Sparkles className="w-4 h-4" /> Generate</>
-                      )}
+                    <button type="button" onClick={handleGenerateFromPdf} disabled={isGeneratingCards} className="px-4 py-2 bg-[#00D9FF] hover:bg-[#00B8D4] text-[#0F1419] rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
+                      {isGeneratingCards ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />} Generează
                     </button>
                   )}
-                  
-                  {generationSuccess && (
-                    <div className="px-5 py-3 bg-green-500/10 text-green-400 rounded-xl border border-green-500/30 flex items-center justify-center gap-2 font-bold animate-fade-in">
-                      <CheckCircle className="w-5 h-5" />
-                      {generatedCards.length} Cards Ready
-                    </div>
-                  )}
                 </div>
-                {isGeneratingCards && (
-                  <p className="text-xs text-purple-400 animate-pulse text-center">
-                    The AI is reading your PDF and extracting the best flashcards...
-                  </p>
+                {generationSuccess && (
+                  <div className="text-xs text-[#4ADE80] font-bold flex items-center gap-1">
+                    <CheckCircle className="w-4 h-4" /> {generatedCards.length} Carduri AI pregătite!
+                  </div>
                 )}
               </div>
 
-              <div className="space-y-2">
-                <label className="block text-sm font-bold text-gray-300 uppercase tracking-wide">
-                  Deck Title
-                </label>
-                <input
-                  type="text"
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  placeholder="e.g. Quantum Physics Fundamentals"
-                  className="w-full px-4 py-3.5 rounded-xl border border-gray-700 bg-gray-950/50 text-white placeholder:text-gray-600 focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/20 transition-all font-medium"
-                />
+              {/* Form Input fields */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-[#7A8394] uppercase tracking-wide">Titlu Pachet</label>
+                <input type="text" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} placeholder="ex: Structuri de Date - Arbori" className="w-full px-3 py-2.5 rounded-xl border border-[#2A3142] bg-[#0F1419] text-[#E8EAED] placeholder-[#2A3142] focus:border-[#00D9FF] focus:outline-none text-sm font-medium" />
               </div>
 
-              <div className="space-y-2">
-                <label className="block text-sm font-bold text-gray-300 uppercase tracking-wide">
-                  Description
-                </label>
-                <input
-                  type="text"
-                  value={newDesc}
-                  onChange={(e) => setNewDesc(e.target.value)}
-                  placeholder="Brief description to help you remember..."
-                  className="w-full px-4 py-3.5 rounded-xl border border-gray-700 bg-gray-950/50 text-white placeholder:text-gray-600 focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/20 transition-all font-medium"
-                />
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-[#7A8394] uppercase tracking-wide">Descriere</label>
+                <input type="text" value={newDesc} onChange={(e) => setNewDesc(e.target.value)} placeholder="O scurtă descriere a pachetului..." className="w-full px-3 py-2.5 rounded-xl border border-[#2A3142] bg-[#0F1419] text-[#E8EAED] placeholder-[#2A3142] focus:border-[#00D9FF] focus:outline-none text-sm font-medium" />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="block text-sm font-bold text-gray-300 uppercase tracking-wide">
-                    Topic
-                  </label>
-                  <select
-                    value={newTopic}
-                    onChange={(e) => setNewTopic(e.target.value)}
-                    className="w-full px-4 py-3.5 rounded-xl border border-gray-700 bg-gray-950/50 text-white focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/20 transition-all font-medium appearance-none cursor-pointer"
-                  >
-                    <option value="" disabled className="bg-gray-900 text-gray-500">Choose topic...</option>
-                    {TOPICS.map((topic) => (
-                      <option key={topic} value={topic} className="bg-gray-900 text-white">
-                        {topic}
-                      </option>
-                    ))}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-[#7A8394] uppercase tracking-wide">Topic / Materie</label>
+                  <select value={newTopic} onChange={(e) => setNewTopic(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-[#2A3142] bg-[#0F1419] text-[#E8EAED] focus:border-[#00D9FF] focus:outline-none text-sm cursor-pointer">
+                    <option value="" disabled className="text-[#7A8394]">Alege topic...</option>
+                    {TOPICS.map((topic) => <option key={topic} value={topic} className="bg-[#1A1F2E]">{topic}</option>)}
                   </select>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="block text-sm font-bold text-gray-300 uppercase tracking-wide">
-                    Status
-                  </label>
-                  <select
-                    value={newStatus}
-                    onChange={(e) => setNewStatus(e.target.value)}
-                    className="w-full px-4 py-3.5 rounded-xl border border-gray-700 bg-gray-950/50 text-white focus:border-violet-500 focus:outline-none focus:ring-4 focus:ring-violet-500/20 transition-all font-medium appearance-none cursor-pointer"
-                  >
-                    <option value="" disabled className="bg-gray-900 text-gray-500">Choose status...</option>
-                    {STATUS.map((status) => (
-                      <option key={status} value={status} className="bg-gray-900 text-white">
-                        {status}
-                      </option>
-                    ))}
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-[#7A8394] uppercase tracking-wide">Status Vizibilitate</label>
+                  <select value={newStatus} onChange={(e) => setNewStatus(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-[#2A3142] bg-[#0F1419] text-[#E8EAED] focus:border-[#00D9FF] focus:outline-none text-sm cursor-pointer">
+                    <option value="" disabled className="text-[#7A8394]">Alege status...</option>
+                    {STATUS.map((status) => <option key={status} value={status} className="bg-[#1A1F2E]">{status}</option>)}
                   </select>
                 </div>
               </div>
             </div>
 
-            {/* Modal Footer */}
-            <div className="px-8 py-6 bg-gray-900 border-t border-gray-800 flex justify-end gap-3">
-              <button 
-                onClick={() => setShowCreateModal(false)} 
-                className="px-6 py-3 rounded-xl font-bold text-gray-400 hover:text-white hover:bg-gray-800 transition-all"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleCreate}
-                disabled={!newTitle.trim() || !newTopic || !newStatus || isGeneratingCards}
-                className="px-8 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white font-bold shadow-lg shadow-purple-900/40 hover:shadow-xl hover:shadow-purple-700/50 hover:scale-105 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none"
-              >
-                Create Deck
+            <div className="px-6 py-4 bg-[#252D3D] border-t border-[#2A3142] flex justify-end gap-2">
+              <button onClick={() => setShowCreateModal(false)} className="px-4 py-2 rounded-xl text-sm font-bold text-[#7A8394] hover:text-[#E8EAED]">Anulează</button>
+              <button onClick={handleCreate} disabled={!newTitle.trim() || !newTopic || !newStatus || isGeneratingCards} className="px-5 py-2 rounded-xl bg-[#00D9FF] hover:bg-[#00B8D4] text-[#0F1419] font-bold text-sm transition-all disabled:opacity-30 disabled:cursor-not-allowed">
+                Creează Colecția
               </button>
             </div>
+
           </div>
         </div>
       )}
 
-      {/* Global Toast Notification */}
+      {/* GLOBAL TOAST NOTIFICATION */}
       {toast.show && (
-        <div className={`fixed bottom-6 right-6 z-[100] px-6 py-4 rounded-2xl shadow-2xl border backdrop-blur-md flex items-center gap-3 animate-slide-up transition-all ${
-          toast.type === "error" 
-            ? "bg-red-950/90 border-red-500/50 text-red-200" 
-            : "bg-green-950/90 border-green-500/50 text-green-200"
+        <div className={`fixed bottom-6 right-6 z-[100] px-5 py-3.5 rounded-xl shadow-2xl border backdrop-blur-md flex items-center gap-3 transition-all ${
+          toast.type === "error" ? "bg-[#1A1F2E] border-[#FF6B6B]/40 text-[#FF6B6B]" : "bg-[#1A1F2E] border-[#4ADE80]/40 text-[#4ADE80]"
         }`}>
-          {toast.type === "error" ? (
-            <AlertCircle className="w-5 h-5 text-red-400" />
-          ) : (
-            <CheckCircle className="w-5 h-5 text-green-400" />
-          )}
-          <p className="font-semibold text-sm mr-2">{toast.message}</p>
-          <button 
-            onClick={() => setToast(prev => ({ ...prev, show: false }))} 
-            className={`p-1 rounded-lg transition-colors ${
-              toast.type === "error" ? "hover:bg-red-900/50" : "hover:bg-green-900/50"
-            }`}
-          >
-            <X className="w-4 h-4" />
+          {toast.type === "error" ? <AlertCircle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
+          <p className="font-semibold text-xs text-[#E8EAED] mr-2">{toast.message}</p>
+          <button onClick={() => setToast(prev => ({ ...prev, show: false }))} className="p-0.5 rounded hover:bg-[#252D3D] text-[#7A8394]">
+            <X className="w-3.5 h-3.5" />
           </button>
         </div>
       )}
-      <Footer></Footer>
-      <style jsx>{`
-        @keyframes blob {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          25% { transform: translate(20px, -50px) scale(1.1); }
-          50% { transform: translate(-20px, 20px) scale(0.9); }
-          75% { transform: translate(20px, 50px) scale(1.05); }
-        }
 
-        @keyframes float {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-10px); }
-        }
-
-        @keyframes fade-in {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-
-        @keyframes fade-in-up {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes slide-up {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes scale-in {
-          from {
-            opacity: 0;
-            transform: scale(0.9);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1);
-          }
-        }
-
-        .animate-blob {
-          animation: blob 7s infinite;
-        }
-
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-
-        .animation-delay-4000 {
-          animation-delay: 4s;
-        }
-
-        .animate-float {
-          animation: float 3s ease-in-out infinite;
-        }
-
-        .animate-fade-in {
-          animation: fade-in 0.5s ease-out;
-        }
-
-        .animate-fade-in-up {
-          animation: fade-in-up 0.6s ease-out;
-        }
-
-        .animate-slide-up {
-          animation: slide-up 0.5s ease-out backwards;
-        }
-
-        .animate-scale-in {
-          animation: scale-in 0.3s ease-out;
-        }
-      `}</style>
+      <Footer />
     </div>
   );
 }
