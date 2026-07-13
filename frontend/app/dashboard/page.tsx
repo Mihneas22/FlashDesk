@@ -5,6 +5,7 @@ import { Plus, Search, Loader2, Sparkles, BookOpen, Trophy, Zap, FileText, Check
 import { Navbar } from "@/components/navbar";
 import { DeckCard } from "@/components/deck-card";
 import { jwtDecode } from "jwt-decode";
+import { Footer } from "@/components/footer";
 
 const TOPICS = [
   "Mathematical Analysis",
@@ -485,6 +486,7 @@ export default function DashboardPage() {
             )}
           </div>
         )}
+        <Footer></Footer>
       </main>
 
       {/* Create Modal */}
@@ -751,7 +753,6 @@ export default function DashboardPage() {
           animation: scale-in 0.3s ease-out;
         }
       `}</style>
-      <Footer />
     </div>
   );
 }
