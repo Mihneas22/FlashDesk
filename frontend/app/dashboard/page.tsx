@@ -4,14 +4,13 @@ import { useState, useEffect, useCallback } from "react";
 import { 
   Plus, Search, Loader2, Sparkles, BookOpen, Trophy, Zap, 
   FileText, CheckCircle, AlertCircle, X, Flame, Users, 
-  TrendingUp, Activity, Award, ChevronRight, Globe 
+  TrendingUp, Activity, Award, ChevronRight 
 } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { DeckCard } from "@/components/deck-card";
 import { jwtDecode } from "jwt-decode";
 import { Footer } from "@/components/footer";
 
-// Paleta de culori solicitata aplicata direct in componente
 const C = {
   bg0:    "#0F1419",
   bg1:    "#1A1F2E",
@@ -37,7 +36,7 @@ const TOPICS = [
 
 const STATUS = ["Private", "Public"];
 
-// --- DATE MOCK PENTRU DESIGNUL "LEETCODE-ISH" SI COMUNITATE ---
+// --- ENGLISH MOCK DATA FOR LEETCODE-ISH AND COMMUNITY FEATURES ---
 const MOCK_LEADERBOARD = [
   { rank: 1, name: "Andrei_Dev", xp: 12450, streak: 42, avatar: "⚡" },
   { rank: 2, name: "Elena_M", xp: 9820, streak: 28, avatar: "🧠" },
@@ -46,15 +45,15 @@ const MOCK_LEADERBOARD = [
 ];
 
 const MOCK_TRENDING_DECKS = [
-  { id: "t1", title: "Algoritmi Grafuri Interviu", author: "Dr_Stefan", cardsCount: 45, saves: 312, topic: "Data Structures" },
-  { id: "t2", title: "C++ Pointeri & Memorie", author: "CPP_Master", cardsCount: 28, saves: 194, topic: "C++ / Computer Programming" },
-  { id: "t3", title: "Mecanică Cuantică Esențiale", author: "QuantumGuy", cardsCount: 50, saves: 145, topic: "Physics" }
+  { id: "t1", title: "Interview Graph Algorithms", author: "Dr_Stefan", cardsCount: 45, saves: 312, topic: "Data Structures" },
+  { id: "t2", title: "C++ Pointers & Memory Management", author: "CPP_Master", cardsCount: 28, saves: 194, topic: "C++ / Computer Programming" },
+  { id: "t3", title: "Quantum Mechanics Essentials", author: "QuantumGuy", cardsCount: 50, saves: 145, topic: "Physics" }
 ];
 
 const MOCK_ACTIVITIES = [
-  { id: 1, text: "Ai finalizat 15 carduri din 'Linear Algebra'", time: "Acum 2 ore" },
-  { id: 2, text: "Ai generat un pachet nou din PDF cu ajutorul AI", time: "Ieri" },
-  { id: 3, text: "Ai atins un Streak de 5 zile consecutive!", time: "Acum 2 zile" }
+  { id: 1, text: "Finished 15 cards from 'Linear Algebra'", time: "2 hours ago" },
+  { id: 2, text: "Generated a new deck from PDF using AI", time: "Yesterday" },
+  { id: 3, text: "Reached a 5-day consecutive active streak!", time: "2 days ago" }
 ];
 
 export default function DashboardPage() {
@@ -268,7 +267,7 @@ export default function DashboardPage() {
 
   const totalCards = decks.reduce((acc, d) => acc + d.cards.length, 0);
 
-  // Calcule Mock-up stil LeetCode pentru statistici circulare
+  // LeetCode-style card category configurations
   const masteredCardsCount = Math.floor(totalCards * 0.4);
   const learningCardsCount = Math.floor(totalCards * 0.35);
   const newCardsCount = totalCards - masteredCardsCount - learningCardsCount;
@@ -287,16 +286,16 @@ export default function DashboardPage() {
             </div>
             <div>
               <h1 className="text-3xl font-extrabold text-[#E8EAED] tracking-tight flex items-center gap-2">
-                Panou de Studiu <span className="text-xs px-2 py-0.5 rounded-md bg-[#252D3D] text-[#00D9FF] border border-[#2A3142] font-mono">PRO</span>
+                Study Dashboard <span className="text-xs px-2 py-0.5 rounded-md bg-[#252D3D] text-[#00D9FF] border border-[#2A3142] font-mono">PRO</span>
               </h1>
-              <p className="text-[#7A8394] text-sm mt-0.5">Gestionează-ți colecțiile și concurează cu comunitatea.</p>
+              <p className="text-[#7A8394] text-sm mt-0.5">Manage your flashcard collections and compete with the community.</p>
             </div>
           </div>
           
           <div className="lg:col-span-5 flex flex-wrap gap-4 lg:justify-end">
             {/* Streak Counter */}
             <button 
-              onClick={() => showToast(`Streak-ul tău actual este de ${streakDays} zile! 🔥`, "success")}
+              onClick={() => showToast(`Your current streak is ${streakDays} days! 🔥`, "success")}
               className={`flex items-center gap-3 px-4 py-2.5 rounded-xl bg-[#252D3D] border transition-all active:scale-95 ${
                 streakDays > 0 ? "border-[#FFB84D] text-[#FFB84D]" : "border-[#2A3142] text-[#7A8394]"
               }`}
@@ -304,7 +303,7 @@ export default function DashboardPage() {
               <Flame className={`w-5 h-5 ${streakDays > 0 ? "animate-pulse text-[#FFB84D]" : ""}`} />
               <div className="text-left">
                 <div className="text-xl font-black leading-none">{streakDays}</div>
-                <div className="text-[10px] uppercase font-bold tracking-widest text-[#7A8394]">Zile Streak</div>
+                <div className="text-[10px] uppercase font-bold tracking-widest text-[#7A8394]">Streak Days</div>
               </div>
             </button>
 
@@ -313,7 +312,7 @@ export default function DashboardPage() {
               <Trophy className="w-5 h-5 text-[#FFB84D]" />
               <div className="text-left">
                 <div className="text-xl font-black leading-none">{decks.length}</div>
-                <div className="text-[10px] uppercase font-bold tracking-widest text-[#7A8394]">Pachete</div>
+                <div className="text-[10px] uppercase font-bold tracking-widest text-[#7A8394]">Decks</div>
               </div>
             </div>
 
@@ -322,7 +321,7 @@ export default function DashboardPage() {
               <Zap className="w-5 h-5 text-[#00D9FF]" />
               <div className="text-left">
                 <div className="text-xl font-black leading-none">{totalCards}</div>
-                <div className="text-[10px] uppercase font-bold tracking-widest text-[#7A8394]">Carduri</div>
+                <div className="text-[10px] uppercase font-bold tracking-widest text-[#7A8394]">Cards</div>
               </div>
             </div>
           </div>
@@ -344,12 +343,12 @@ export default function DashboardPage() {
                   <Award className="w-6 h-6" />
                 </div>
                 <div>
-                  <h4 className="text-base font-bold text-[#E8EAED]">Provocarea Zilei</h4>
-                  <p className="text-sm text-[#7A8394]">Repetă 20 de carduri din pachetul recomandat pentru a asigura streak-ul.</p>
+                  <h4 className="text-base font-bold text-[#E8EAED]">Daily Challenge</h4>
+                  <p className="text-sm text-[#7A8394]">Review 20 cards from your recommended deck to protect your streak.</p>
                 </div>
               </div>
               <button className="whitespace-nowrap px-4 py-2 rounded-xl bg-[#FFB84D] hover:bg-[#E69B00] text-[#0F1419] font-bold text-xs transition-colors flex items-center gap-1.5 shadow-md">
-                Începe sesiunea <ChevronRight className="w-4 h-4" />
+                Start Session <ChevronRight className="w-4 h-4" />
               </button>
             </div>
 
@@ -361,7 +360,7 @@ export default function DashboardPage() {
                   type="search"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Caută în colecțiile tale de carduri..."
+                  placeholder="Search your flashcard collections..."
                   className="w-full h-11 pl-11 pr-4 rounded-xl bg-[#1A1F2E] border border-[#2A3142] text-[#E8EAED] placeholder-[#7A8394] focus:border-[#00D9FF] focus:outline-none transition-all text-sm"
                 />
               </div>
@@ -372,7 +371,7 @@ export default function DashboardPage() {
                   className="h-11 px-5 rounded-xl bg-[#00D9FF] hover:bg-[#00B8D4] text-[#0F1419] font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#00D9FF]/10 group"
                 >
                   <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform duration-200" />
-                  Creează Pachet
+                  Create Deck
                   <Sparkles className="w-4 h-4" />
                 </button>
               )}
@@ -382,7 +381,7 @@ export default function DashboardPage() {
             {loading ? (
               <div className="flex flex-col items-center justify-center py-20 bg-[#1A1F2E] border border-[#2A3142] rounded-2xl">
                 <Loader2 className="w-8 h-8 text-[#00D9FF] animate-spin" />
-                <p className="mt-3 text-sm text-[#7A8394]">Se încarcă structura de date...</p>
+                <p className="mt-3 text-sm text-[#7A8394]">Loading data structures...</p>
               </div>
             ) : filtered.length > 0 ? (
               <div className="grid gap-4 sm:grid-cols-2">
@@ -401,18 +400,18 @@ export default function DashboardPage() {
             ) : (
               <div className="flex flex-col items-center justify-center py-16 px-6 bg-[#1A1F2E] rounded-2xl border border-[#2A3142]">
                 <Search className="w-10 h-10 text-[#7A8394] mb-3" />
-                <p className="text-base font-bold text-[#E8EAED]">Nu s-au găsit pachete</p>
+                <p className="text-base font-bold text-[#E8EAED]">No decks found</p>
                 <p className="text-[#7A8394] text-xs text-center mt-1 max-w-xs">
-                  {search ? "Încearcă să modifici termenii căutați." : "Începe prin a crea prima ta colecție manual sau prin AI."}
+                  {search ? "Try adjusting your search terms." : "Start by creating your first collection manually or via AI."}
                 </p>
               </div>
             )}
 
-            {/* COMUNITATE: TRENDING DECKS SECTION */}
+            {/* COMMUNITY: TRENDING DECKS SECTION */}
             <div className="pt-4">
               <div className="flex items-center gap-2 mb-4">
                 <TrendingUp className="w-5 h-5 text-[#4ADE80]" />
-                <h3 className="text-lg font-bold text-[#E8EAED]">Pachete Populare în Comunitate</h3>
+                <h3 className="text-lg font-bold text-[#E8EAED]">Trending Community Decks</h3>
               </div>
               <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
                 {MOCK_TRENDING_DECKS.map((td) => (
@@ -422,11 +421,11 @@ export default function DashboardPage() {
                         {td.topic}
                       </span>
                       <h4 className="text-sm font-bold text-[#E8EAED] mt-2 line-clamp-1">{td.title}</h4>
-                      <p className="text-xs text-[#7A8394] mt-0.5">Autor: @{td.author}</p>
+                      <p className="text-xs text-[#7A8394] mt-0.5">Author: @{td.author}</p>
                     </div>
                     <div className="flex items-center justify-between text-[11px] text-[#7A8394] mt-4 pt-2 border-t border-[#2A3142]">
-                      <span className="font-mono text-[#00D9FF]">{td.cardsCount} carduri</span>
-                      <span className="flex items-center gap-1 text-[#FFB84D]">⭐ {td.saves} salvări</span>
+                      <span className="font-mono text-[#00D9FF]">{td.cardsCount} cards</span>
+                      <span className="flex items-center gap-1 text-[#FFB84D]">⭐ {td.saves} saves</span>
                     </div>
                   </div>
                 ))}
@@ -441,17 +440,15 @@ export default function DashboardPage() {
             {/* LEETCODE STYLE PROGRESS BREAKDOWN */}
             <div className="bg-[#1A1F2E] border border-[#2A3142] p-5 rounded-2xl">
               <h3 className="text-sm font-bold text-[#7A8394] uppercase tracking-wider mb-4 flex items-center gap-2">
-                <Activity className="w-4 h-4 text-[#00D9FF]" /> Progresul Cardurilor
+                <Activity className="w-4 h-4 text-[#00D9FF]" /> Cards Mastery Progress
               </h3>
               
               <div className="flex items-center gap-6 mb-6">
-                {/* Center Core Circle representation */}
                 <div className="relative w-20 h-20 rounded-full border-4 border-[#2A3142] flex flex-col items-center justify-center bg-[#0F1419]">
                   <span className="text-xl font-black text-[#E8EAED]">{totalCards}</span>
                   <span className="text-[9px] text-[#7A8394] uppercase font-bold">Total</span>
                 </div>
 
-                {/* Progress bars indicators */}
                 <div className="flex-1 space-y-2">
                   <div>
                     <div className="flex justify-between text-xs mb-0.5">
@@ -489,7 +486,7 @@ export default function DashboardPage() {
             {/* COMMUNITY GLOBAL LEADERBOARD */}
             <div className="bg-[#1A1F2E] border border-[#2A3142] p-5 rounded-2xl">
               <h3 className="text-sm font-bold text-[#7A8394] uppercase tracking-wider mb-4 flex items-center gap-2">
-                <Users className="w-4 h-4 text-[#FFB84D]" /> Clasament Global (Top)
+                <Users className="w-4 h-4 text-[#FFB84D]" /> Global Leaderboard
               </h3>
               
               <div className="space-y-3">
@@ -516,12 +513,12 @@ export default function DashboardPage() {
             {/* RECENT USER SESSION ACTIVITIES */}
             <div className="bg-[#1A1F2E] border border-[#2A3142] p-5 rounded-2xl">
               <h3 className="text-sm font-bold text-[#7A8394] uppercase tracking-wider mb-4 flex items-center gap-2">
-                <Activity className="w-4 h-4 text-[#FF6B6B]" /> Activitate Recentă
+                <Activity className="w-4 h-4 text-[#FF6B6B]" /> Recent Activity
               </h3>
               <div className="space-y-4 pl-2 relative border-l border-[#2A3142]">
                 {MOCK_ACTIVITIES.map((act) => (
                   <div key={act.id} className="relative pl-4">
-                    <div className="absolute left-[-13px] top-1 w-2 h-2 rounded-full bg-[#00D9FF]" />
+                    <div className="absolute left-[-5px] top-1.5 w-2 h-2 rounded-full bg-[#00D9FF]" />
                     <p className="text-xs font-medium text-[#E8EAED]">{act.text}</p>
                     <span className="text-[10px] text-[#7A8394] block mt-0.5">{act.time}</span>
                   </div>
@@ -543,7 +540,7 @@ export default function DashboardPage() {
             <div className="px-6 py-4 bg-[#252D3D] border-b border-[#2A3142] flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-[#00D9FF]" />
-                <h2 className="text-xl font-bold text-[#E8EAED]">Creează un Pachet Nou</h2>
+                <h2 className="text-xl font-bold text-[#E8EAED]">Create New Deck</h2>
               </div>
               <button onClick={() => setShowCreateModal(false)} className="text-[#7A8394] hover:text-[#E8EAED]">
                 <X className="w-5 h-5" />
@@ -554,52 +551,52 @@ export default function DashboardPage() {
               {/* AI Generation Box */}
               <div className="p-4 rounded-xl border border-[#00D9FF]/20 bg-[#252D3D]/40 space-y-3">
                 <div className="flex items-center gap-2 text-xs font-bold text-[#00D9FF] uppercase tracking-wider">
-                  <Zap className="w-3.5 h-3.5" /> Generare Automată prin AI (Opțional)
+                  <Zap className="w-3.5 h-3.5" /> Auto-Generate with AI (Optional)
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2">
                   <input type="file" accept="application/pdf" onChange={handleFileChange} className="hidden" id="pdf-upload" />
                   <label htmlFor="pdf-upload" className="flex-1 px-3 py-2 border border-dashed border-[#2A3142] rounded-xl text-xs text-[#7A8394] hover:border-[#00D9FF] cursor-pointer transition-all flex items-center justify-center gap-2">
                     <FileText className="w-4 h-4 text-[#00D9FF]" />
-                    {pdfFile ? <span className="truncate max-w-[180px] text-[#E8EAED]">{pdfFile.name}</span> : "Încarcă Document PDF"}
+                    {pdfFile ? <span className="truncate max-w-[180px] text-[#E8EAED]">{pdfFile.name}</span> : "Upload PDF Document"}
                   </label>
                   
                   {pdfFile && !generationSuccess && (
                     <button type="button" onClick={handleGenerateFromPdf} disabled={isGeneratingCards} className="px-4 py-2 bg-[#00D9FF] hover:bg-[#00B8D4] text-[#0F1419] rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
-                      {isGeneratingCards ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />} Generează
+                      {isGeneratingCards ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />} Generate
                     </button>
                   )}
                 </div>
                 {generationSuccess && (
                   <div className="text-xs text-[#4ADE80] font-bold flex items-center gap-1">
-                    <CheckCircle className="w-4 h-4" /> {generatedCards.length} Carduri AI pregătite!
+                    <CheckCircle className="w-4 h-4" /> {generatedCards.length} AI Cards Ready!
                   </div>
                 )}
               </div>
 
               {/* Form Input fields */}
               <div className="space-y-1">
-                <label className="text-xs font-bold text-[#7A8394] uppercase tracking-wide">Titlu Pachet</label>
-                <input type="text" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} placeholder="ex: Structuri de Date - Arbori" className="w-full px-3 py-2.5 rounded-xl border border-[#2A3142] bg-[#0F1419] text-[#E8EAED] placeholder-[#2A3142] focus:border-[#00D9FF] focus:outline-none text-sm font-medium" />
+                <label className="text-xs font-bold text-[#7A8394] uppercase tracking-wide">Deck Title</label>
+                <input type="text" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} placeholder="e.g., Data Structures - Trees" className="w-full px-3 py-2.5 rounded-xl border border-[#2A3142] bg-[#0F1419] text-[#E8EAED] placeholder-[#2A3142] focus:border-[#00D9FF] focus:outline-none text-sm font-medium" />
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-[#7A8394] uppercase tracking-wide">Descriere</label>
-                <input type="text" value={newDesc} onChange={(e) => setNewDesc(e.target.value)} placeholder="O scurtă descriere a pachetului..." className="w-full px-3 py-2.5 rounded-xl border border-[#2A3142] bg-[#0F1419] text-[#E8EAED] placeholder-[#2A3142] focus:border-[#00D9FF] focus:outline-none text-sm font-medium" />
+                <label className="text-xs font-bold text-[#7A8394] uppercase tracking-wide">Description</label>
+                <input type="text" value={newDesc} onChange={(e) => setNewDesc(e.target.value)} placeholder="A brief description of the deck..." className="w-full px-3 py-2.5 rounded-xl border border-[#2A3142] bg-[#0F1419] text-[#E8EAED] placeholder-[#2A3142] focus:border-[#00D9FF] focus:outline-none text-sm font-medium" />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-[#7A8394] uppercase tracking-wide">Topic / Materie</label>
+                  <label className="text-xs font-bold text-[#7A8394] uppercase tracking-wide">Topic</label>
                   <select value={newTopic} onChange={(e) => setNewTopic(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-[#2A3142] bg-[#0F1419] text-[#E8EAED] focus:border-[#00D9FF] focus:outline-none text-sm cursor-pointer">
-                    <option value="" disabled className="text-[#7A8394]">Alege topic...</option>
+                    <option value="" disabled className="text-[#7A8394]">Choose topic...</option>
                     {TOPICS.map((topic) => <option key={topic} value={topic} className="bg-[#1A1F2E]">{topic}</option>)}
                   </select>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-[#7A8394] uppercase tracking-wide">Status Vizibilitate</label>
+                  <label className="text-xs font-bold text-[#7A8394] uppercase tracking-wide">Visibility Status</label>
                   <select value={newStatus} onChange={(e) => setNewStatus(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-[#2A3142] bg-[#0F1419] text-[#E8EAED] focus:border-[#00D9FF] focus:outline-none text-sm cursor-pointer">
-                    <option value="" disabled className="text-[#7A8394]">Alege status...</option>
+                    <option value="" disabled className="text-[#7A8394]">Choose status...</option>
                     {STATUS.map((status) => <option key={status} value={status} className="bg-[#1A1F2E]">{status}</option>)}
                   </select>
                 </div>
@@ -607,9 +604,9 @@ export default function DashboardPage() {
             </div>
 
             <div className="px-6 py-4 bg-[#252D3D] border-t border-[#2A3142] flex justify-end gap-2">
-              <button onClick={() => setShowCreateModal(false)} className="px-4 py-2 rounded-xl text-sm font-bold text-[#7A8394] hover:text-[#E8EAED]">Anulează</button>
+              <button onClick={() => setShowCreateModal(false)} className="px-4 py-2 rounded-xl text-sm font-bold text-[#7A8394] hover:text-[#E8EAED]">Cancel</button>
               <button onClick={handleCreate} disabled={!newTitle.trim() || !newTopic || !newStatus || isGeneratingCards} className="px-5 py-2 rounded-xl bg-[#00D9FF] hover:bg-[#00B8D4] text-[#0F1419] font-bold text-sm transition-all disabled:opacity-30 disabled:cursor-not-allowed">
-                Creează Colecția
+                Create Deck
               </button>
             </div>
 
