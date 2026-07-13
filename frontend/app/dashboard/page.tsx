@@ -751,7 +751,7 @@ export default function DashboardPage() {
           animation: scale-in 0.3s ease-out;
         }
       `}</style>
+      <Footer />
     </div>
-    <Footer />
   );
 }
