@@ -27,7 +27,7 @@ export function Footer(): React.JSX.Element {
 
         {/* Coloana 2: Platformă */}
         <div className="flex flex-col gap-3">
-          <h4 className="text-[#E8EAED] text-base font-semibold mb-1">Platformă</h4>
+          <h4 className="text-[#E8EAED] text-base font-semibold mb-1">Platform</h4>
           <a href="/probleme" className="text-[#7A8394] hover:text-[#00D9FF] transition-colors duration-200 no-underline">Problems</a>
           <a href="/concursuri" className="text-[#7A8394] hover:text-[#00D9FF] transition-colors duration-200 no-underline">Competitions</a>
           <a href="/clasament" className="text-[#7A8394] hover:text-[#00D9FF] transition-colors duration-200 no-underline">Standings</a>

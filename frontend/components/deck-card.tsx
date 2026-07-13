@@ -132,6 +132,15 @@ const topicColors: Record<string, {
     icon: "text-slate-400",
     iconBg: "bg-slate-600/15",
     hoverShadow: "hover:shadow-slate-500/20"
+  },
+  "Others": {
+    gradient: "from-amber-500 to-amber-600", 
+    bgGradient: "from-amber-500/8 to-amber-600/8",
+    badge: "bg-amber-500/25",
+    badgeText: "text-amber-300",
+    icon: "text-amber-400",
+    iconBg: "bg-amber-500/15",
+    hoverShadow: "hover:shadow-amber-500/20"
   }
 };
 
@@ -158,7 +167,7 @@ export function DeckCard({ usId, deck, onDeckDeleted, onDeckUpdated }: DeckCardP
   };
   
   const menuRef = useRef<HTMLDivElement>(null);
-  const colors = deck.topic ? (topicColors[deck.topic] || defaultColors) : defaultColors;
+  const colors = (deck.topic && topicColors[deck.topic]) ? topicColors[deck.topic] : defaultColors;
   const cardCount = deck.cards?.length || 0;
 
   const [toast, setToast] = useState<ToastState>({ 
