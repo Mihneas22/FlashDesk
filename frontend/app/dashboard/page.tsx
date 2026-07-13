@@ -752,6 +752,6 @@ export default function DashboardPage() {
         }
       `}</style>
     </div>
-    <Footer></Footer>
+    <Footer />
   );
 }

@@ -575,7 +575,7 @@ export default function PublicDecksPage() {
         )}
 
       </main>
-      <Footer></Footer>
+      <Footer />
 
       {/* Toast Notification */}
       {toast.show && (
