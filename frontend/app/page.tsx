@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Navbar } from "@/components/navbar";
+import { Footer } from "@/components/footer";
 
 /* ─── floating math symbols ─── */
 const MATH_SYMBOLS = [
@@ -761,18 +762,7 @@ export default function LandingPage() {
         </section>
 
         {/* ════════════════════ FOOTER ════════════════════ */}
-        <footer className="lq-section" style={{ background: C.bg1, borderTop: `1px solid ${C.border}`, padding: "36px 32px", textAlign: "center" }}>
-          <div style={{ fontFamily: MONO, fontSize: 16, fontWeight: 700, color: C.amber, marginBottom: 16 }}>LearnQHub.exit(0)</div>
-          <div style={{ display: "flex", justifyContent: "center", gap: 28, flexWrap: "wrap", marginBottom: 16 }}>
-            {["features","pricing","contact","privacy","terms"].map((l) => (
-              <a key={l} href={`#${l}`} style={{ fontSize: 13, color: C.muted, textDecoration: "none", fontFamily: MONO, transition: "color 0.15s" }}
-                onMouseEnter={e => (e.currentTarget.style.color = C.text)}
-                onMouseLeave={e => (e.currentTarget.style.color = C.muted)}
-              >{l}</a>
-            ))}
-          </div>
-          <div style={{ fontFamily: MONO, fontSize: 11, color: "#3A4152" }}>© 2025 LearnQHub — built for engineers, by engineers.</div>
-        </footer>
+        <Footer></Footer>
 
       </main>
     </>
