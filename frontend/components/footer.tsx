@@ -1,5 +1,3 @@
-"use client";
-
 import React from 'react';
 
 export function Footer(): React.JSX.Element {
@@ -11,10 +9,10 @@ export function Footer(): React.JSX.Element {
         {/* Coloana 1: Brand & Info */}
         <div className="flex flex-col gap-4 md:col-span-2">
           <div className="text-xl font-bold tracking-tight text-[#E8EAED]">
-            Learn<span className="text-[#00D9FF]">Q</span>Hub
+            FlashDesk<span className="text-[#00D9FF]">.</span>
           </div>
           <p className="text-[#7A8394] max-w-sm leading-relaxed">
-            Exersază, învață și stăpânește algoritmii. Alătură-te celei mai active comunități de programare din România.
+            Platforma ta favorită pentru învățare și organizare rapidă.
           </p>
           
           {/* Status Platformă */}
@@ -33,25 +31,19 @@ export function Footer(): React.JSX.Element {
           <a href="/probleme" className="text-[#7A8394] hover:text-[#00D9FF] transition-colors duration-200 no-underline">Probleme</a>
           <a href="/concursuri" className="text-[#7A8394] hover:text-[#00D9FF] transition-colors duration-200 no-underline">Concursuri</a>
           <a href="/clasament" className="text-[#7A8394] hover:text-[#00D9FF] transition-colors duration-200 no-underline">Clasament</a>
-          <a href="/premium" className="text-[#FFB84D] hover:text-[#E69B00] hover:underline transition-colors duration-200 font-medium no-underline flex items-center gap-1">
-            Devenit Premium ✨
-          </a>
         </div>
 
         {/* Coloana 3: Comunitate */}
         <div className="flex flex-col gap-3">
           <h4 className="text-[#E8EAED] text-base font-semibold mb-1">Comunitate</h4>
           <a href="/discord" className="text-[#7A8394] hover:text-[#00D9FF] transition-colors duration-200 no-underline" target="_blank" rel="noreferrer">Discord</a>
-          <a href="/forum" className="text-[#7A8394] hover:text-[#00D9FF] transition-colors duration-200 no-underline">Forum & Discuții</a>
-          <a href="/blog" className="text-[#7A8394] hover:text-[#00D9FF] transition-colors duration-200 no-underline">Articole & Blog</a>
-          <a href="/resurse" className="text-[#7A8394] hover:text-[#00D9FF] transition-colors duration-200 no-underline">Resurse Utile</a>
+          <a href="/forum" className="text-[#7A8394] hover:text-[#00D9FF] transition-colors duration-200 no-underline">Forum</a>
         </div>
 
         {/* Coloana 4: Suport */}
         <div className="flex flex-col gap-3">
           <h4 className="text-[#E8EAED] text-base font-semibold mb-1">Suport</h4>
-          <a href="/ajutor" className="text-[#7A8394] hover:text-[#00D9FF] transition-colors duration-200 no-underline">Centrul de ajutor</a>
-          <a href="/termeni" className="text-[#7A8394] hover:text-[#00D9FF] transition-colors duration-200 no-underline">Termeni și condiții</a>
+          <a href="/termeni" className="text-[#7A8394] hover:text-[#00D9FF] transition-colors duration-200 no-underline">Termeni</a>
           <a href="/confidentialitate" className="text-[#7A8394] hover:text-[#00D9FF] transition-colors duration-200 no-underline">Confidențialitate</a>
           <a href="/contact" className="text-[#7A8394] hover:text-[#00D9FF] transition-colors duration-200 no-underline">Contact</a>
         </div>
@@ -61,10 +53,11 @@ export function Footer(): React.JSX.Element {
       {/* Separator */}
       <div className="border-t border-[#2A3142] max-w-6xl mx-auto" />
 
-      {/* Zona de jos (Copyright & Meta) */}
+      {/* Zona de jos */}
       <div className="max-w-6xl mx-auto pt-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-[#7A8394] text-xs font-medium">
         <div>
-          &copy; {currentYear} LearnQHub. Toate drepturile rezervate.
+          {/* Randerem anul direct inline ca să nu mai existe riscul de ReferenceError */}
+          &copy; {new Date().getFullYear()} FlashDesk. Toate drepturile rezervate.
         </div>
         <div className="flex items-center gap-1">
           <span>Făcut cu</span>
