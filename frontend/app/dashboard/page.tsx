@@ -486,7 +486,6 @@ export default function DashboardPage() {
             )}
           </div>
         )}
-        <Footer></Footer>
       </main>
 
       {/* Create Modal */}
@@ -669,7 +668,7 @@ export default function DashboardPage() {
           </button>
         </div>
       )}
-
+      <Footer></Footer>
       <style jsx>{`
         @keyframes blob {
           0%, 100% { transform: translate(0, 0) scale(1); }
