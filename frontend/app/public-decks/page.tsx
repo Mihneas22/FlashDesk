@@ -8,6 +8,7 @@ import {
 import { Navbar } from "@/components/navbar";
 import { DeckCard } from "@/components/deck-card";
 import { jwtDecode } from "jwt-decode";
+import { Footer } from "@/components/footer";
 
 const TOPICS = [
   "Mathematical Analysis",
@@ -572,6 +573,8 @@ export default function PublicDecksPage() {
             </div>
           </section>
         )}
+
+        <Footer></Footer>
 
       </main>
 
