@@ -15,46 +15,170 @@ interface DeckCardProps {
   onDeckUpdated?: () => void;
 }
 
-const topicColors: Record<string, { gradient: string; badgeBg: string; badgeText: string; shadow: string }> = {
-  "Mathematical Analysis": { gradient: "from-blue-500 to-cyan-500", badgeBg: "bg-blue-50", badgeText: "text-blue-600", shadow: "shadow-blue-500/30" },
-  "Physics": { gradient: "from-purple-500 to-pink-500", badgeBg: "bg-purple-50", badgeText: "text-purple-600", shadow: "shadow-purple-500/30" },
-  "C++ / Computer Programming": { gradient: "from-green-500 to-emerald-500", badgeBg: "bg-emerald-50", badgeText: "text-emerald-600", shadow: "shadow-green-500/30" },
-  "Special Mathematics": { gradient: "from-orange-500 to-red-500", badgeBg: "bg-orange-50", badgeText: "text-orange-600", shadow: "shadow-orange-500/30" },
-  "Numerical Methods": { gradient: "from-indigo-500 to-purple-500", badgeBg: "bg-indigo-50", badgeText: "text-indigo-600", shadow: "shadow-indigo-500/30" },
-  "Data Structures": { gradient: "from-teal-500 to-cyan-500", badgeBg: "bg-teal-50", badgeText: "text-teal-600", shadow: "shadow-teal-500/30" },
-  "Discrete Mathematics": { gradient: "from-pink-500 to-rose-500", badgeBg: "bg-pink-50", badgeText: "text-pink-600", shadow: "shadow-pink-500/30" },
-  "Electrical Engineering": { gradient: "from-yellow-500 to-orange-500", badgeBg: "bg-yellow-50", badgeText: "text-yellow-600", shadow: "shadow-yellow-500/30" },
-  "Linear Algebra": { gradient: "from-violet-500 to-purple-500", badgeBg: "bg-violet-50", badgeText: "text-violet-600", shadow: "shadow-violet-500/30" },
-  "Basics of Computer Operation": { gradient: "from-sky-500 to-blue-500", badgeBg: "bg-sky-50", badgeText: "text-sky-600", shadow: "shadow-sky-500/30" },
-  "Object-oriented programming": { gradient: "from-emerald-500 to-teal-500", badgeBg: "bg-emerald-50", badgeText: "text-emerald-600", shadow: "shadow-emerald-500/30" },
-  "Assembly language programming": { gradient: "from-slate-600 to-gray-700", badgeBg: "bg-slate-100", badgeText: "text-slate-700", shadow: "shadow-slate-500/30" }
+// Enhanced color palette mapping for topics using LearnQHub brand colors
+const topicColors: Record<string, { 
+  gradient: string; 
+  bgGradient: string; 
+  badge: string; 
+  badgeText: string; 
+  icon: string;
+  iconBg: string;
+  hoverShadow: string;
+}> = {
+  "Mathematical Analysis": { 
+    gradient: "from-cyan-500 to-cyan-600", 
+    bgGradient: "from-cyan-500/8 to-cyan-600/8",
+    badge: "bg-cyan-500/25", 
+    badgeText: "text-cyan-300", 
+    icon: "text-cyan-400",
+    iconBg: "bg-cyan-500/15",
+    hoverShadow: "hover:shadow-cyan-500/20"
+  },
+  "Physics": { 
+    gradient: "from-amber-500 to-amber-600", 
+    bgGradient: "from-amber-500/8 to-amber-600/8",
+    badge: "bg-amber-500/25", 
+    badgeText: "text-amber-300", 
+    icon: "text-amber-400",
+    iconBg: "bg-amber-500/15",
+    hoverShadow: "hover:shadow-amber-500/20"
+  },
+  "C++ / Computer Programming": { 
+    gradient: "from-green-500 to-green-600", 
+    bgGradient: "from-green-500/8 to-green-600/8",
+    badge: "bg-green-500/25", 
+    badgeText: "text-green-300", 
+    icon: "text-green-400",
+    iconBg: "bg-green-500/15",
+    hoverShadow: "hover:shadow-green-500/20"
+  },
+  "Special Mathematics": { 
+    gradient: "from-red-500 to-red-600", 
+    bgGradient: "from-red-500/8 to-red-600/8",
+    badge: "bg-red-500/25", 
+    badgeText: "text-red-300", 
+    icon: "text-red-400",
+    iconBg: "bg-red-500/15",
+    hoverShadow: "hover:shadow-red-500/20"
+  },
+  "Numerical Methods": { 
+    gradient: "from-cyan-500 to-blue-600", 
+    bgGradient: "from-cyan-500/8 to-blue-600/8",
+    badge: "bg-cyan-500/25", 
+    badgeText: "text-cyan-300", 
+    icon: "text-cyan-400",
+    iconBg: "bg-cyan-500/15",
+    hoverShadow: "hover:shadow-cyan-500/20"
+  },
+  "Data Structures": { 
+    gradient: "from-green-500 to-cyan-600", 
+    bgGradient: "from-green-500/8 to-cyan-600/8",
+    badge: "bg-green-500/25", 
+    badgeText: "text-green-300", 
+    icon: "text-green-400",
+    iconBg: "bg-green-500/15",
+    hoverShadow: "hover:shadow-green-500/20"
+  },
+  "Discrete Mathematics": { 
+    gradient: "from-amber-500 to-amber-600", 
+    bgGradient: "from-amber-500/8 to-amber-600/8",
+    badge: "bg-amber-500/25", 
+    badgeText: "text-amber-300", 
+    icon: "text-amber-400",
+    iconBg: "bg-amber-500/15",
+    hoverShadow: "hover:shadow-amber-500/20"
+  },
+  "Electrical Engineering": { 
+    gradient: "from-amber-500 to-red-600", 
+    bgGradient: "from-amber-500/8 to-red-600/8",
+    badge: "bg-amber-500/25", 
+    badgeText: "text-amber-300", 
+    icon: "text-amber-400",
+    iconBg: "bg-amber-500/15",
+    hoverShadow: "hover:shadow-amber-500/20"
+  },
+  "Linear Algebra": { 
+    gradient: "from-cyan-500 to-cyan-600", 
+    bgGradient: "from-cyan-500/8 to-cyan-600/8",
+    badge: "bg-cyan-500/25", 
+    badgeText: "text-cyan-300", 
+    icon: "text-cyan-400",
+    iconBg: "bg-cyan-500/15",
+    hoverShadow: "hover:shadow-cyan-500/20"
+  },
+  "Basics of Computer Operation": { 
+    gradient: "from-green-500 to-green-600", 
+    bgGradient: "from-green-500/8 to-green-600/8",
+    badge: "bg-green-500/25", 
+    badgeText: "text-green-300", 
+    icon: "text-green-400",
+    iconBg: "bg-green-500/15",
+    hoverShadow: "hover:shadow-green-500/20"
+  },
+  "Object-oriented programming": { 
+    gradient: "from-green-500 to-green-600", 
+    bgGradient: "from-green-500/8 to-green-600/8",
+    badge: "bg-green-500/25", 
+    badgeText: "text-green-300", 
+    icon: "text-green-400",
+    iconBg: "bg-green-500/15",
+    hoverShadow: "hover:shadow-green-500/20"
+  },
+  "Assembly language programming": { 
+    gradient: "from-slate-600 to-slate-700", 
+    bgGradient: "from-slate-600/8 to-slate-700/8",
+    badge: "bg-slate-600/25", 
+    badgeText: "text-slate-300", 
+    icon: "text-slate-400",
+    iconBg: "bg-slate-600/15",
+    hoverShadow: "hover:shadow-slate-500/20"
+  }
 };
 
 const defaultColors = { 
-  gradient: "from-violet-500 to-fuchsia-500", 
-  badgeBg: "bg-violet-50",
-  badgeText: "text-violet-600",
-  shadow: "shadow-violet-500/30"
+  gradient: "from-amber-500 to-amber-600", 
+  bgGradient: "from-amber-500/8 to-amber-600/8",
+  badge: "bg-amber-500/25",
+  badgeText: "text-amber-300",
+  icon: "text-amber-400",
+  iconBg: "bg-amber-500/15",
+  hoverShadow: "hover:shadow-amber-500/20"
 };
 
 export function DeckCard({ usId, deck, onDeckDeleted, onDeckUpdated }: DeckCardProps) {
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
-  const [toast, setToast] = useState({ show: false, message: "", type: "error" });
-  const menuRef = useRef<HTMLDivElement>(null);
+  type ToastState = {
+    show: boolean;
+    message: string;
+    type: "error" | "success";
+  };
   
+  const menuRef = useRef<HTMLDivElement>(null);
   const colors = deck.topic ? (topicColors[deck.topic] || defaultColors) : defaultColors;
   const cardCount = deck.cards?.length || 0;
 
+  const [toast, setToast] = useState<ToastState>({ 
+      show: false, 
+      message: "", 
+      type: "error" 
+    });
+  
   const showToast = useCallback((message: string, type: "error" | "success" = "error") => {
     setToast({ show: true, message, type });
-    setTimeout(() => setToast(prev => ({ ...prev, show: false })), 5000);
   }, []);
+  useEffect(() => {
+    if (!toast.show) return;
+
+    const timer = setTimeout(() => {
+      setToast(prev => ({ ...prev, show: false }));
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [toast.show]);
+  
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -88,7 +212,6 @@ export function DeckCard({ usId, deck, onDeckDeleted, onDeckUpdated }: DeckCardP
     setIsDeleteModalOpen(true);
   };
   
-  // --- API CALL: DELETE ---
   const handleDelete = async () => {
     setIsLoading(true);
 
@@ -114,14 +237,12 @@ export function DeckCard({ usId, deck, onDeckDeleted, onDeckUpdated }: DeckCardP
               errorMessage = result.message || errorMessage;
             }
           } catch (e) {
-            // Valid OK response, but empty/non-JSON
+            // Valid OK response
           }
         }
 
         if (isSuccess) {
           setIsDeleteModalOpen(false);
-          // Only trigger onDeckDeleted after a slight delay if you want the success toast to be seen
-          // However, if the parent unmounts this card, the toast will disappear.
           showToast("Deck deleted successfully!", "success");
           setTimeout(() => {
              if (onDeckDeleted) onDeckDeleted(deck.id);
@@ -140,7 +261,6 @@ export function DeckCard({ usId, deck, onDeckDeleted, onDeckUpdated }: DeckCardP
     }
   };
 
-  // --- API CALL: EDIT ---
   const handleEdit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
@@ -151,7 +271,7 @@ export function DeckCard({ usId, deck, onDeckDeleted, onDeckUpdated }: DeckCardP
       title: formData.get("title") as string,
       description: formData.get("description") as string,
       topic: formData.get("topic") as string,
-      status: formData.get("status") ? "1" : "0" // 1 public, 0 private (C# requirement)
+      status: formData.get("status") ? "1" : "0"
     };
 
     try {
@@ -177,7 +297,7 @@ export function DeckCard({ usId, deck, onDeckDeleted, onDeckUpdated }: DeckCardP
               errorMessage = result.message || errorMessage;
             }
           } catch (e) {
-            // Valid OK response, but empty/non-JSON
+            // Valid OK response
           }
         }
 
@@ -203,40 +323,56 @@ export function DeckCard({ usId, deck, onDeckDeleted, onDeckUpdated }: DeckCardP
     <>
       <Link href={`/deck/${deck.id}`} className="block h-full outline-none">
         <div className="group relative h-full flex flex-col">
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-violet-600 via-purple-600 to-pink-600 rounded-[2rem] opacity-0 group-hover:opacity-15 blur-xl transition-opacity duration-500" />
+          {/* Animated gradient border on hover */}
+          <div className={`absolute -inset-1 bg-gradient-to-r ${colors.gradient} rounded-2xl opacity-0 group-hover:opacity-30 blur-xl transition-all duration-500 group-hover:duration-300`} />
           
-          <div className="relative flex flex-col h-full bg-white/95 backdrop-blur-sm rounded-3xl border border-purple-50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] group-hover:shadow-[0_20px_40px_rgb(139,92,246,0.1)] transition-all duration-500 group-hover:-translate-y-1.5 overflow-hidden">
-            <div className="p-6 flex flex-col flex-1">
-              <div className="flex items-start justify-between mb-5">
+          {/* Main Card Container */}
+          <div className={`relative flex flex-col h-full bg-gradient-to-br ${colors.bgGradient} backdrop-blur-xl rounded-2xl border border-slate-700/40 shadow-2xl ${colors.hoverShadow} transition-all duration-500 group-hover:-translate-y-2 overflow-hidden`}>
+            
+            {/* Shimmer effect on hover */}
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent transform -skew-x-12 group-hover:translate-x-full transition-transform duration-700" />
+            </div>
+
+            {/* Content */}
+            <div className="relative p-6 flex flex-col flex-1 z-10">
+              {/* Header: Icon + Menu */}
+              <div className="flex items-start justify-between mb-6">
                 
-                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${colors.gradient} p-[2px] shadow-lg ${colors.shadow} transform group-hover:scale-105 group-hover:rotate-3 transition-all duration-500`}>
-                  <div className="w-full h-full rounded-[14px] bg-white/20 backdrop-blur-md flex items-center justify-center">
-                    <BookOpen className="w-6 h-6 text-white drop-shadow-sm" />
+                {/* Topic Icon - Animated */}
+                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${colors.gradient} p-0.5 shadow-xl ${colors.hoverShadow} transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-500`}>
+                  <div className={`w-full h-full rounded-[15px] ${colors.iconBg} backdrop-blur-md flex items-center justify-center border border-slate-700/50 group-hover:border-slate-600/50 transition-colors`}>
+                    <BookOpen className={`w-7 h-7 ${colors.icon} group-hover:scale-125 transition-transform duration-500`} />
                   </div>
                 </div>
 
-                {/* Dropdown Menu */}
+                {/* More Menu Button */}
                 {usId !== "empty" && (
                   <div className="relative" ref={menuRef}>
                     <button 
-                      className={`p-2 rounded-xl text-gray-400 hover:text-violet-600 hover:bg-violet-50 transition-colors z-10 relative ${isMenuOpen ? 'opacity-100 bg-violet-50 text-violet-600' : 'opacity-0 group-hover:opacity-100'}`}
+                      className={`p-2.5 rounded-xl transition-all duration-300 z-20 relative ${
+                        isMenuOpen 
+                          ? `bg-slate-800/60 text-amber-400 shadow-lg` 
+                          : `text-slate-500 hover:text-amber-400 hover:bg-slate-800/40 opacity-0 group-hover:opacity-100`
+                      }`}
                       onClick={toggleMenu}
                     >
                       <MoreVertical className="w-5 h-5" />
                     </button>
 
+                    {/* Dropdown Menu */}
                     {isMenuOpen && (
-                      <div className="absolute top-full right-0 mt-2 w-36 bg-white/95 backdrop-blur-xl rounded-2xl shadow-[0_10px_40px_rgb(0,0,0,0.1)] border border-purple-50 overflow-hidden z-20 origin-top-right animate-in fade-in zoom-in-95 duration-200">
-                        <div className="p-1.5 flex flex-col gap-1">
+                      <div className="absolute top-full right-0 mt-2 w-40 bg-slate-900/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-700/50 overflow-hidden z-50 origin-top-right animate-in fade-in zoom-in-95 duration-200">
+                        <div className="p-2 flex flex-col gap-1">
                           <button 
                             onClick={openEditModal}
-                            className="flex items-center gap-2.5 w-full px-3 py-2 text-sm font-semibold text-gray-600 hover:text-violet-700 hover:bg-violet-50 rounded-xl transition-colors"
+                            className="flex items-center gap-3 w-full px-4 py-2.5 text-sm font-semibold text-slate-300 hover:text-amber-300 hover:bg-slate-800/50 rounded-lg transition-all duration-200"
                           >
-                            <Edit2 className="w-4 h-4" /> Edit
+                            <Edit2 className="w-4 h-4" /> Edit Deck
                           </button>
                           <button 
                             onClick={openDeleteModal}
-                            className="flex items-center gap-2.5 w-full px-3 py-2 text-sm font-semibold text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl transition-colors"
+                            className="flex items-center gap-3 w-full px-4 py-2.5 text-sm font-semibold text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded-lg transition-all duration-200"
                           >
                             <Trash2 className="w-4 h-4" /> Delete
                           </button>
@@ -247,21 +383,23 @@ export function DeckCard({ usId, deck, onDeckDeleted, onDeckUpdated }: DeckCardP
                 )}
               </div>
 
+              {/* Title & Description */}
               <div className="flex-1 flex flex-col">
-                <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-violet-600 group-hover:to-pink-600 group-hover:bg-clip-text transition-all duration-300 line-clamp-2">
+                <h3 className="text-lg font-bold text-slate-100 mb-2 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-amber-400 group-hover:to-cyan-400 group-hover:bg-clip-text transition-all duration-300 line-clamp-2 leading-snug">
                   {deck.title}
                 </h3>
                 {deck.description && (
-                  <p className="text-sm font-medium text-gray-500 line-clamp-2 mb-4">
+                  <p className="text-sm font-medium text-slate-400 line-clamp-2 mb-4 group-hover:text-slate-300 transition-colors duration-300">
                     {deck.description}
                   </p>
                 )}
                 
                 <div className="flex-1" />
 
+                {/* Topic Badge */}
                 {deck.topic && (
-                  <div className="mt-2 mb-2">
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold ${colors.badgeBg} ${colors.badgeText} transition-colors`}>
+                  <div className="mt-3">
+                    <span className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold ${colors.badge} ${colors.badgeText} border border-slate-700/40 group-hover:border-slate-600/60 transition-all duration-300 backdrop-blur-sm`}>
                       <Sparkles className="w-3.5 h-3.5" />
                       {deck.topic}
                     </span>
@@ -270,136 +408,174 @@ export function DeckCard({ usId, deck, onDeckDeleted, onDeckUpdated }: DeckCardP
               </div>
             </div>
 
-            <div className="flex items-center justify-between px-6 py-4 bg-gray-50/50 border-t border-purple-50/50">
-              <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-gray-100 shadow-sm">
-                <Layers className="w-4 h-4 text-violet-400" />
-                <span className="text-sm font-bold text-gray-700">{cardCount}</span>
-                <span className="text-xs font-bold text-gray-400">
+            {/* Footer Section */}
+            <div className="relative flex items-center justify-between px-6 py-4 bg-gradient-to-r from-slate-800/20 to-slate-900/20 border-t border-slate-700/30 z-10 backdrop-blur-sm">
+              {/* Cards Count */}
+              <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-slate-800/40 border border-slate-700/40 group-hover:bg-slate-800/60 transition-all duration-300">
+                <Layers className={`w-4 h-4 ${colors.icon}`} />
+                <span className="text-sm font-black text-slate-100">{cardCount}</span>
+                <span className="text-xs font-bold text-slate-500">
                   {cardCount === 1 ? "CARD" : "CARDS"}
                 </span>
               </div>
 
-              <div className="flex items-center gap-1.5">
+              {/* Privacy Badge */}
+              <div>
                 {deck.status === false ? (
-                  <div className="flex items-center gap-1.5 bg-gray-100/80 px-2.5 py-1 rounded-lg">
-                    <Lock className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-wider">Private</span>
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-700/30 border border-slate-700/50">
+                    <Lock className="w-3.5 h-3.5 text-slate-400" />
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wide">Private</span>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-1.5 bg-emerald-50 px-2.5 py-1 rounded-lg">
-                    <Eye className="w-3.5 h-3.5 text-emerald-500" />
-                    <span className="text-[10px] font-black text-emerald-600 uppercase tracking-wider">Public</span>
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-500/20 border border-green-500/40 group-hover:bg-green-500/30 transition-all duration-300">
+                    <Eye className="w-3.5 h-3.5 text-green-400" />
+                    <span className="text-[10px] font-black text-green-300 uppercase tracking-wide">Public</span>
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="absolute top-0 right-0 w-32 h-32 opacity-[0.03] pointer-events-none transition-opacity group-hover:opacity-[0.06]">
-              <div className={`absolute inset-0 bg-gradient-to-br ${colors.gradient} transform rotate-45 translate-x-16 -translate-y-16 rounded-3xl`} />
+            {/* Background Accent */}
+            <div className="absolute bottom-0 right-0 w-40 h-40 opacity-0 group-hover:opacity-5 pointer-events-none transition-opacity duration-500">
+              <div className={`absolute inset-0 bg-gradient-to-br ${colors.gradient} blur-3xl`} />
             </div>
 
           </div>
         </div>
       </Link>
 
-      {/* 2. DELETE MODAL (Kept outside Link) */}
+      {/* DELETE MODAL */}
       {isDeleteModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => !isLoading && setIsDeleteModalOpen(false)} />
-          <div className="relative bg-white rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-200">
-            <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mb-5 border border-red-100">
-              <AlertCircle className="w-6 h-6 text-red-500" />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="absolute inset-0 bg-slate-950/60" onClick={() => !isLoading && setIsDeleteModalOpen(false)} />
+          <div className="relative bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 max-w-md w-full shadow-2xl border border-slate-700/50 animate-in zoom-in-95 duration-200">
+            <div className="w-14 h-14 rounded-full bg-red-500/20 flex items-center justify-center mb-6 border border-red-500/30">
+              <AlertCircle className="w-7 h-7 text-red-400" />
             </div>
             
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Delete Deck</h3>
-            <p className="text-gray-500 text-sm mb-8 leading-relaxed">
-              Are you sure you want to delete <span className="font-bold text-gray-700">"{deck.title}"</span>? This action cannot be undone.
+            <h3 className="text-2xl font-black text-slate-100 mb-2">Delete Deck?</h3>
+            <p className="text-slate-400 text-sm mb-8 leading-relaxed">
+              Are you sure you want to delete <span className="font-bold text-slate-200">"{deck.title}"</span>? This action is permanent and cannot be undone.
             </p>
             
             <div className="flex gap-3 justify-end">
               <button 
                 onClick={() => setIsDeleteModalOpen(false)}
                 disabled={isLoading}
-                className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 bg-gray-50 hover:bg-gray-100 disabled:opacity-50"
+                className="px-6 py-2.5 rounded-lg text-sm font-bold text-slate-300 bg-slate-700/50 hover:bg-slate-700 disabled:opacity-50 transition-all duration-200"
               >
                 Cancel
               </button>
               <button 
                 onClick={handleDelete}
                 disabled={isLoading}
-                className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-red-500 to-rose-500 hover:shadow-lg disabled:opacity-50 flex items-center gap-2"
+                className="px-6 py-2.5 rounded-lg text-sm font-bold text-slate-950 bg-gradient-to-r from-red-500 to-red-600 hover:shadow-lg hover:shadow-red-500/30 disabled:opacity-50 flex items-center gap-2 transition-all duration-200"
               >
                 {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-                {isLoading ? "Deleting..." : "Yes, delete it"}
+                {isLoading ? "Deleting..." : "Delete Forever"}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* 3. EDIT MODAL (Kept outside Link) */}
+      {/* EDIT MODAL */}
       {isEditModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => !isLoading && setIsEditModalOpen(false)} />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="absolute inset-0 bg-slate-950/60" onClick={() => !isLoading && setIsEditModalOpen(false)} />
           
-          <div className="relative bg-white rounded-3xl max-w-lg w-full shadow-2xl animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
-            <div className="flex items-center justify-between p-6 border-b border-gray-100">
-              <h3 className="text-xl font-bold text-gray-900">Edit Deck</h3>
-              <button onClick={() => setIsEditModalOpen(false)} className="p-2 text-gray-400 hover:bg-gray-50 rounded-full">
+          <div className="relative bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl max-w-lg w-full shadow-2xl border border-slate-700/50 animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh] overflow-hidden">
+            
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-slate-700/50 bg-slate-800/30">
+              <h3 className="text-xl font-black text-slate-100">Edit Deck</h3>
+              <button 
+                onClick={() => setIsEditModalOpen(false)} 
+                className="p-2 text-slate-400 hover:text-slate-300 hover:bg-slate-700/50 rounded-lg transition-all duration-200"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleEdit} className="p-6 overflow-y-auto flex-1">
-              <div className="space-y-5">
-                <div className="space-y-1.5">
-                  <label className="text-sm font-bold text-gray-700">Title</label>
-                  <input 
-                      name="title" 
-                      defaultValue={deck.title} 
-                      required
-                      className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 outline-none text-gray-900 font-medium"
-                    />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-sm font-bold text-gray-700">Topic</label>
-                  <input 
-                    name="topic" defaultValue={deck.topic} required
-                    className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 outline-none text-gray-900 font-medium"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-sm font-bold text-gray-700">Description</label>
-                  <textarea 
-                    name="description" defaultValue={deck.description} required rows={3}
-                    className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 outline-none resize-none text-gray-900 font-medium placeholder:text-gray-400"
-                  />
-                </div>
-
-                <div className="flex items-center gap-3 pt-2">
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" name="status" defaultChecked={deck.status} className="sr-only peer" />
-                    <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                    <span className="ml-3 text-sm font-bold text-gray-700">Make this deck public</span>
-                  </label>
-                </div>
+            {/* Form */}
+            <form onSubmit={handleEdit} className="p-6 overflow-y-auto flex-1 space-y-6">
+              {/* Title Field */}
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-300">Deck Title</label>
+                <input 
+                  name="title" 
+                  defaultValue={deck.title} 
+                  required
+                  placeholder="Enter a descriptive title"
+                  className="w-full px-4 py-3 rounded-lg bg-slate-800/50 border border-slate-700/50 text-slate-100 placeholder:text-slate-600 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/30 outline-none font-medium transition-all duration-200"
+                />
               </div>
 
-              <div className="mt-8 flex gap-3 justify-end pt-6 border-t border-gray-100">
+              {/* Topic Field */}
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-300">Topic</label>
+                <input 
+                  name="topic" 
+                  defaultValue={deck.topic} 
+                  required
+                  placeholder="e.g., Data Structures"
+                  className="w-full px-4 py-3 rounded-lg bg-slate-800/50 border border-slate-700/50 text-slate-100 placeholder:text-slate-600 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/30 outline-none font-medium transition-all duration-200"
+                />
+              </div>
+
+              {/* Description Field */}
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-300">Description</label>
+                <textarea 
+                  name="description" 
+                  defaultValue={deck.description} 
+                  required 
+                  rows={4}
+                  placeholder="Describe what this deck covers..."
+                  className="w-full px-4 py-3 rounded-lg bg-slate-800/50 border border-slate-700/50 text-slate-100 placeholder:text-slate-600 focus:border-green-500 focus:ring-2 focus:ring-green-500/30 outline-none resize-none font-medium transition-all duration-200"
+                />
+              </div>
+
+              {/* Public Toggle */}
+              <div className="flex items-center gap-4 pt-2 bg-slate-800/20 px-4 py-3 rounded-lg border border-slate-700/30">
+                <label className="relative inline-flex items-center cursor-pointer flex-1">
+                  <input 
+                    type="checkbox" 
+                    name="status" 
+                    defaultChecked={deck.status} 
+                    className="sr-only peer" 
+                  />
+                  <div className="w-11 h-6 bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-100 after:border-slate-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                  <span className="ml-3 text-sm font-bold text-slate-300">Make this deck public</span>
+                </label>
+              </div>
+
+              {/* Form Actions */}
+              <div className="flex gap-3 justify-end pt-4 mt-6 border-t border-slate-700/50">
                 <button 
-                  type="button" onClick={() => setIsEditModalOpen(false)} disabled={isLoading}
-                  className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 bg-gray-50 hover:bg-gray-100 disabled:opacity-50"
+                  type="button" 
+                  onClick={() => setIsEditModalOpen(false)} 
+                  disabled={isLoading}
+                  className="px-6 py-2.5 rounded-lg text-sm font-bold text-slate-300 bg-slate-700/50 hover:bg-slate-700 disabled:opacity-50 transition-all duration-200"
                 >
                   Cancel
                 </button>
                 <button 
-                  type="submit" disabled={isLoading}
-                  className="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-violet-600 to-purple-600 hover:shadow-lg disabled:opacity-50 flex items-center gap-2"
+                  type="submit" 
+                  disabled={isLoading}
+                  className="px-6 py-2.5 rounded-lg text-sm font-bold text-slate-950 bg-gradient-to-r from-amber-500 to-amber-600 hover:shadow-lg hover:shadow-amber-500/30 disabled:opacity-50 flex items-center gap-2 transition-all duration-200"
                 >
-                  {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                  {isLoading ? "Saving..." : "Save Changes"}
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4" />
+                      Save Changes
+                    </>
+                  )}
                 </button>
               </div>
             </form>
@@ -407,23 +583,25 @@ export function DeckCard({ usId, deck, onDeckDeleted, onDeckUpdated }: DeckCardP
         </div>
       )}
 
-      {/* Global Toast Notification */}
+      {/* Toast Notification */}
       {toast.show && (
-        <div className={`fixed bottom-6 right-6 z-[100] px-6 py-4 rounded-2xl shadow-2xl border backdrop-blur-md flex items-center gap-3 animate-in slide-in-from-bottom-5 transition-all ${
+        <div className={`fixed bottom-6 right-6 z-[100] px-6 py-4 rounded-xl shadow-2xl border backdrop-blur-md flex items-center gap-4 animate-in slide-in-from-bottom-5 duration-300 transition-all ${
           toast.type === "error" 
-            ? "bg-red-950/90 border-red-500/50 text-red-200" 
-            : "bg-green-950/90 border-green-500/50 text-green-200"
+            ? "bg-red-950/95 border-red-500/50" 
+            : "bg-green-950/95 border-green-500/50"
         }`}>
           {toast.type === "error" ? (
-            <AlertCircle className="w-5 h-5 text-red-400" />
+            <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
           ) : (
-            <CheckCircle className="w-5 h-5 text-green-400" />
+            <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0" />
           )}
-          <p className="font-semibold text-sm mr-2">{toast.message}</p>
+          <p className={`font-semibold text-sm ${toast.type === "error" ? "text-red-200" : "text-green-200"}`}>
+            {toast.message}
+          </p>
           <button 
             onClick={() => setToast(prev => ({ ...prev, show: false }))} 
-            className={`p-1 rounded-lg transition-colors ${
-              toast.type === "error" ? "hover:bg-red-900/50" : "hover:bg-green-900/50"
+            className={`p-1 rounded-lg transition-colors flex-shrink-0 ${
+              toast.type === "error" ? "text-red-400 hover:bg-red-900/50" : "text-green-400 hover:bg-green-900/50"
             }`}
           >
             <X className="w-4 h-4" />
