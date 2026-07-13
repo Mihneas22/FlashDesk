@@ -2,7 +2,11 @@
 
 import { use, useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { ArrowLeft, Plus, PlayCircle, Pencil, Trash2, BookOpen, AlertCircle, CheckCircle, X, Terminal, Code2, Database, Activity, LayoutGrid } from "lucide-react";
+import { 
+  ArrowLeft, Plus, PlayCircle, Pencil, Trash2, BookOpen, 
+  AlertCircle, CheckCircle, X, Terminal, Code2, Database, 
+  Activity, LayoutGrid, Search, ChevronDown, ChevronUp, PieChart, Hash
+} from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { CardEditorModal } from "@/components/card-editor-modal";
 import { cn } from "@/lib/utils";
@@ -37,6 +41,10 @@ export default function DeckPage({ params }: PageProps) {
   const [userId, setNewUserId] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
   
+  // UX States
+  const [searchQuery, setSearchQuery] = useState("");
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
+
   const [addOpen, setAddOpen] = useState(false);
   const [editCard, setEditCard] = useState<any | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
@@ -217,7 +225,26 @@ export default function DeckPage({ params }: PageProps) {
     }
   }
 
+  const toggleExpand = (cardId: string) => {
+    const newExpanded = new Set(expandedCards);
+    if (newExpanded.has(cardId)) {
+      newExpanded.delete(cardId);
+    } else {
+      newExpanded.add(cardId);
+    }
+    setExpandedCards(newExpanded);
+  };
+
   const showEditsModal = (userId === currentDeck?.deckUsId) || isAdmin;
+
+  // Filter cards based on search query (Front and Back)
+  const filteredCards = cards?.filter(card => 
+    card.front.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    card.back.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Mock Mastery Calculation
+  const mockMastery = cards && cards.length > 0 ? Math.floor(Math.random() * 40) + 45 : 0; // Random 45-85% for demo
 
   if (loading) {
     return (
@@ -254,7 +281,6 @@ export default function DeckPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-[#0F1419] text-[#E8EAED] font-sans selection:bg-[#00D9FF]/30">
-      {/* Grid pattern specific to the tech theme */}
       <div className="fixed inset-0 pointer-events-none" 
            style={{ backgroundImage: 'radial-gradient(#2A3142 1px, transparent 1px)', backgroundSize: '40px 40px', opacity: 0.15 }} />
 
@@ -262,7 +288,6 @@ export default function DeckPage({ params }: PageProps) {
 
       <main className="mx-auto max-w-5xl px-4 sm:px-6 py-8 relative z-10 animate-fade-in">
         <div>
-          {/* Back Trigger */}
           <Link 
             href="/dashboard" 
             className="group inline-flex items-center gap-2 px-3 py-1.5 mb-6 rounded-lg bg-[#1A1F2E] border border-[#2A3142] text-[#7A8394] hover:text-[#E8EAED] hover:border-[#00D9FF]/40 transition-all font-mono text-xs"
@@ -271,16 +296,20 @@ export default function DeckPage({ params }: PageProps) {
             ../all_decks
           </Link>
 
-          {/* Repository Deck Header Panel */}
-          <div className="mb-6 bg-[#1A1F2E] rounded-xl p-6 border border-[#2A3142] flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="flex items-start gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-[#252D3D] border border-[#2A3142] text-[#00D9FF] font-mono font-black text-xl shadow-inner">
+          <div className="mb-6 bg-[#1A1F2E] rounded-xl p-6 border border-[#2A3142] flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
+            {/* Subtle tech background accent */}
+            <div className="absolute -right-20 -top-20 w-64 h-64 bg-[#00D9FF]/5 rounded-full blur-3xl pointer-events-none" />
+            
+            <div className="flex items-start gap-4 relative z-10">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-[#252D3D] border border-[#2A3142] text-[#00D9FF] font-mono font-black text-2xl shadow-inner relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-b from-[#00D9FF]/10 to-transparent opacity-50" />
                 {currentDeck.title[0]?.toUpperCase()}
               </div>
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <div className="flex items-center gap-2.5 flex-wrap">
                   <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#E8EAED]">{currentDeck.title}</h1>
-                  <span className="inline-flex items-center px-2 py-0.5 rounded bg-[#252D3D] text-[#FFB84D] border border-[#FFB84D]/20 font-mono text-[10px] tracking-wider uppercase font-bold">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#252D3D] text-[#FFB84D] border border-[#FFB84D]/20 font-mono text-[10px] tracking-wider uppercase font-bold">
+                    <Code2 className="w-3 h-3" />
                     {currentDeck.topic}
                   </span>
                 </div>
@@ -288,8 +317,7 @@ export default function DeckPage({ params }: PageProps) {
               </div>
             </div>
 
-            {/* Panel Control Actions */}
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3 relative z-10">
               <Link 
                 href={`/study/${currentDeck.id}`} 
                 className="flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-lg bg-[#00D9FF] text-[#0F1419] font-mono text-sm font-bold px-5 py-2.5 hover:bg-[#00B8D4] transition-all shadow-[0_0_15px_rgba(0,217,255,0.15)] group"
@@ -311,32 +339,64 @@ export default function DeckPage({ params }: PageProps) {
           </div>
 
           {/* IDE Style Metadata Dashboard Counters */}
-          <div className="mb-6 grid grid-cols-2 gap-4">
-            <div className="bg-[#1A1F2E] rounded-xl p-4 border border-[#2A3142] flex items-center gap-3.5">
-              <div className="w-9 h-9 rounded-md bg-[#252D3D] border border-[#2A3142] flex items-center justify-center text-[#00D9FF]">
-                <Database className="w-4 h-4" />
+          <div className="mb-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-[#1A1F2E] rounded-xl p-4 border border-[#2A3142] flex items-center gap-3.5 hover:border-[#7A8394]/30 transition-colors">
+              <div className="w-10 h-10 rounded-lg bg-[#252D3D] border border-[#2A3142] flex items-center justify-center text-[#00D9FF]">
+                <Database className="w-4.5 h-4.5" />
               </div>
               <div>
                 <span className="block text-xl font-mono font-bold text-[#E8EAED] leading-none mb-1">{cards?.length || 0}</span>
                 <span className="block text-[10px] font-mono font-bold text-[#7A8394] tracking-wider uppercase">Compilation Units</span>
               </div>
             </div>
-            <div className="bg-[#1A1F2E] rounded-xl p-4 border border-[#2A3142] flex items-center gap-3.5">
-              <div className="w-9 h-9 rounded-md bg-[#252D3D] border border-[#2A3142] flex items-center justify-center text-[#FFB84D]">
-                <Activity className="w-4 h-4" />
+            
+            <div className="bg-[#1A1F2E] rounded-xl p-4 border border-[#2A3142] flex items-center gap-3.5 hover:border-[#7A8394]/30 transition-colors">
+              <div className="w-10 h-10 rounded-lg bg-[#252D3D] border border-[#2A3142] flex items-center justify-center text-[#FFB84D]">
+                <Activity className="w-4.5 h-4.5" />
               </div>
               <div>
                 <span className="block text-xl font-mono font-bold text-[#E8EAED] leading-none mb-1">{Math.min(cards?.length || 0, 5)}</span>
                 <span className="block text-[10px] font-mono font-bold text-[#7A8394] tracking-wider uppercase">Active In Queue</span>
               </div>
             </div>
+
+            <div className="bg-[#1A1F2E] rounded-xl p-4 border border-[#2A3142] flex flex-col justify-center gap-2 hover:border-[#7A8394]/30 transition-colors">
+              <div className="flex justify-between items-center w-full">
+                <div className="flex items-center gap-2">
+                  <PieChart className="w-4 h-4 text-[#4ADE80]" />
+                  <span className="text-[10px] font-mono font-bold text-[#7A8394] tracking-wider uppercase">Test Coverage</span>
+                </div>
+                <span className="text-sm font-mono font-bold text-[#4ADE80]">{mockMastery}%</span>
+              </div>
+              <div className="w-full h-1.5 bg-[#252D3D] rounded-full overflow-hidden">
+                <div className="h-full bg-[#4ADE80] rounded-full" style={{ width: `${mockMastery}%` }} />
+              </div>
+            </div>
           </div>
+
+          {/* List Toolbar (Search & Filters) */}
+          {cards && cards.length > 0 && (
+            <div className="mb-4 flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search className="h-4 w-4 text-[#7A8394]" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="grep 'keyword' ./deck_cards"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="block w-full pl-10 pr-3 py-2.5 border border-[#2A3142] rounded-lg bg-[#1A1F2E] text-[#E8EAED] font-mono text-sm focus:outline-none focus:border-[#00D9FF]/50 focus:ring-1 focus:ring-[#00D9FF]/50 transition-all placeholder:text-[#7A8394]/50"
+                />
+              </div>
+            </div>
+          )}
 
           {/* Card Execution Rows Context */}
           {cards == null || cards.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#2A3142] bg-[#1A1F2E] py-20 text-center px-6">
               <div className="w-12 h-12 rounded-lg bg-[#252D3D] border border-[#2A3142] flex items-center justify-center mb-4">
-                <BookOpen className="w-5 h-5 text-[#7A8394]" />
+                <Terminal className="w-5 h-5 text-[#7A8394]" />
               </div>
               <p className="text-base font-mono font-bold text-[#E8EAED]">BUFFER_EMPTY</p>
               <p className="mt-1 text-sm text-[#7A8394] max-w-xs">
@@ -347,57 +407,122 @@ export default function DeckPage({ params }: PageProps) {
               {isLoggedIn && showEditsModal && (
                 <button 
                   onClick={() => setAddOpen(true)} 
-                  className="mt-5 flex items-center gap-2 rounded-lg bg-[#252D3D] text-xs font-mono font-bold text-[#00D9FF] border border-[#2A3142] px-4 py-2 hover:bg-[#2A3142] transition-all"
+                  className="mt-5 flex items-center gap-2 rounded-lg bg-[#252D3D] text-xs font-mono font-bold text-[#00D9FF] border border-[#2A3142] px-4 py-2 hover:bg-[#2A3142] hover:border-[#00D9FF]/40 transition-all"
                 >
-                  <Plus className="h-3.5 h-3.5" />
+                  <Plus className="h-3.5 w-3.5" />
                   INIT_FIRST_CARD
                 </button>
               )}
             </div>
+          ) : filteredCards?.length === 0 ? (
+            <div className="flex flex-col items-center justify-center rounded-xl border border-[#2A3142] bg-[#1A1F2E] py-16 text-center px-6">
+              <Search className="w-8 h-8 text-[#7A8394] mb-3" />
+              <p className="text-sm font-mono font-bold text-[#E8EAED]">NO_MATCHES_FOUND</p>
+              <p className="mt-1 text-xs text-[#7A8394] font-mono">Exit status 1. Try a different grep pattern.</p>
+            </div>
           ) : (
-            <div className="flex flex-col gap-2.5 animate-slide-up">
-              {cards.map((card, i) => (
-                <div 
-                  key={card.id} 
-                  className="group flex flex-col sm:flex-row sm:items-center justify-between rounded-xl border border-[#2A3142] bg-[#1A1F2E] px-5 py-4 shadow-sm hover:border-[#7A8394]/50 hover:bg-[#1F2635] transition-all gap-4"
-                  style={{ animationDelay: `${i * 30}ms` }}
-                >
-                  <div className="flex items-start gap-3.5 min-w-0 flex-1">
-                    <div className="flex h-6 w-11 shrink-0 items-center justify-center rounded bg-[#252D3D] font-mono text-[11px] font-bold text-[#7A8394] border border-[#2A3142]">
-                      LN_{String(i + 1).padStart(3, '0')}
-                    </div>
-                    <div className="min-w-0 flex-1 overflow-hidden pt-0.5">
-                      <div className="prose prose-sm prose-invert max-w-none text-[#E8EAED] text-sm font-medium markdown-content">
-                        <ReactMarkdown 
-                          remarkPlugins={[remarkMath]} 
-                          rehypePlugins={[rehypeKatex]}
+            <div className="flex flex-col gap-3 animate-slide-up">
+              {filteredCards?.map((card, i) => {
+                const isExpanded = expandedCards.has(card.id);
+                // Generate some mock tags visually based on the index to look cool
+                const mockTags = i % 3 === 0 ? ['concept'] : i % 2 === 0 ? ['syntax', 'core'] : ['review'];
+
+                return (
+                  <div 
+                    key={card.id} 
+                    className={cn(
+                      "group flex flex-col rounded-xl border transition-all overflow-hidden",
+                      isExpanded ? "border-[#00D9FF]/30 bg-[#1F2635] shadow-[0_4px_20px_rgba(0,0,0,0.2)]" : "border-[#2A3142] bg-[#1A1F2E] hover:border-[#7A8394]/50 hover:bg-[#1F2635]"
+                    )}
+                    style={{ animationDelay: `${(i % 10) * 30}ms` }}
+                  >
+                    {/* Front of Card (Always visible) */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between px-5 py-4 gap-4">
+                      <div className="flex items-start gap-4 min-w-0 flex-1 cursor-pointer" onClick={() => toggleExpand(card.id)}>
+                        <div className="flex flex-col gap-1.5 items-center mt-0.5">
+                          <div className={cn(
+                            "flex h-6 w-11 shrink-0 items-center justify-center rounded font-mono text-[11px] font-bold border transition-colors",
+                            isExpanded ? "bg-[#00D9FF]/10 text-[#00D9FF] border-[#00D9FF]/30" : "bg-[#252D3D] text-[#7A8394] border-[#2A3142]"
+                          )}>
+                            LN_{String(i + 1).padStart(3, '0')}
+                          </div>
+                        </div>
+                        
+                        <div className="min-w-0 flex-1">
+                          <div className="prose prose-sm prose-invert max-w-none text-[#E8EAED] text-sm font-medium markdown-content line-clamp-3">
+                            <ReactMarkdown 
+                              remarkPlugins={[remarkMath]} 
+                              rehypePlugins={[rehypeKatex]}
+                            >
+                              {card.front}
+                            </ReactMarkdown>
+                          </div>
+                          
+                          {/* Mock Tags */}
+                          <div className="flex items-center gap-1.5 mt-2.5">
+                            {mockTags.map(tag => (
+                              <span key={tag} className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-[#252D3D] border border-[#2A3142] text-[9px] font-mono text-[#7A8394] uppercase tracking-wider">
+                                <Hash className="w-2.5 h-2.5" />
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-auto">
+                        <button 
+                          onClick={() => toggleExpand(card.id)} 
+                          className="flex h-8 px-2.5 items-center justify-center gap-1.5 rounded-md bg-[#252D3D] border border-[#2A3142] text-[#7A8394] hover:text-[#E8EAED] hover:bg-[#2A3142] transition-colors font-mono text-[10px] font-bold mr-2" 
                         >
-                          {card.front}
-                        </ReactMarkdown>
+                          {isExpanded ? (
+                            <><ChevronUp className="h-3.5 w-3.5" /> FOLD</>
+                          ) : (
+                            <><ChevronDown className="h-3.5 w-3.5" /> EXPAND</>
+                          )}
+                        </button>
+
+                        {isLoggedIn && showEditsModal && (
+                          <div className="flex items-center gap-1.5 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button 
+                              onClick={() => setEditCard(card)} 
+                              className="flex h-8 w-8 items-center justify-center rounded-md bg-[#252D3D] border border-[#2A3142] text-[#7A8394] hover:text-[#00D9FF] hover:border-[#00D9FF]/30 transition-colors" 
+                              aria-label="Edit item lines"
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </button>
+                            <button 
+                              onClick={() => setDeleteTarget(card.id)} 
+                              className="flex h-8 w-8 items-center justify-center rounded-md bg-[#252D3D] border border-[#2A3142] text-[#7A8394] hover:text-red-400 hover:border-red-500/30 transition-colors" 
+                              aria-label="Terminate row sequence"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
-                  </div>
 
-                  {isLoggedIn && showEditsModal && (
-                    <div className="flex items-center gap-1.5 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity shrink-0 self-end sm:self-auto">
-                      <button 
-                        onClick={() => setEditCard(card)} 
-                        className="flex h-8 w-8 items-center justify-center rounded-md bg-[#252D3D] border border-[#2A3142] text-[#7A8394] hover:text-[#00D9FF] hover:border-[#00D9FF]/30 transition-colors" 
-                        aria-label="Edit item lines"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </button>
-                      <button 
-                        onClick={() => setDeleteTarget(card.id)} 
-                        className="flex h-8 w-8 items-center justify-center rounded-md bg-[#252D3D] border border-[#2A3142] text-[#7A8394] hover:text-red-400 hover:border-red-500/30 transition-colors" 
-                        aria-label="Terminate row sequence"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ))}
+                    {/* Back of Card (Expanded Payload) */}
+                    {isExpanded && (
+                      <div className="border-t border-[#2A3142] bg-[#12161F] px-5 py-4 pb-5">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Terminal className="w-3.5 h-3.5 text-[#4ADE80]" />
+                          <span className="text-[10px] font-mono font-bold text-[#7A8394] tracking-wider uppercase">Returned Payload (Answer)</span>
+                        </div>
+                        <div className="pl-5 border-l-2 border-[#2A3142] ml-1.5 prose prose-sm prose-invert max-w-none text-[#E8EAED] text-sm font-medium markdown-content">
+                          <ReactMarkdown 
+                            remarkPlugins={[remarkMath]} 
+                            rehypePlugins={[rehypeKatex]}
+                          >
+                            {card.back}
+                          </ReactMarkdown>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
@@ -425,7 +550,7 @@ export default function DeckPage({ params }: PageProps) {
       {deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in" role="dialog" aria-modal="true">
           <div 
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm" 
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm" 
             onClick={() => setDeleteTarget(null)} 
             aria-hidden="true" 
           />
@@ -499,15 +624,6 @@ export default function DeckPage({ params }: PageProps) {
         .animate-slide-up { animation: slide-up 0.4s ease-out backwards; }
         .animate-scale-in { animation: scale-in 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
       `}</style>
-    </div>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="flex flex-col">
-      <span className="text-xl font-mono font-bold text-[#E8EAED] tabular-nums leading-none mb-1">{value}</span>
-      <span className="text-[10px] font-mono font-bold text-[#7A8394] uppercase tracking-wider">{label}</span>
     </div>
   );
 }
